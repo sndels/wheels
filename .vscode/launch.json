@@ -8,7 +8,7 @@
             "name": "MSbuild all",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Release/allocators_test.exe",
+            "program": "${workspaceFolder}/build/Release/wheels_test.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -20,7 +20,7 @@
             "name": "MSbuild bench",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Release/allocators_test.exe",
+            "program": "${workspaceFolder}/build/Release/wheels_test.exe",
             "args": [
                 "[bench]"
             ],
@@ -34,7 +34,7 @@
             "name": "MSbuild tests (Release)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Release/allocators_test.exe",
+            "program": "${workspaceFolder}/build/Release/wheels_test.exe",
             "args": [
                 "[test]"
             ],
@@ -48,7 +48,7 @@
             "name": "MSbuild tests (Debug)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Debug/allocators_test.exe",
+            "program": "${workspaceFolder}/build/Debug/wheels_test.exe",
             "args": [
                 "[test]"
             ],
@@ -62,7 +62,7 @@
             "name": "lldb tests (Debug)",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/allocators_test",
+            "program": "${workspaceFolder}/build/wheels_test",
             "args": [
                 "[test]"
             ],
@@ -74,7 +74,7 @@
             "name": "lldb bench (Debug)",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/allocators_test",
+            "program": "${workspaceFolder}/build/wheels_test",
             "args": [
                 "[bench]"
             ],
@@ -86,7 +86,7 @@
             "name": "lldb all (Debug)",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/allocators_test",
+            "program": "${workspaceFolder}/build/wheels_test",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",

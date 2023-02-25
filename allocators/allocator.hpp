@@ -1,5 +1,8 @@
-#ifndef ALLOCATORS_ALLOCATOR_HPP
-#define ALLOCATORS_ALLOCATOR_HPP
+#ifndef WHEELS_ALLOCATOR_HPP
+#define WHEELS_ALLOCATOR_HPP
+
+namespace wheels
+{
 
 class Allocator
 {
@@ -9,4 +12,6 @@ class Allocator
     virtual void deallocate(void *ptr) = 0;
 };
 
-#endif // ALLOCATORS_ALLOCATOR_HPP
+} // namespace wheels
+
+#endif // WHEELS_ALLOCATOR_HPP

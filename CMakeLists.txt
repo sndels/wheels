@@ -1,28 +1,31 @@
 cmake_minimum_required(VERSION 3.20)
-project(allocators)
+project(wheels)
 
 add_subdirectory(ext)
 
-add_library(allocators INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/allocator.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/linear_allocator.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/utils.hpp
+add_library(wheels INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/allocators/allocator.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/allocators/linear_allocator.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/allocators/scoped_scratch.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/allocators/utils.hpp
 )
 
-target_include_directories(allocators
+target_include_directories(wheels
     INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-add_executable(allocators_test ${CMAKE_CURRENT_LIST_DIR}/test.cpp)
-target_compile_features(allocators_test
+add_executable(wheels_test
+    ${CMAKE_CURRENT_LIST_DIR}/allocators/test.cpp
+)
+target_compile_features(wheels_test
     PUBLIC
     cxx_std_20
 )
 
 if(MSVC)
     # From cppbestpractices
-    target_compile_options(allocators_test
+    target_compile_options(wheels_test
         PRIVATE
         /permissive-
         /W4
@@ -47,7 +50,7 @@ if(MSVC)
         /w14928
     )
 else()
-    target_compile_options(allocators_test
+    target_compile_options(wheels_test
         PRIVATE
         -pedantic
         -Wall
@@ -56,4 +59,4 @@ else()
     )
 endif() # NOT MSVC
 
-target_link_libraries(allocators_test PRIVATE allocators Catch2WithMain)
+target_link_libraries(wheels_test PRIVATE wheels Catch2WithMain)

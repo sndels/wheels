@@ -1,5 +1,5 @@
-#ifndef ALLOCATORS_LINEAR_ALLOCATOR_HPP
-#define ALLOCATORS_LINEAR_ALLOCATOR_HPP
+#ifndef WHEELS_LINEAR_ALLOCATOR_HPP
+#define WHEELS_LINEAR_ALLOCATOR_HPP
 
 #include "allocator.hpp"
 #include "utils.hpp"
@@ -7,6 +7,9 @@
 #include <cassert>
 #include <climits>
 #include <cstdint>
+
+namespace wheels
+{
 
 class ScopedScratch;
 
@@ -65,4 +68,6 @@ class LinearAllocator : public Allocator
     size_t m_capacity{0};
 };
 
-#endif // ALLOCATORS_LINEAR_ALLOCATOR_HPP
+} // namespace wheels
+
+#endif // WHEELS_LINEAR_ALLOCATOR_HPP

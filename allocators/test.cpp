@@ -4,6 +4,8 @@
 #include "scoped_scratch.hpp"
 #include "utils.hpp"
 
+using namespace wheels;
+
 TEST_CASE("aligned_offset", "[test]")
 {
     REQUIRE(aligned_offset(0, 8) == 0);

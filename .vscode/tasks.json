@@ -17,7 +17,7 @@
                 // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary",
                 "/property:Configuration=Release",
-                "allocators_test.vcxproj"
+                "wheels_test.vcxproj"
             ],
             "group": "build",
             "presentation": {
@@ -43,7 +43,7 @@
                 // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary",
                 "/property:Configuration=Debug",
-                "allocators_test.vcxproj"
+                "wheels_test.vcxproj"
             ],
             "group": "build",
             "presentation": {
@@ -70,7 +70,7 @@
                 // Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 "/consoleloggerparameters:NoSummary",
                 "/property:Configuration=Debug",
-                "allocators_test.vcxproj"
+                "wheels_test.vcxproj"
             ],
             "group": "build",
             "presentation": {
@@ -92,7 +92,7 @@
             "command": "make",
             "args": [
                 "-j",
-                "allocators_test"
+                "wheels_test"
             ],
             "group": "build",
             "presentation": {

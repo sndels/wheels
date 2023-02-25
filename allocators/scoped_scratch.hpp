@@ -1,5 +1,5 @@
-#ifndef ALLOCATORS_SCOPED_SCRATCH_HPP
-#define ALLOCATORS_SCOPED_SCRATCH_HPP
+#ifndef WHEELS_SCOPED_SCRATCH_HPP
+#define WHEELS_SCOPED_SCRATCH_HPP
 
 #include "linear_allocator.hpp"
 #include "utils.hpp"
@@ -10,6 +10,9 @@
 
 // Implements Frostbite's Scope Stack:
 // https://www.ea.com/frostbite/news/scope-stack-allocation
+
+namespace wheels
+{
 
 struct ScopeData
 {
@@ -121,4 +124,6 @@ class ScopedScratch
     ScopeData *m_objects{nullptr};
 };
 
-#endif // ALLOCATORS_SCOPED_SCRATCH_HPP
+} // namespace wheels
+
+#endif // WHEELS_SCOPED_SCRATCH_HPP
