@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "cstdlib_allocator.hpp"
 #include "linear_allocator.hpp"
 #include "scoped_scratch.hpp"
 #include "utils.hpp"
@@ -152,4 +153,18 @@ TEST_CASE("ScopedScratch::child_scopes", "[test]")
         REQUIRE(Obj::s_dtor_counter == 2);
     }
     REQUIRE(Obj::s_dtor_counter == 3);
+}
+
+TEST_CASE("CstdlibAllocator", "[test]")
+{
+    CstdlibAllocator allocator;
+
+    uint8_t *alloc = (uint8_t *)allocator.allocate(2048);
+    REQUIRE(alloc != nullptr);
+    memset(alloc, 0, 2048);
+    alloc[0] = 0x12;
+    alloc[2047] = 0x23;
+    assert(alloc[0] == 0x12);
+    assert(alloc[2047] == 0x23);
+    allocator.deallocate(alloc);
 }
