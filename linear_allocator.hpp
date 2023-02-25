@@ -8,6 +8,8 @@
 #include <climits>
 #include <cstdint>
 
+class ScopedScratch;
+
 class LinearAllocator : public Allocator
 {
   public:
@@ -51,6 +53,11 @@ class LinearAllocator : public Allocator
             "allocator");
         m_offset = (uint8_t *)ptr - m_memory;
     }
+
+    friend class ScopedScratch;
+
+  protected:
+    void *peek() const { return m_memory; };
 
   private:
     uint8_t *m_memory{nullptr};

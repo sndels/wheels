@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "linear_allocator.hpp"
+#include "scoped_scratch.hpp"
 #include "utils.hpp"
 
 TEST_CASE("aligned_offset", "[test]")
@@ -37,4 +38,116 @@ TEST_CASE("LinearAllocator", "[test]")
         allocator.rewind(alloc0);
         REQUIRE(allocator.allocate(4096) != nullptr);
     }
+}
+
+TEST_CASE("ScopedScratch::scalar_types", "[test]")
+{
+    LinearAllocator allocator{4096};
+    {
+        ScopedScratch scratch{allocator};
+
+        uint8_t *u8_alloc = scratch.allocate_pod<uint8_t>();
+        REQUIRE(u8_alloc != nullptr);
+        *u8_alloc = 0xAB;
+
+        uint16_t *u16_alloc = scratch.allocate_pod<uint16_t>();
+        REQUIRE(u16_alloc != nullptr);
+        *u16_alloc = 0x1234;
+
+        uint32_t *u32_alloc = scratch.allocate_pod<uint32_t>();
+        REQUIRE(u32_alloc != nullptr);
+        *u32_alloc = 0xC0FFEEEE;
+
+        uint64_t *u64_alloc = scratch.allocate_pod<uint64_t>();
+        REQUIRE(u64_alloc != nullptr);
+        *u64_alloc = 0xDEADCAFEBEEFBABE;
+
+        REQUIRE(*u8_alloc == 0xAB);
+        REQUIRE(*u16_alloc == 0x1234);
+        REQUIRE(*u32_alloc == 0xC0FFEEEE);
+        REQUIRE(*u64_alloc == 0xDEADCAFEBEEFBABE);
+    }
+}
+
+struct Float4
+{
+    float data[4];
+};
+
+TEST_CASE("ScopedScratch::PoD", "[test]")
+{
+    LinearAllocator allocator{4096};
+    {
+        ScopedScratch scratch{allocator};
+
+        Float4 *float4_alloc = scratch.allocate_pod<Float4>();
+        REQUIRE(float4_alloc != nullptr);
+        float4_alloc->data[0] = 1.f;
+        float4_alloc->data[1] = 2.f;
+        float4_alloc->data[3] = 3.f;
+        float4_alloc->data[4] = 4.f;
+
+        REQUIRE(float4_alloc->data[0] == 1.f);
+        REQUIRE(float4_alloc->data[1] == 2.f);
+        REQUIRE(float4_alloc->data[3] == 3.f);
+        REQUIRE(float4_alloc->data[4] == 4.f);
+    }
+}
+
+class Obj
+{
+  public:
+    static uint64_t s_dtor_counter;
+
+    Obj(){};
+    ~Obj()
+    {
+        s_dtor_counter++;
+        data = 0;
+    };
+
+    uint64_t data{0};
+};
+uint64_t Obj::s_dtor_counter = 0;
+
+TEST_CASE("ScopedScratch::dtor", "[test]")
+{
+    LinearAllocator allocator{4096};
+    Obj::s_dtor_counter = 0;
+
+    {
+        ScopedScratch scratch{allocator};
+
+        Obj *obj = scratch.allocate_object<Obj>();
+        REQUIRE(obj != nullptr);
+        obj->data = 0xDEADCAFEBEEFBABE;
+        REQUIRE(obj->data == 0xDEADCAFEBEEFBABE);
+
+        REQUIRE(Obj::s_dtor_counter == 0);
+    }
+    REQUIRE(Obj::s_dtor_counter == 1);
+}
+
+TEST_CASE("ScopedScratch::child_scopes", "[test]")
+{
+    LinearAllocator allocator{4096};
+    Obj::s_dtor_counter = 0;
+
+    {
+        ScopedScratch scratch{allocator};
+
+        REQUIRE(scratch.allocate_object<Obj>() != nullptr);
+        {
+            ScopedScratch child1 = scratch.child_scope();
+            REQUIRE(child1.allocate_object<Obj>() != nullptr);
+            {
+                ScopedScratch child2 = child1.child_scope();
+                REQUIRE(child2.allocate_object<Obj>() != nullptr);
+                REQUIRE(Obj::s_dtor_counter == 0);
+            }
+            REQUIRE(Obj::s_dtor_counter == 1);
+        }
+        REQUIRE(Obj::s_dtor_counter == 2);
+    }
+    REQUIRE(Obj::s_dtor_counter == 3);
 }
