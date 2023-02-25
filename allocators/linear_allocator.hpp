@@ -29,13 +29,13 @@ class LinearAllocator : public Allocator
     LinearAllocator &operator=(LinearAllocator const &) = delete;
     LinearAllocator &operator=(LinearAllocator &&) = delete;
 
-    virtual void *allocate(size_t nBytes) override
+    virtual void *allocate(size_t num_bytes) override
     {
         size_t const ret_offset =
             aligned_offset(m_offset, alignof(std::max_align_t));
-        assert(SIZE_MAX - nBytes > ret_offset);
+        assert(SIZE_MAX - num_bytes > ret_offset);
 
-        size_t const new_offset = ret_offset + nBytes;
+        size_t const new_offset = ret_offset + num_bytes;
         if (new_offset > m_capacity)
             return nullptr;
 
