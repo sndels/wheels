@@ -130,13 +130,11 @@ template <typename T, size_t N> T const &StaticArray<T, N>::back() const
 
 template <typename T, size_t N> T *StaticArray<T, N>::data()
 {
-    assert(m_size > 0);
     return ((T *)m_data);
 }
 
 template <typename T, size_t N> T const *StaticArray<T, N>::data() const
 {
-    assert(m_size > 0);
     return ((T *)m_data);
 }
 

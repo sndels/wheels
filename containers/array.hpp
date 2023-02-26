@@ -131,17 +131,9 @@ template <typename T> T const &Array<T>::back() const
     return m_data[m_size - 1];
 }
 
-template <typename T> T *Array<T>::data()
-{
-    assert(m_size > 0);
-    return m_data;
-}
+template <typename T> T *Array<T>::data() { return m_data; }
 
-template <typename T> T const *Array<T>::data() const
-{
-    assert(m_size > 0);
-    return m_data;
-}
+template <typename T> T const *Array<T>::data() const { return m_data; }
 
 template <typename T> T *Array<T>::begin() { return m_data; }
 
