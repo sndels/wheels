@@ -41,7 +41,7 @@ template <typename T, size_t N> SmallSet<T, N>::~SmallSet() { clear(); }
 
 template <typename T, size_t N>
 SmallSet<T, N>::SmallSet(SmallSet<T, N> const &other)
-: m_data{other.data}
+: m_data{other.m_data}
 {
 }
 
