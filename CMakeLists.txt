@@ -10,6 +10,7 @@ add_library(wheels INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/allocators/scoped_scratch.hpp
     ${CMAKE_CURRENT_LIST_DIR}/allocators/utils.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/array.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/containers/pair.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/small_set.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/static_array.hpp
 )

@@ -2,6 +2,7 @@
 
 #include "allocators/cstdlib_allocator.hpp"
 #include "array.hpp"
+#include "pair.hpp"
 #include "small_set.hpp"
 #include "static_array.hpp"
 
@@ -726,4 +727,21 @@ TEST_CASE("SmallSet::aligned", "[test]")
     for (auto const &v : set)
         sum += v.value;
     REQUIRE(sum == 30);
+}
+
+TEST_CASE("Pair", "[test]")
+{
+    Pair<uint32_t, uint16_t> p0{0xDEADCAFE, 0x1234};
+    Pair<uint32_t, uint16_t> p1{0xDEADCAFE, 0x1234};
+    Pair<uint32_t, uint16_t> p2{0xDEADCAFE, 0xABCD};
+    Pair<uint32_t, uint16_t> p3 =
+        make_pair((uint32_t)0xC0FFEEEE, (uint16_t)0x1234);
+
+    REQUIRE(p0.first == 0xDEADCAFE);
+    REQUIRE(p0.second == 0x1234);
+    REQUIRE(p3.first == 0xC0FFEEEE);
+    REQUIRE(p3.second == 0x1234);
+    REQUIRE(p0 == p1);
+    REQUIRE(p0 != p2);
+    REQUIRE(p0 != p3);
 }
