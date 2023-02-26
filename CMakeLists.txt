@@ -8,6 +8,7 @@ add_library(wheels INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/allocators/linear_allocator.hpp
     ${CMAKE_CURRENT_LIST_DIR}/allocators/scoped_scratch.hpp
     ${CMAKE_CURRENT_LIST_DIR}/allocators/utils.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/containers/array.hpp
 )
 
 target_include_directories(wheels
@@ -17,6 +18,7 @@ target_include_directories(wheels
 
 add_executable(wheels_test
     ${CMAKE_CURRENT_LIST_DIR}/allocators/test.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/containers/test.cpp
 )
 target_compile_features(wheels_test
     PUBLIC
