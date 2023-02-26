@@ -17,7 +17,7 @@ namespace wheels
 struct ScopeData
 {
     // The Frostbite slides infer the data pointer from the scope address, but
-    // let's just have the extra 8 bytes for now as it's should be safe
+    // let's just have the extra 8 bytes for now as it should be safe
     // everywhere.
     void *data{nullptr};
     void (*dtor)(void *ptr);
