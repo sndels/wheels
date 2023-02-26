@@ -105,7 +105,7 @@ template <typename T, size_t N> size_t SmallSet<T, N>::capacity() const
 }
 
 template <typename T, size_t N>
-bool SmallSet<T, N>::contains(const T &value) const
+bool SmallSet<T, N>::contains(T const &value) const
 {
     for (auto const &v : m_data)
     {
@@ -118,14 +118,14 @@ bool SmallSet<T, N>::contains(const T &value) const
 
 template <typename T, size_t N> void SmallSet<T, N>::clear() { m_data.clear(); }
 
-template <typename T, size_t N> void SmallSet<T, N>::insert(const T &value)
+template <typename T, size_t N> void SmallSet<T, N>::insert(T const &value)
 {
     if (contains(value))
         return;
     m_data.push_back(value);
 }
 
-template <typename T, size_t N> void SmallSet<T, N>::remove(const T &value)
+template <typename T, size_t N> void SmallSet<T, N>::remove(T const &value)
 {
     for (auto &v : m_data)
     {

@@ -35,7 +35,7 @@ template <typename T, size_t N> class StaticArray
     size_t capacity() const;
 
     void clear();
-    void push_back(const T &value);
+    void push_back(T const &value);
     template <typename... Args> void emplace_back(Args const &...args);
     T pop_back();
     void resize(size_t size);
@@ -181,7 +181,7 @@ template <typename T, size_t N> void StaticArray<T, N>::clear()
 }
 
 template <typename T, size_t N>
-void StaticArray<T, N>::push_back(const T &value)
+void StaticArray<T, N>::push_back(T const &value)
 {
     assert(m_size < N);
     ((T *)m_data)[m_size++] = value;
