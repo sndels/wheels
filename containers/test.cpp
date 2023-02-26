@@ -10,6 +10,18 @@ using namespace wheels;
 namespace
 {
 
+struct alignas(std::max_align_t) AlignedObj
+{
+    uint32_t value{0};
+    uint8_t _padding[alignof(std::max_align_t) - sizeof(uint32_t)];
+};
+static_assert(alignof(AlignedObj) > alignof(uint32_t));
+
+bool operator==(AlignedObj const &lhs, AlignedObj const &rhs)
+{
+    return lhs.value == rhs.value;
+}
+
 class DtorObj
 {
   public:
@@ -373,6 +385,21 @@ TEST_CASE("Array::range_for", "[test]")
     REQUIRE(sum == 63);
 }
 
+TEST_CASE("Array::aligned", "[test]")
+{
+    CstdlibAllocator allocator;
+
+    Array<AlignedObj> arr{allocator, 0};
+
+    arr.push_back({10});
+    arr.push_back({20});
+
+    REQUIRE((std::uintptr_t)&arr[0].value % alignof(AlignedObj) == 0);
+    REQUIRE((std::uintptr_t)&arr[1].value % alignof(AlignedObj) == 0);
+    REQUIRE(arr[0].value == 10);
+    REQUIRE(arr[1].value == 20);
+}
+
 TEST_CASE("StaticArray::allocate_copy", "[test]")
 {
     StaticArray<uint32_t, 3> arr;
@@ -565,6 +592,21 @@ TEST_CASE("StaticArray::range_for", "[test]")
     REQUIRE(sum == 63);
 }
 
+TEST_CASE("StaticArray::aligned", "[test]")
+{
+    CstdlibAllocator allocator;
+
+    StaticArray<AlignedObj, 2> arr;
+
+    arr.push_back({10});
+    arr.push_back({20});
+
+    REQUIRE((std::uintptr_t)&arr[0].value % alignof(AlignedObj) == 0);
+    REQUIRE((std::uintptr_t)&arr[1].value % alignof(AlignedObj) == 0);
+    REQUIRE(arr[0].value == 10);
+    REQUIRE(arr[1].value == 20);
+}
+
 TEST_CASE("SmallSet::allocate_copy", "[test]")
 {
     SmallSet<uint32_t, 3> set;
@@ -666,4 +708,22 @@ TEST_CASE("SmallSet::range_for", "[test]")
     for (auto const &v : set_const)
         sum += v;
     REQUIRE(sum == 63);
+}
+
+TEST_CASE("SmallSet::aligned", "[test]")
+{
+    CstdlibAllocator allocator;
+
+    SmallSet<AlignedObj, 2> set;
+
+    set.insert({10});
+    set.insert({20});
+
+    REQUIRE(set.contains({10}));
+    REQUIRE(set.contains({20}));
+
+    uint32_t sum = 0;
+    for (auto const &v : set)
+        sum += v.value;
+    REQUIRE(sum == 30);
 }

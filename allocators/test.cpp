@@ -7,8 +7,17 @@
 
 using namespace wheels;
 
-// TODO:
-// - Test types with std::max_align_t alignment
+namespace
+{
+
+struct alignas(std::max_align_t) AlignedObj
+{
+    uint32_t value{0};
+    uint8_t _padding[alignof(std::max_align_t) - sizeof(uint32_t)];
+};
+static_assert(alignof(AlignedObj) > alignof(uint32_t));
+
+} // namespace
 
 TEST_CASE("aligned_offset", "[test]")
 {
@@ -44,6 +53,22 @@ TEST_CASE("LinearAllocator", "[test]")
         allocator.rewind(alloc0);
         REQUIRE(allocator.allocate(4096) != nullptr);
     }
+}
+
+TEST_CASE("LinearAllocator::aligned_PoD", "[test]")
+{
+    LinearAllocator allocator{4096};
+
+    AlignedObj *aligned_alloc0 =
+        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+    uint8_t *u8_alloc = (uint8_t *)allocator.allocate(sizeof(uint8_t));
+    AlignedObj *aligned_alloc1 =
+        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+    REQUIRE(aligned_alloc0 != nullptr);
+    REQUIRE(u8_alloc != nullptr);
+    REQUIRE(aligned_alloc1 != nullptr);
+    REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
+    REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
 }
 
 TEST_CASE("ScopedScratch::scalar_types", "[test]")
@@ -97,6 +122,23 @@ TEST_CASE("ScopedScratch::PoD", "[test]")
         REQUIRE(float4_alloc->data[1] == 2.f);
         REQUIRE(float4_alloc->data[3] == 3.f);
         REQUIRE(float4_alloc->data[4] == 4.f);
+    }
+}
+
+TEST_CASE("ScopedScratch::aligned_PoD", "[test]")
+{
+    LinearAllocator allocator{4096};
+    {
+        ScopedScratch scratch{allocator};
+
+        AlignedObj *aligned_alloc0 = scratch.allocate_pod<AlignedObj>();
+        uint8_t *u8_alloc = scratch.allocate_pod<uint8_t>();
+        AlignedObj *aligned_alloc1 = scratch.allocate_pod<AlignedObj>();
+        REQUIRE(aligned_alloc0 != nullptr);
+        REQUIRE(u8_alloc != nullptr);
+        REQUIRE(aligned_alloc1 != nullptr);
+        REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
+        REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
     }
 }
 
@@ -170,4 +212,19 @@ TEST_CASE("CstdlibAllocator", "[test]")
     assert(alloc[0] == 0x12);
     assert(alloc[2047] == 0x23);
     allocator.deallocate(alloc);
+
+    AlignedObj *aligned_alloc0 =
+        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+    uint8_t *u8_alloc = (uint8_t *)allocator.allocate(sizeof(uint8_t));
+    AlignedObj *aligned_alloc1 =
+        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+    REQUIRE(aligned_alloc0 != nullptr);
+    REQUIRE(u8_alloc != nullptr);
+    REQUIRE(aligned_alloc1 != nullptr);
+    REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
+    REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
+
+    allocator.deallocate(aligned_alloc1);
+    allocator.deallocate(u8_alloc);
+    allocator.deallocate(aligned_alloc0);
 }
