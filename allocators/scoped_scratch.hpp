@@ -81,6 +81,9 @@ class ScopedScratch
 
     template <typename T> T *allocate_pod()
     {
+        static_assert(
+            alignof(T) <= alignof(std::max_align_t) &&
+            "Aligned allocations beyond std::max_align_t aren't supported");
         assert(
             !m_has_child_scope &&
             "Tried to allocate from a ScopedScratch that has a child scope");
@@ -90,6 +93,9 @@ class ScopedScratch
 
     template <typename T> T *allocate_object()
     {
+        static_assert(
+            alignof(T) <= alignof(std::max_align_t) &&
+            "Aligned allocations beyond std::max_align_t aren't supported");
         assert(
             !m_has_child_scope &&
             "Tried to allocate from a ScopedScratch that has a child scope");
