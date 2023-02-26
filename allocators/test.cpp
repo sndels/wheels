@@ -115,13 +115,13 @@ TEST_CASE("ScopedScratch::PoD", "[test]")
         REQUIRE(float4_alloc != nullptr);
         float4_alloc->data[0] = 1.f;
         float4_alloc->data[1] = 2.f;
-        float4_alloc->data[3] = 3.f;
-        float4_alloc->data[4] = 4.f;
+        float4_alloc->data[2] = 3.f;
+        float4_alloc->data[3] = 4.f;
 
         REQUIRE(float4_alloc->data[0] == 1.f);
         REQUIRE(float4_alloc->data[1] == 2.f);
-        REQUIRE(float4_alloc->data[3] == 3.f);
-        REQUIRE(float4_alloc->data[4] == 4.f);
+        REQUIRE(float4_alloc->data[2] == 3.f);
+        REQUIRE(float4_alloc->data[3] == 4.f);
     }
 }
 
