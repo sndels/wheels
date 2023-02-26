@@ -178,15 +178,22 @@ TEST_CASE("Array::allocate_copy", "[test]")
     REQUIRE(arr[1] == 20);
     REQUIRE(arr[2] == 30);
 
+    size_t const arr_capacity = arr.capacity();
     Array<uint32_t> arr_move_constructed{std::move(arr)};
     REQUIRE(arr_move_constructed[0] == 10);
+    REQUIRE(arr_move_constructed[1] == 20);
     REQUIRE(arr_move_constructed[2] == 30);
+    REQUIRE(arr_move_constructed.size() == 3);
+    REQUIRE(arr_move_constructed.capacity() == arr_capacity);
 
     Array<uint32_t> arr_move_assigned{allocator, 1};
     arr_move_assigned = std::move(arr_move_constructed);
     arr_move_assigned = std::move(arr_move_assigned);
     REQUIRE(arr_move_assigned[0] == 10);
+    REQUIRE(arr_move_assigned[1] == 20);
     REQUIRE(arr_move_assigned[2] == 30);
+    REQUIRE(arr_move_assigned.size() == 3);
+    REQUIRE(arr_move_assigned.capacity() == arr_capacity);
 }
 
 TEST_CASE("Array::reserve", "[test]")
@@ -403,10 +410,10 @@ TEST_CASE("Array::aligned", "[test]")
 
 TEST_CASE("StaticArray::allocate_copy", "[test]")
 {
-    StaticArray<uint32_t, 3> arr;
+    StaticArray<uint32_t, 4> arr;
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
-    REQUIRE(arr.capacity() == 3);
+    REQUIRE(arr.capacity() == 4);
 
     arr.push_back(10);
     arr.push_back(20);
@@ -418,15 +425,37 @@ TEST_CASE("StaticArray::allocate_copy", "[test]")
     REQUIRE(arr[1] == 20);
     REQUIRE(arr[2] == 30);
 
-    StaticArray<uint32_t, 3> arr_move_constructed{std::move(arr)};
-    REQUIRE(arr_move_constructed[0] == 10);
-    REQUIRE(arr_move_constructed[2] == 30);
+    StaticArray<uint32_t, 4> arr_copy_constructed{arr};
+    REQUIRE(arr_copy_constructed[0] == 10);
+    REQUIRE(arr_copy_constructed[1] == 20);
+    REQUIRE(arr_copy_constructed[2] == 30);
+    REQUIRE(arr_copy_constructed.size() == 3);
+    REQUIRE(arr_copy_constructed.capacity() == 4);
 
-    StaticArray<uint32_t, 3> arr_move_assigned;
+    StaticArray<uint32_t, 4> arr_copy_assigned;
+    arr_copy_assigned = arr;
+    arr_copy_assigned = std::move(arr_copy_assigned);
+    REQUIRE(arr_copy_assigned[0] == 10);
+    REQUIRE(arr_copy_assigned[1] == 20);
+    REQUIRE(arr_copy_assigned[2] == 30);
+    REQUIRE(arr_copy_assigned.size() == 3);
+    REQUIRE(arr_copy_assigned.capacity() == 4);
+
+    StaticArray<uint32_t, 4> arr_move_constructed{std::move(arr)};
+    REQUIRE(arr_move_constructed[0] == 10);
+    REQUIRE(arr_move_constructed[1] == 20);
+    REQUIRE(arr_move_constructed[2] == 30);
+    REQUIRE(arr_move_constructed.size() == 3);
+    REQUIRE(arr_move_constructed.capacity() == 4);
+
+    StaticArray<uint32_t, 4> arr_move_assigned;
     arr_move_assigned = std::move(arr_move_constructed);
     arr_move_assigned = std::move(arr_move_assigned);
     REQUIRE(arr_move_assigned[0] == 10);
+    REQUIRE(arr_move_assigned[1] == 20);
     REQUIRE(arr_move_assigned[2] == 30);
+    REQUIRE(arr_move_assigned.size() == 3);
+    REQUIRE(arr_move_assigned.capacity() == 4);
 }
 
 TEST_CASE("StaticArray::front_back", "[test]")
@@ -610,10 +639,10 @@ TEST_CASE("StaticArray::aligned", "[test]")
 
 TEST_CASE("SmallSet::allocate_copy", "[test]")
 {
-    SmallSet<uint32_t, 3> set;
+    SmallSet<uint32_t, 4> set;
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
-    REQUIRE(set.capacity() == 3);
+    REQUIRE(set.capacity() == 4);
 
     set.insert(10);
     set.insert(20);
@@ -626,19 +655,37 @@ TEST_CASE("SmallSet::allocate_copy", "[test]")
     REQUIRE(set.contains(30));
     REQUIRE(!set.contains(40));
 
-    SmallSet<uint32_t, 3> set_move_constructed{std::move(set)};
+    SmallSet<uint32_t, 4> set_copy_constructed{set};
+    REQUIRE(set_copy_constructed.contains(10));
+    REQUIRE(set_copy_constructed.contains(20));
+    REQUIRE(set_copy_constructed.contains(30));
+    REQUIRE(set_copy_constructed.size() == 3);
+    REQUIRE(set_copy_constructed.capacity() == 4);
+
+    SmallSet<uint32_t, 4> set_copy_assigned;
+    set_copy_assigned = set_copy_constructed;
+    set_copy_assigned = set_copy_assigned;
+    REQUIRE(set_copy_assigned.contains(10));
+    REQUIRE(set_copy_assigned.contains(20));
+    REQUIRE(set_copy_assigned.contains(30));
+    REQUIRE(set_copy_assigned.size() == 3);
+    REQUIRE(set_copy_assigned.capacity() == 4);
+
+    SmallSet<uint32_t, 4> set_move_constructed{std::move(set)};
     REQUIRE(set_move_constructed.contains(10));
     REQUIRE(set_move_constructed.contains(20));
     REQUIRE(set_move_constructed.contains(30));
-    REQUIRE(!set_move_constructed.contains(40));
+    REQUIRE(set_move_constructed.size() == 3);
+    REQUIRE(set_move_constructed.capacity() == 4);
 
-    SmallSet<uint32_t, 3> set_move_assigned;
+    SmallSet<uint32_t, 4> set_move_assigned;
     set_move_assigned = std::move(set_move_constructed);
     set_move_assigned = std::move(set_move_assigned);
     REQUIRE(set_move_assigned.contains(10));
     REQUIRE(set_move_assigned.contains(20));
     REQUIRE(set_move_assigned.contains(30));
-    REQUIRE(!set_move_assigned.contains(40));
+    REQUIRE(set_move_assigned.size() == 3);
+    REQUIRE(set_move_assigned.capacity() == 4);
 }
 
 TEST_CASE("SmallSet::begin_end", "[test]")
