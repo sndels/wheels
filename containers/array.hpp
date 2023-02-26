@@ -58,6 +58,10 @@ template <typename T>
 Array<T>::Array(Allocator &allocator, size_t initial_capacity)
 : m_allocator{allocator}
 {
+    static_assert(
+        alignof(T) <= alignof(std::max_align_t) &&
+        "Aligned allocations beyond std::max_align_t aren't supported");
+
     if (initial_capacity == 0)
         initial_capacity = 4;
     reallocate(initial_capacity);
