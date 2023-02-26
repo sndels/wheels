@@ -14,6 +14,8 @@
 namespace wheels
 {
 
+template <typename T> void scope_dtor_call(void *ptr) { ((T *)ptr)->~T(); }
+
 struct ScopeData
 {
     // The Frostbite slides infer the data pointer from the scope address, but
@@ -132,17 +134,12 @@ template <typename T> T *ScopedScratch::allocate_object()
         return nullptr;
     }
 
-    scope->dtor = &dtor_call<T>;
+    scope->dtor = &scope_dtor_call<T>;
     scope->previous = m_objects;
 
     m_objects = scope;
 
     return (T *)scope->data;
-}
-
-template <typename T> static void ScopedScratch::dtor_call(void *ptr)
-{
-    ((T *)ptr)->~T();
 }
 
 } // namespace wheels
