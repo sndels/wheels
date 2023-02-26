@@ -7,6 +7,9 @@
 
 using namespace wheels;
 
+// TODO:
+// - Test types with std::max_align_t alignment
+
 TEST_CASE("aligned_offset", "[test]")
 {
     REQUIRE(aligned_offset(0, 8) == 0);
