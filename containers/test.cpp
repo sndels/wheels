@@ -2,6 +2,7 @@
 
 #include "allocators/cstdlib_allocator.hpp"
 #include "array.hpp"
+#include "small_set.hpp"
 #include "static_array.hpp"
 
 using namespace wheels;
@@ -69,6 +70,11 @@ class DtorObj
 uint64_t DtorObj::s_dtor_counter = 0;
 uint64_t DtorObj::s_ctor_counter = 0;
 
+bool operator==(DtorObj const &lhs, DtorObj const &rhs)
+{
+    return lhs.data == rhs.data;
+}
+
 Array<uint32_t> init_test_arr_u32(Allocator &allocator, size_t size)
 {
     Array<uint32_t> arr{allocator, size};
@@ -107,6 +113,30 @@ StaticArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
     StaticArray<DtorObj, N> arr;
     for (uint32_t i = 0; i < initial_size; ++i)
         arr.emplace_back(10 * (i + 1));
+
+    return arr;
+}
+
+template <size_t N>
+SmallSet<uint32_t, N> init_test_small_set_u32(size_t initial_size)
+{
+    assert(initial_size <= N);
+
+    SmallSet<uint32_t, N> arr;
+    for (uint32_t i = 0; i < initial_size; ++i)
+        arr.insert(10 * (i + 1));
+
+    return arr;
+}
+
+template <size_t N>
+SmallSet<DtorObj, N> init_test_small_set_dtor(size_t initial_size)
+{
+    assert(initial_size <= N);
+
+    SmallSet<DtorObj, N> arr;
+    for (uint32_t i = 0; i < initial_size; ++i)
+        arr.insert(DtorObj{10 * (i + 1)});
 
     return arr;
 }
@@ -528,6 +558,109 @@ TEST_CASE("StaticArray::range_for", "[test]")
     StaticArray<uint32_t, 5> const &arr_const = arr;
     uint32_t sum = 0;
     for (auto const &v : arr_const)
+        sum += v;
+    REQUIRE(sum == 63);
+}
+
+TEST_CASE("SmallSet::allocate_copy", "[test]")
+{
+    SmallSet<uint32_t, 3> set;
+    REQUIRE(set.empty());
+    REQUIRE(set.size() == 0);
+    REQUIRE(set.capacity() == 3);
+
+    set.insert(10);
+    set.insert(20);
+    set.insert(30);
+    REQUIRE(!set.empty());
+    REQUIRE(set.size() == 3);
+
+    REQUIRE(set.contains(10));
+    REQUIRE(set.contains(20));
+    REQUIRE(set.contains(30));
+    REQUIRE(!set.contains(40));
+
+    SmallSet<uint32_t, 3> set_move_constructed{std::move(set)};
+    REQUIRE(set_move_constructed.contains(10));
+    REQUIRE(set_move_constructed.contains(20));
+    REQUIRE(set_move_constructed.contains(30));
+    REQUIRE(!set_move_constructed.contains(40));
+
+    SmallSet<uint32_t, 3> set_move_assigned;
+    set_move_assigned = std::move(set_move_constructed);
+    set_move_assigned = std::move(set_move_assigned);
+    REQUIRE(set_move_assigned.contains(10));
+    REQUIRE(set_move_assigned.contains(20));
+    REQUIRE(set_move_assigned.contains(30));
+    REQUIRE(!set_move_assigned.contains(40));
+}
+
+TEST_CASE("SmallSet::begin_end", "[test]")
+{
+    SmallSet<uint32_t, 3> set = init_test_small_set_u32<3>(3);
+    REQUIRE(set.size() == 3);
+    REQUIRE(set.begin() == set.end() - 3);
+
+    SmallSet<uint32_t, 3> const &set_const = set;
+    REQUIRE(set_const.begin() == set_const.end() - 3);
+}
+
+TEST_CASE("SmallSet::clear", "[test]")
+{
+    DtorObj::s_ctor_counter = 0;
+    DtorObj::s_dtor_counter = 0;
+    SmallSet<DtorObj, 5> set = init_test_small_set_dtor<5>(5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    // init inserts so the temporary values do get destroyed
+    REQUIRE(DtorObj::s_dtor_counter == 5);
+    REQUIRE(!set.empty());
+    REQUIRE(set.size() == 5);
+    REQUIRE(set.capacity() == 5);
+    set.clear();
+    REQUIRE(set.empty());
+    REQUIRE(set.size() == 0);
+    REQUIRE(set.capacity() == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 10);
+}
+
+TEST_CASE("SmallSet::remove", "[test]")
+{
+    SmallSet<uint32_t, 3> set = init_test_small_set_u32<3>(3);
+    REQUIRE(set.size() == 3);
+    REQUIRE(set.contains(10));
+    set.remove(10);
+    REQUIRE(set.size() == 2);
+    REQUIRE(!set.contains(10));
+    REQUIRE(set.contains(20));
+    REQUIRE(set.contains(30));
+    set.remove(10);
+    REQUIRE(set.size() == 2);
+    REQUIRE(set.contains(20));
+    REQUIRE(set.contains(30));
+}
+
+TEST_CASE("SmallSet::range_for", "[test]")
+{
+    SmallSet<uint32_t, 5> set;
+    // Make sure this skips
+    for (auto &v : set)
+        v++;
+
+    set.insert(10);
+    set.insert(20);
+    set.insert(30);
+
+    for (auto &v : set)
+        v++;
+
+    REQUIRE(set.contains(11));
+    REQUIRE(set.contains(21));
+    REQUIRE(set.contains(31));
+
+    SmallSet<uint32_t, 5> const &set_const = set;
+    uint32_t sum = 0;
+    for (auto const &v : set_const)
         sum += v;
     REQUIRE(sum == 63);
 }
