@@ -16,57 +16,70 @@ class ScopedScratch;
 class LinearAllocator : public Allocator
 {
   public:
-    LinearAllocator(size_t capacity)
-    : m_capacity{capacity}
-    {
-        m_memory = new uint8_t[m_capacity];
-    }
+    LinearAllocator(size_t capacity);
 
-    virtual ~LinearAllocator() { delete[] m_memory; };
+    virtual ~LinearAllocator();
 
     LinearAllocator(LinearAllocator const &) = delete;
     LinearAllocator(LinearAllocator &&) = delete;
     LinearAllocator &operator=(LinearAllocator const &) = delete;
     LinearAllocator &operator=(LinearAllocator &&) = delete;
 
-    virtual void *allocate(size_t num_bytes) override
-    {
-        size_t const ret_offset =
-            aligned_offset(m_offset, alignof(std::max_align_t));
-        assert(SIZE_MAX - num_bytes > ret_offset);
+    virtual void *allocate(size_t num_bytes) override;
 
-        size_t const new_offset = ret_offset + num_bytes;
-        if (new_offset > m_capacity)
-            return nullptr;
+    virtual void deallocate(void *ptr) override;
 
-        m_offset = new_offset;
+    void reset();
 
-        return m_memory + ret_offset;
-    }
-
-    virtual void deallocate(void * /*ptr*/) override { }
-
-    void reset() { m_offset = 0; }
-
-    void rewind(void *ptr)
-    {
-        assert(
-            ptr >= m_memory && ptr < m_memory + m_capacity &&
-            "Tried to rewind to a pointer that doesn't belong to this "
-            "allocator");
-        m_offset = (uint8_t *)ptr - m_memory;
-    }
+    void rewind(void *ptr);
 
     friend class ScopedScratch;
 
   protected:
-    void *peek() const { return m_memory; };
+    void *peek() const;
 
   private:
     uint8_t *m_memory{nullptr};
     size_t m_offset{0};
     size_t m_capacity{0};
 };
+
+LinearAllocator::LinearAllocator(size_t capacity)
+: m_capacity{capacity}
+{
+    m_memory = new uint8_t[m_capacity];
+}
+LinearAllocator::~LinearAllocator() { delete[] m_memory; };
+
+void *LinearAllocator::allocate(size_t num_bytes)
+{
+    size_t const ret_offset =
+        aligned_offset(m_offset, alignof(std::max_align_t));
+    assert(SIZE_MAX - num_bytes > ret_offset);
+
+    size_t const new_offset = ret_offset + num_bytes;
+    if (new_offset > m_capacity)
+        return nullptr;
+
+    m_offset = new_offset;
+
+    return m_memory + ret_offset;
+}
+
+void LinearAllocator::deallocate(void * /*ptr*/) { }
+
+void LinearAllocator::reset() { m_offset = 0; }
+
+void LinearAllocator::rewind(void *ptr)
+{
+    assert(
+        ptr >= m_memory && ptr < m_memory + m_capacity &&
+        "Tried to rewind to a pointer that doesn't belong to this "
+        "allocator");
+    m_offset = (uint8_t *)ptr - m_memory;
+}
+
+void *LinearAllocator::peek() const { return m_memory; };
 
 } // namespace wheels
 
