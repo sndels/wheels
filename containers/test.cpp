@@ -2,6 +2,7 @@
 
 #include "allocators/cstdlib_allocator.hpp"
 #include "array.hpp"
+#include "static_array.hpp"
 
 using namespace wheels;
 
@@ -81,6 +82,30 @@ Array<DtorObj> init_test_arr_dtor(Allocator &allocator, size_t size)
 {
     Array<DtorObj> arr{allocator, size};
     for (uint32_t i = 0; i < size; ++i)
+        arr.emplace_back(10 * (i + 1));
+
+    return arr;
+}
+
+template <size_t N>
+StaticArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
+{
+    assert(initial_size <= N);
+
+    StaticArray<uint32_t, N> arr;
+    for (uint32_t i = 0; i < initial_size; ++i)
+        arr.push_back(10 * (i + 1));
+
+    return arr;
+}
+
+template <size_t N>
+StaticArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
+{
+    assert(initial_size <= N);
+
+    StaticArray<DtorObj, N> arr;
+    for (uint32_t i = 0; i < initial_size; ++i)
         arr.emplace_back(10 * (i + 1));
 
     return arr;
@@ -309,6 +334,198 @@ TEST_CASE("Array::range_for", "[test]")
     REQUIRE(arr[2] == 31);
 
     Array<uint32_t> const &arr_const = arr;
+    uint32_t sum = 0;
+    for (auto const &v : arr_const)
+        sum += v;
+    REQUIRE(sum == 63);
+}
+
+TEST_CASE("StaticArray::allocate_copy", "[test]")
+{
+    StaticArray<uint32_t, 3> arr;
+    REQUIRE(arr.empty());
+    REQUIRE(arr.size() == 0);
+    REQUIRE(arr.capacity() == 3);
+
+    arr.push_back(10);
+    arr.push_back(20);
+    arr.push_back(30);
+    REQUIRE(!arr.empty());
+    REQUIRE(arr.size() == 3);
+
+    REQUIRE(arr[0] == 10);
+    REQUIRE(arr[1] == 20);
+    REQUIRE(arr[2] == 30);
+
+    StaticArray<uint32_t, 3> arr_move_constructed{std::move(arr)};
+    REQUIRE(arr_move_constructed[0] == 10);
+    REQUIRE(arr_move_constructed[2] == 30);
+
+    StaticArray<uint32_t, 3> arr_move_assigned;
+    arr_move_assigned = std::move(arr_move_constructed);
+    arr_move_assigned = std::move(arr_move_assigned);
+    REQUIRE(arr_move_assigned[0] == 10);
+    REQUIRE(arr_move_assigned[2] == 30);
+}
+
+TEST_CASE("StaticArray::front_back", "[test]")
+{
+    StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
+    REQUIRE(arr.front() == 10);
+    REQUIRE(arr.back() == 50);
+
+    StaticArray<uint32_t, 5> const &arr_const = arr;
+    REQUIRE(arr_const.front() == 10);
+    REQUIRE(arr_const.back() == 50);
+}
+
+TEST_CASE("StaticArray::begin_end", "[test]")
+{
+    StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
+    REQUIRE(arr.size() == 5);
+    REQUIRE(arr.begin() == arr.data());
+    REQUIRE(arr.end() == arr.data() + arr.size());
+
+    StaticArray<uint32_t, 5> const &arr_const = arr;
+    REQUIRE(arr_const.begin() == arr_const.data());
+    REQUIRE(arr_const.end() == arr_const.data() + arr_const.size());
+}
+
+TEST_CASE("StaticArray::clear", "[test]")
+{
+    DtorObj::s_ctor_counter = 0;
+    DtorObj::s_dtor_counter = 0;
+    StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(!arr.empty());
+    REQUIRE(arr.size() == 5);
+    REQUIRE(arr.capacity() == 5);
+    arr.clear();
+    REQUIRE(arr.empty());
+    REQUIRE(arr.size() == 0);
+    REQUIRE(arr.capacity() == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 5);
+}
+
+TEST_CASE("StaticArray::emplace", "[test]")
+{
+    class Obj
+    {
+      public:
+        Obj(uint32_t value) { m_data = value; };
+
+        Obj(Obj const &) = delete;
+        Obj(Obj &&) = delete;
+        Obj &operator=(Obj const &) = delete;
+        Obj &operator=(Obj &&) = delete;
+
+        uint32_t m_data{0};
+    };
+
+    StaticArray<Obj, 3> arr;
+    arr.emplace_back(10u);
+    arr.emplace_back(20u);
+    arr.emplace_back(30u);
+    REQUIRE(arr[0].m_data == 10);
+    REQUIRE(arr[1].m_data == 20);
+    REQUIRE(arr[2].m_data == 30);
+    REQUIRE(arr.size() == 3);
+}
+
+TEST_CASE("StaticArray::pop_back", "[test]")
+{
+    class Obj
+    {
+      public:
+        Obj(uint32_t value) { m_data = value; };
+
+        Obj(Obj const &) = delete;
+        Obj(Obj &&other)
+        : m_data{other.m_data} {};
+        Obj &operator=(Obj const &) = delete;
+
+        uint32_t m_data{0};
+    };
+
+    StaticArray<Obj, 1> arr;
+    arr.emplace_back(10u);
+    REQUIRE(arr[0].m_data == 10);
+    REQUIRE(arr.pop_back().m_data == 10);
+    REQUIRE(arr.size() == 0);
+}
+
+TEST_CASE("StaticArray::resize", "[test]")
+{
+    DtorObj::s_ctor_counter = 0;
+    DtorObj::s_dtor_counter = 0;
+    StaticArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(arr.size() == 5);
+    REQUIRE(arr.capacity() == 6);
+    REQUIRE(arr[0].data == 10);
+    REQUIRE(arr[4].data == 50);
+    arr.resize(5);
+    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(arr.size() == 5);
+    REQUIRE(arr.capacity() == 6);
+    REQUIRE(arr[0].data == 10);
+    REQUIRE(arr[4].data == 50);
+    arr.resize(6);
+    // Resize(size) shouldn't do copies internally
+    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(arr.size() == 6);
+    REQUIRE(arr.capacity() == 6);
+    REQUIRE(arr[0].data == 10);
+    REQUIRE(arr[4].data == 50);
+    REQUIRE(arr[5].data == 0);
+    arr.resize(1);
+    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_dtor_counter == 5);
+    REQUIRE(arr.size() == 1);
+    REQUIRE(arr.capacity() == 6);
+    REQUIRE(arr[0].data == 10);
+    arr.resize(4, DtorObj{11});
+    // Default value ctor
+    REQUIRE(DtorObj::s_ctor_counter == 7);
+    // Default value dtor
+    REQUIRE(DtorObj::s_dtor_counter == 6);
+    REQUIRE(arr.size() == 4);
+    REQUIRE(arr.capacity() == 6);
+    for (size_t i = 1; i < 4; ++i)
+        REQUIRE(arr[i].data == 11);
+    arr.resize(2, DtorObj{15});
+    // Default value ctor
+    REQUIRE(DtorObj::s_ctor_counter == 8);
+    // Default value and two tail values dtors
+    REQUIRE(DtorObj::s_dtor_counter == 9);
+    REQUIRE(arr[0].data == 10);
+    REQUIRE(arr[1].data == 11);
+}
+
+TEST_CASE("StaticArray::range_for", "[test]")
+{
+    StaticArray<uint32_t, 5> arr;
+    // Make sure this skips
+    for (auto &v : arr)
+        v++;
+
+    arr.push_back(10);
+    arr.push_back(20);
+    arr.push_back(30);
+
+    for (auto &v : arr)
+        v++;
+
+    REQUIRE(arr[0] == 11);
+    REQUIRE(arr[1] == 21);
+    REQUIRE(arr[2] == 31);
+
+    StaticArray<uint32_t, 5> const &arr_const = arr;
     uint32_t sum = 0;
     for (auto const &v : arr_const)
         sum += v;
