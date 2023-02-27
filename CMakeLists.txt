@@ -13,6 +13,7 @@ add_library(wheels INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/containers/pair.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/small_set.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/static_array.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/containers/container_utils.hpp
 )
 
 target_include_directories(wheels

@@ -216,7 +216,7 @@ TEST_CASE("Array::allocate_copy", "[test]")
     REQUIRE(arr[2] == 30);
 
     size_t const arr_capacity = arr.capacity();
-    Array<uint32_t> arr_move_constructed{std::move(arr)};
+    Array<uint32_t> arr_move_constructed{WHEELS_MOV(arr)};
     REQUIRE(arr_move_constructed[0] == 10);
     REQUIRE(arr_move_constructed[1] == 20);
     REQUIRE(arr_move_constructed[2] == 30);
@@ -224,8 +224,8 @@ TEST_CASE("Array::allocate_copy", "[test]")
     REQUIRE(arr_move_constructed.capacity() == arr_capacity);
 
     Array<uint32_t> arr_move_assigned{allocator, 1};
-    arr_move_assigned = std::move(arr_move_constructed);
-    arr_move_assigned = std::move(arr_move_assigned);
+    arr_move_assigned = WHEELS_MOV(arr_move_constructed);
+    arr_move_assigned = WHEELS_MOV(arr_move_assigned);
     REQUIRE(arr_move_assigned[0] == 10);
     REQUIRE(arr_move_assigned[1] == 20);
     REQUIRE(arr_move_assigned[2] == 30);
@@ -491,14 +491,14 @@ TEST_CASE("StaticArray::allocate_copy", "[test]")
 
     StaticArray<uint32_t, 4> arr_copy_assigned;
     arr_copy_assigned = arr;
-    arr_copy_assigned = std::move(arr_copy_assigned);
+    arr_copy_assigned = WHEELS_MOV(arr_copy_assigned);
     REQUIRE(arr_copy_assigned[0] == 10);
     REQUIRE(arr_copy_assigned[1] == 20);
     REQUIRE(arr_copy_assigned[2] == 30);
     REQUIRE(arr_copy_assigned.size() == 3);
     REQUIRE(arr_copy_assigned.capacity() == 4);
 
-    StaticArray<uint32_t, 4> arr_move_constructed{std::move(arr)};
+    StaticArray<uint32_t, 4> arr_move_constructed{WHEELS_MOV(arr)};
     REQUIRE(arr_move_constructed[0] == 10);
     REQUIRE(arr_move_constructed[1] == 20);
     REQUIRE(arr_move_constructed[2] == 30);
@@ -506,8 +506,8 @@ TEST_CASE("StaticArray::allocate_copy", "[test]")
     REQUIRE(arr_move_constructed.capacity() == 4);
 
     StaticArray<uint32_t, 4> arr_move_assigned;
-    arr_move_assigned = std::move(arr_move_constructed);
-    arr_move_assigned = std::move(arr_move_assigned);
+    arr_move_assigned = WHEELS_MOV(arr_move_constructed);
+    arr_move_assigned = WHEELS_MOV(arr_move_assigned);
     REQUIRE(arr_move_assigned[0] == 10);
     REQUIRE(arr_move_assigned[1] == 20);
     REQUIRE(arr_move_assigned[2] == 30);
@@ -746,7 +746,7 @@ TEST_CASE("SmallSet::allocate_copy", "[test]")
     REQUIRE(set_copy_assigned.size() == 3);
     REQUIRE(set_copy_assigned.capacity() == 4);
 
-    SmallSet<uint32_t, 4> set_move_constructed{std::move(set)};
+    SmallSet<uint32_t, 4> set_move_constructed{WHEELS_MOV(set)};
     REQUIRE(set_move_constructed.contains(10));
     REQUIRE(set_move_constructed.contains(20));
     REQUIRE(set_move_constructed.contains(30));
@@ -754,8 +754,8 @@ TEST_CASE("SmallSet::allocate_copy", "[test]")
     REQUIRE(set_move_constructed.capacity() == 4);
 
     SmallSet<uint32_t, 4> set_move_assigned;
-    set_move_assigned = std::move(set_move_constructed);
-    set_move_assigned = std::move(set_move_assigned);
+    set_move_assigned = WHEELS_MOV(set_move_constructed);
+    set_move_assigned = WHEELS_MOV(set_move_assigned);
     REQUIRE(set_move_assigned.contains(10));
     REQUIRE(set_move_assigned.contains(20));
     REQUIRE(set_move_assigned.contains(30));

@@ -2,6 +2,7 @@
 #ifndef WHEELS_SMALL_SET_HPP
 #define WHEELS_SMALL_SET_HPP
 
+#include "container_utils.hpp"
 #include "static_array.hpp"
 
 namespace wheels
@@ -47,7 +48,7 @@ SmallSet<T, N>::SmallSet(SmallSet<T, N> const &other)
 
 template <typename T, size_t N>
 SmallSet<T, N>::SmallSet(SmallSet<T, N> &&other)
-: m_data{std::move(other.m_data)}
+: m_data{WHEELS_MOV(other.m_data)}
 {
 }
 
@@ -64,7 +65,7 @@ template <typename T, size_t N>
 SmallSet<T, N> &SmallSet<T, N>::operator=(SmallSet<T, N> &&other)
 {
     if (this != &other)
-        m_data = std::move(other.m_data);
+        m_data = WHEELS_MOV(other.m_data);
 
     return *this;
 }
@@ -122,8 +123,7 @@ template <typename T, size_t N> void SmallSet<T, N>::insert(T &&value)
 {
     if (contains(value))
         return;
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    m_data.push_back(static_cast<T &&>(value));
+    m_data.push_back(WHEELS_FWD(value));
 }
 
 template <typename T, size_t N> void SmallSet<T, N>::remove(T const &value)

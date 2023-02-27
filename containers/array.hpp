@@ -3,6 +3,7 @@
 #define WHEELS_ARRAY_HPP
 
 #include "allocators/allocator.hpp"
+#include "container_utils.hpp"
 
 namespace wheels
 {
@@ -167,8 +168,7 @@ template <typename T> void Array<T>::push_back(T &&value)
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
 
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    new (m_data + m_size++) T{static_cast<T &&>(value)};
+    new (m_data + m_size++) T{WHEELS_FWD(value)};
 }
 
 template <typename T>
@@ -178,15 +178,14 @@ void Array<T>::emplace_back(Args &&...args)
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
 
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    new (m_data + m_size++) T{static_cast<Args &&>(args)...};
+    new (m_data + m_size++) T{WHEELS_FWD(args)...};
 }
 
 template <typename T> T Array<T>::pop_back()
 {
     assert(m_size > 0);
     m_size--;
-    return std::move(m_data[m_size]);
+    return WHEELS_MOV(m_data[m_size]);
 }
 
 template <typename T> void Array<T>::resize(size_t size)

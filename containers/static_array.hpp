@@ -2,6 +2,8 @@
 #ifndef WHEELS_STATIC_ARRAY_HPP
 #define WHEELS_STATIC_ARRAY_HPP
 
+#include "container_utils.hpp"
+
 namespace wheels
 {
 
@@ -183,9 +185,7 @@ template <typename T, size_t N> void StaticArray<T, N>::clear()
 template <typename T, size_t N> void StaticArray<T, N>::push_back(T &&value)
 {
     assert(m_size < N);
-
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    new (((T *)m_data) + m_size++) T{static_cast<T &&>(value)};
+    new (((T *)m_data) + m_size++) T{WHEELS_FWD(value)};
 }
 
 template <typename T, size_t N>
@@ -193,15 +193,14 @@ template <typename... Args>
 void StaticArray<T, N>::emplace_back(Args &&...args)
 {
     assert(m_size < N);
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    new (((T *)m_data) + m_size++) T{static_cast<Args &&>(args)...};
+    new (((T *)m_data) + m_size++) T{WHEELS_FWD(args)...};
 }
 
 template <typename T, size_t N> T StaticArray<T, N>::pop_back()
 {
     assert(m_size > 0);
     m_size--;
-    return std::move(((T *)m_data)[m_size]);
+    return WHEELS_MOV(((T *)m_data)[m_size]);
 }
 
 template <typename T, size_t N> void StaticArray<T, N>::resize(size_t size)

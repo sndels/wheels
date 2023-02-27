@@ -1,6 +1,8 @@
 #ifndef WHEELS_PAIR_HPP
 #define WHEELS_PAIR_HPP
 
+#include "container_utils.hpp"
+
 namespace wheels
 {
 
@@ -19,14 +21,13 @@ template <typename T, typename V> struct Pair
 
 template <typename T, typename V> Pair<T, V> make_pair(T &&first, V &&second)
 {
-    // static_cast<T&&>(...) is std::forward<T>(...)
-    return Pair<T, V>{static_cast<T &&>(first), static_cast<V &&>(second)};
+    return Pair<T, V>{WHEELS_FWD(first), WHEELS_FWD(second)};
 }
 
 template <typename T, typename V>
 Pair<T, V>::Pair(T &&first, V &&second)
-: first{static_cast<T &&>(first)}
-, second{static_cast<V &&>(second)} {};
+: first{WHEELS_FWD(first)}
+, second{WHEELS_FWD(second)} {};
 
 template <typename T, typename V>
 Pair<T, V>::Pair(Pair<T, V> const &other)
@@ -35,8 +36,8 @@ Pair<T, V>::Pair(Pair<T, V> const &other)
 
 template <typename T, typename V>
 Pair<T, V>::Pair(Pair<T, V> &&other)
-: first{std::move(other.first)}
-, second{std::move(other.second)} {};
+: first{WHEELS_MOV(other.first)}
+, second{WHEELS_MOV(other.second)} {};
 
 template <typename T, typename V>
 Pair<T, V> &Pair<T, V>::operator=(Pair<T, V> const &other)
@@ -54,9 +55,8 @@ Pair<T, V> &Pair<T, V>::operator=(Pair<T, V> &&other)
 {
     if (this != &other)
     {
-
-        first = std::move(other.first);
-        second = std::move(other.second);
+        first = WHEELS_MOV(other.first);
+        second = WHEELS_MOV(other.second);
     }
     return *this;
 }
