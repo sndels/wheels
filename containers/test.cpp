@@ -196,9 +196,6 @@ SmallSet<DtorObj, N> init_test_small_set_dtor(size_t initial_size)
 
 } // namespace
 
-// TODO:
-// - Test types with std::max_align_t alignment
-
 TEST_CASE("Array::allocate_copy", "[test]")
 {
     CstdlibAllocator allocator;
