@@ -24,4 +24,4 @@ class CstdlibAllocator : public Allocator
 
 } // namespace wheels
 
-#endif // WHEELS_CSTDLIB_CstdlibAllocator_HPP
+#endif // WHEELS_CSTDLIB_ALLOCATOR_HPP
