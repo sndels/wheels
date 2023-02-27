@@ -2,7 +2,7 @@
 #define WHEELS_LINEAR_ALLOCATOR_HPP
 
 #include "allocator.hpp"
-#include "utils.hpp"
+#include "allocator_utils.hpp"
 
 #include <cassert>
 #include <climits>
