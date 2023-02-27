@@ -14,10 +14,10 @@ template <typename T, typename V> struct Pair
     , second{second} {};
 };
 
-template <typename T, typename V>
-Pair<T, V> make_pair(T const &first, V const &second)
+template <typename T, typename V> Pair<T, V> make_pair(T &&first, V &&second)
 {
-    return Pair<T, V>{first, second};
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    return Pair<T, V>{static_cast<T &&>(first), static_cast<V &&>(second)};
 }
 
 template <typename T, typename V>

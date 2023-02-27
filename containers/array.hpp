@@ -38,8 +38,8 @@ template <typename T> class Array
     size_t capacity() const;
 
     void clear();
-    void push_back(T const &value);
-    template <typename... Args> void emplace_back(Args const &...args);
+    void push_back(T &&value);
+    template <typename... Args> void emplace_back(Args &&...args);
     T pop_back();
     void resize(size_t size);
     void resize(size_t size, T const &value);
@@ -162,22 +162,24 @@ template <typename T> void Array<T>::clear()
     m_size = 0;
 }
 
-template <typename T> void Array<T>::push_back(T const &value)
+template <typename T> void Array<T>::push_back(T &&value)
 {
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
 
-    new (m_data + m_size++) T{value};
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    new (m_data + m_size++) T{static_cast<T &&>(value)};
 }
 
 template <typename T>
 template <typename... Args>
-void Array<T>::emplace_back(Args const &...args)
+void Array<T>::emplace_back(Args &&...args)
 {
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
 
-    new (m_data + m_size++) T{args...};
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    new (m_data + m_size++) T{static_cast<Args &&>(args)...};
 }
 
 template <typename T> T Array<T>::pop_back()

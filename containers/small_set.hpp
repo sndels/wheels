@@ -30,7 +30,7 @@ template <typename T, size_t N> class SmallSet
     bool contains(T const &value) const;
 
     void clear();
-    void insert(T const &value);
+    void insert(T &&value);
     void remove(T const &value);
 
   private:
@@ -118,11 +118,12 @@ bool SmallSet<T, N>::contains(T const &value) const
 
 template <typename T, size_t N> void SmallSet<T, N>::clear() { m_data.clear(); }
 
-template <typename T, size_t N> void SmallSet<T, N>::insert(T const &value)
+template <typename T, size_t N> void SmallSet<T, N>::insert(T &&value)
 {
     if (contains(value))
         return;
-    m_data.push_back(value);
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    m_data.push_back(static_cast<T &&>(value));
 }
 
 template <typename T, size_t N> void SmallSet<T, N>::remove(T const &value)

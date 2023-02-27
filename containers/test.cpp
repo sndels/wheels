@@ -780,13 +780,12 @@ TEST_CASE("SmallSet::clear", "[test]")
 {
     init_dtor_counters();
 
-    // TODO: Perfect forwarding and only moves here?
     SmallSet<DtorObj, 5> set = init_test_small_set_dtor<5>(5);
     REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_value_ctor_counter == 5);
-    REQUIRE(DtorObj::s_copy_ctor_counter == 5);
+    REQUIRE(DtorObj::s_move_ctor_counter == 5);
     REQUIRE(DtorObj::s_assign_counter == 0);
-    REQUIRE(DtorObj::s_dtor_counter == 5);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!set.empty());
     REQUIRE(set.size() == 5);
     REQUIRE(set.capacity() == 5);
@@ -797,7 +796,7 @@ TEST_CASE("SmallSet::clear", "[test]")
     REQUIRE(set.capacity() == 5);
     REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_assign_counter == 0);
-    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
+    REQUIRE(DtorObj::s_dtor_counter == 5);
 }
 
 TEST_CASE("SmallSet::remove", "[test]")

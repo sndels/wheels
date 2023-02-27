@@ -35,8 +35,8 @@ template <typename T, size_t N> class StaticArray
     size_t capacity() const;
 
     void clear();
-    void push_back(T const &value);
-    template <typename... Args> void emplace_back(Args const &...args);
+    void push_back(T &&value);
+    template <typename... Args> void emplace_back(Args &&...args);
     T pop_back();
     void resize(size_t size);
     void resize(size_t size, T const &value);
@@ -180,20 +180,21 @@ template <typename T, size_t N> void StaticArray<T, N>::clear()
     m_size = 0;
 }
 
-template <typename T, size_t N>
-void StaticArray<T, N>::push_back(T const &value)
+template <typename T, size_t N> void StaticArray<T, N>::push_back(T &&value)
 {
     assert(m_size < N);
 
-    new (((T *)m_data) + m_size++) T{value};
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    new (((T *)m_data) + m_size++) T{static_cast<T &&>(value)};
 }
 
 template <typename T, size_t N>
 template <typename... Args>
-void StaticArray<T, N>::emplace_back(Args const &...args)
+void StaticArray<T, N>::emplace_back(Args &&...args)
 {
     assert(m_size < N);
-    new (((T *)m_data) + m_size++) T{args...};
+    // static_cast<T&&>(...) is std::forward<T>(...)
+    new (((T *)m_data) + m_size++) T{static_cast<Args &&>(args)...};
 }
 
 template <typename T, size_t N> T StaticArray<T, N>::pop_back()
