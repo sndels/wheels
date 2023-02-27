@@ -184,7 +184,8 @@ template <typename T, size_t N>
 void StaticArray<T, N>::push_back(T const &value)
 {
     assert(m_size < N);
-    ((T *)m_data)[m_size++] = value;
+
+    new (((T *)m_data) + m_size++) T{value};
 }
 
 template <typename T, size_t N>
@@ -232,7 +233,7 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
     {
         assert(size <= N);
         for (size_t i = m_size; i < size; ++i)
-            ((T *)m_data)[i] = value;
+            new (((T *)m_data) + i) T{value};
         m_size = size;
     }
 }

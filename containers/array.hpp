@@ -167,7 +167,7 @@ template <typename T> void Array<T>::push_back(T const &value)
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
 
-    m_data[m_size++] = value;
+    new (m_data + m_size++) T{value};
 }
 
 template <typename T>
@@ -216,7 +216,7 @@ template <typename T> void Array<T>::resize(size_t size, T const &value)
     {
         reserve(size);
         for (size_t i = m_size; i < size; ++i)
-            m_data[i] = value;
+            new (m_data + i) T{value};
         m_size = size;
     }
 }

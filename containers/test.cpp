@@ -28,14 +28,26 @@ class DtorObj
   public:
     static uint64_t const s_null_value = (uint64_t)-1;
     static uint64_t s_ctor_counter;
+    static uint64_t s_default_ctor_counter;
+    static uint64_t s_value_ctor_counter;
+    static uint64_t s_copy_ctor_counter;
+    static uint64_t s_move_ctor_counter;
+    static uint64_t s_assign_counter;
+    static uint64_t s_copy_assign_counter;
+    static uint64_t s_move_assign_counter;
     static uint64_t s_dtor_counter;
 
-    DtorObj() { s_ctor_counter++; };
+    DtorObj()
+    {
+        s_ctor_counter++;
+        s_default_ctor_counter++;
+    };
 
     DtorObj(uint32_t data)
     : data{data}
     {
         s_ctor_counter++;
+        s_value_ctor_counter++;
     };
 
     ~DtorObj()
@@ -51,19 +63,25 @@ class DtorObj
     : data{other.data}
     {
         s_ctor_counter++;
+        s_copy_ctor_counter++;
     }
 
     DtorObj(DtorObj &&other)
     : data{other.data}
     {
         s_ctor_counter++;
+        s_move_ctor_counter++;
         other.data = s_null_value;
     }
 
     DtorObj &operator=(DtorObj const &other)
     {
         if (this != &other)
+        {
             data = other.data;
+            s_assign_counter++;
+            s_copy_assign_counter++;
+        }
         return *this;
     }
 
@@ -73,6 +91,8 @@ class DtorObj
         {
             data = other.data;
             other.data = s_null_value;
+            s_assign_counter++;
+            s_move_assign_counter++;
         }
         return *this;
     }
@@ -82,6 +102,26 @@ class DtorObj
 };
 uint64_t DtorObj::s_dtor_counter = 0;
 uint64_t DtorObj::s_ctor_counter = 0;
+uint64_t DtorObj::s_default_ctor_counter = 0;
+uint64_t DtorObj::s_value_ctor_counter = 0;
+uint64_t DtorObj::s_copy_ctor_counter = 0;
+uint64_t DtorObj::s_move_ctor_counter = 0;
+uint64_t DtorObj::s_assign_counter = 0;
+uint64_t DtorObj::s_copy_assign_counter = 0;
+uint64_t DtorObj::s_move_assign_counter = 0;
+
+void init_dtor_counters()
+{
+    DtorObj::s_dtor_counter = 0;
+    DtorObj::s_ctor_counter = 0;
+    DtorObj::s_default_ctor_counter = 0;
+    DtorObj::s_value_ctor_counter = 0;
+    DtorObj::s_copy_ctor_counter = 0;
+    DtorObj::s_move_ctor_counter = 0;
+    DtorObj::s_assign_counter = 0;
+    DtorObj::s_copy_assign_counter = 0;
+    DtorObj::s_move_assign_counter = 0;
+}
 
 bool operator==(DtorObj const &lhs, DtorObj const &rhs)
 {
@@ -135,11 +175,11 @@ SmallSet<uint32_t, N> init_test_small_set_u32(size_t initial_size)
 {
     assert(initial_size <= N);
 
-    SmallSet<uint32_t, N> arr;
+    SmallSet<uint32_t, N> set;
     for (uint32_t i = 0; i < initial_size; ++i)
-        arr.insert(10 * (i + 1));
+        set.insert(10 * (i + 1));
 
-    return arr;
+    return set;
 }
 
 template <size_t N>
@@ -147,11 +187,11 @@ SmallSet<DtorObj, N> init_test_small_set_dtor(size_t initial_size)
 {
     assert(initial_size <= N);
 
-    SmallSet<DtorObj, N> arr;
+    SmallSet<DtorObj, N> set;
     for (uint32_t i = 0; i < initial_size; ++i)
-        arr.insert(DtorObj{10 * (i + 1)});
+        set.insert(DtorObj{10 * (i + 1)});
 
-    return arr;
+    return set;
 }
 
 } // namespace
@@ -245,20 +285,24 @@ TEST_CASE("Array::clear", "[test]")
 {
     CstdlibAllocator allocator;
 
-    DtorObj::s_ctor_counter = 0;
-    DtorObj::s_dtor_counter = 0;
+    init_dtor_counters();
+
     Array<DtorObj> arr = init_test_arr_dtor(allocator, 5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!arr.empty());
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.capacity() == 5);
+
     arr.clear();
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() == 5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
-    REQUIRE(DtorObj::s_dtor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
 TEST_CASE("Array::emplace", "[test]")
@@ -317,53 +361,69 @@ TEST_CASE("Array::resize", "[test]")
 {
     CstdlibAllocator allocator;
 
-    DtorObj::s_ctor_counter = 0;
-    DtorObj::s_dtor_counter = 0;
+    init_dtor_counters();
+
     Array<DtorObj> arr = init_test_arr_dtor(allocator, 5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.capacity() == 5);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
+
     arr.resize(5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.capacity() == 5);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
+
     arr.resize(6);
-    // Resize(size) shouldn't do copies internally
     REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_default_ctor_counter == 1);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 6);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
     REQUIRE(arr[5].data == 0);
+
     arr.resize(1);
     REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
     REQUIRE(arr.size() == 1);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
+
     arr.resize(4, DtorObj{11});
-    // Default value ctor
-    REQUIRE(DtorObj::s_ctor_counter == 7);
-    // Default value dtor
+    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_value_ctor_counter == 6);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 3);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 6);
     REQUIRE(arr.size() == 4);
     REQUIRE(arr.capacity() == 6);
     for (size_t i = 1; i < 4; ++i)
         REQUIRE(arr[i].data == 11);
+
     arr.resize(2, DtorObj{15});
-    // Default value ctor
-    REQUIRE(DtorObj::s_ctor_counter == 8);
-    // Default value and two tail values dtors
+    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_value_ctor_counter == 7);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 9);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[1].data == 11);
+
+    arr.clear();
+    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
 TEST_CASE("Array::range_for", "[test]")
@@ -483,10 +543,11 @@ TEST_CASE("StaticArray::begin_end", "[test]")
 
 TEST_CASE("StaticArray::clear", "[test]")
 {
-    DtorObj::s_ctor_counter = 0;
-    DtorObj::s_dtor_counter = 0;
+    init_dtor_counters();
     StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!arr.empty());
     REQUIRE(arr.size() == 5);
@@ -496,7 +557,8 @@ TEST_CASE("StaticArray::clear", "[test]")
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() == 5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
-    REQUIRE(DtorObj::s_dtor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
 TEST_CASE("StaticArray::emplace", "[test]")
@@ -548,53 +610,69 @@ TEST_CASE("StaticArray::pop_back", "[test]")
 
 TEST_CASE("StaticArray::resize", "[test]")
 {
-    DtorObj::s_ctor_counter = 0;
-    DtorObj::s_dtor_counter = 0;
+    init_dtor_counters();
+
     StaticArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
+
     arr.resize(5);
     REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
+
     arr.resize(6);
-    // Resize(size) shouldn't do copies internally
     REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_default_ctor_counter == 1);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 6);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[4].data == 50);
     REQUIRE(arr[5].data == 0);
+
     arr.resize(1);
     REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
     REQUIRE(arr.size() == 1);
     REQUIRE(arr.capacity() == 6);
     REQUIRE(arr[0].data == 10);
+
     arr.resize(4, DtorObj{11});
-    // Default value ctor
-    REQUIRE(DtorObj::s_ctor_counter == 7);
-    // Default value dtor
+    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_value_ctor_counter == 6);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 3);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 6);
     REQUIRE(arr.size() == 4);
     REQUIRE(arr.capacity() == 6);
     for (size_t i = 1; i < 4; ++i)
         REQUIRE(arr[i].data == 11);
+
     arr.resize(2, DtorObj{15});
-    // Default value ctor
-    REQUIRE(DtorObj::s_ctor_counter == 8);
-    // Default value and two tail values dtors
+    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_value_ctor_counter == 7);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 9);
     REQUIRE(arr[0].data == 10);
     REQUIRE(arr[1].data == 11);
+
+    arr.clear();
+    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
 TEST_CASE("StaticArray::range_for", "[test]")
@@ -700,21 +778,26 @@ TEST_CASE("SmallSet::begin_end", "[test]")
 
 TEST_CASE("SmallSet::clear", "[test]")
 {
-    DtorObj::s_ctor_counter = 0;
-    DtorObj::s_dtor_counter = 0;
+    init_dtor_counters();
+
+    // TODO: Perfect forwarding and only moves here?
     SmallSet<DtorObj, 5> set = init_test_small_set_dtor<5>(5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
-    // init inserts so the temporary values do get destroyed
+    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 5);
+    REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
     REQUIRE(!set.empty());
     REQUIRE(set.size() == 5);
     REQUIRE(set.capacity() == 5);
+
     set.clear();
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
-    REQUIRE(DtorObj::s_dtor_counter == 10);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
 TEST_CASE("SmallSet::remove", "[test]")
