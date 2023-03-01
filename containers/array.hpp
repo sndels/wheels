@@ -39,6 +39,7 @@ template <typename T> class Array
     size_t capacity() const;
 
     void clear();
+    void push_back(T const &value);
     void push_back(T &&value);
     template <typename... Args> void emplace_back(Args &&...args);
     T pop_back();
@@ -161,6 +162,14 @@ template <typename T> void Array<T>::clear()
     for (auto &v : *this)
         v.~T();
     m_size = 0;
+}
+
+template <typename T> void Array<T>::push_back(T const &value)
+{
+    if (m_size == m_capacity)
+        reallocate(m_capacity * 2);
+
+    new (m_data + m_size++) T{value};
 }
 
 template <typename T> void Array<T>::push_back(T &&value)

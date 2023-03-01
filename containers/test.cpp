@@ -258,6 +258,23 @@ TEST_CASE("Array::allocate_copy", "[test]")
     REQUIRE(arr_move_assigned.capacity() == arr_capacity);
 }
 
+TEST_CASE("Array::push_lvalue", "[test]")
+{
+    CstdlibAllocator allocator;
+
+    Array<DtorObj> arr{allocator, 0};
+    init_dtor_counters();
+    DtorObj const lvalue = {99};
+    arr.push_back(lvalue);
+    REQUIRE(DtorObj::s_ctor_counter == 2);
+    REQUIRE(DtorObj::s_value_ctor_counter == 1);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 1);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(arr.size() == 1);
+    REQUIRE(arr[0] == 99);
+}
+
 TEST_CASE("Array::reserve", "[test]")
 {
     CstdlibAllocator allocator;
@@ -540,6 +557,23 @@ TEST_CASE("StaticArray::allocate_copy", "[test]")
     REQUIRE(arr_move_assigned.capacity() == 4);
 }
 
+TEST_CASE("StaticArray::push_lvalue", "[test]")
+{
+    init_dtor_counters();
+
+    StaticArray<DtorObj, 5> arr;
+    DtorObj const lvalue = {99};
+    arr.push_back(lvalue);
+    REQUIRE(DtorObj::s_ctor_counter == 2);
+    REQUIRE(DtorObj::s_value_ctor_counter == 1);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 1);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(arr.size() == 1);
+    REQUIRE(arr[0] == 99);
+    arr[0].data = 11;
+}
+
 TEST_CASE("StaticArray::front_back", "[test]")
 {
     StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
@@ -788,6 +822,22 @@ TEST_CASE("SmallSet::allocate_copy", "[test]")
     REQUIRE(set_move_assigned.capacity() == 4);
 }
 
+TEST_CASE("SmallSet::insert_lvalue", "[test]")
+{
+    init_dtor_counters();
+
+    SmallSet<DtorObj, 5> set;
+    DtorObj const lvalue = {99};
+    set.insert(lvalue);
+    REQUIRE(DtorObj::s_ctor_counter == 2);
+    REQUIRE(DtorObj::s_value_ctor_counter == 1);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 1);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(set.size() == 1);
+    REQUIRE(set.contains(lvalue));
+}
+
 TEST_CASE("SmallSet::begin_end", "[test]")
 {
     SmallSet<uint32_t, 3> set = init_test_small_set_u32<3>(3);
@@ -882,19 +932,30 @@ TEST_CASE("SmallSet::aligned", "[test]")
 
 TEST_CASE("Pair", "[test]")
 {
-    Pair<uint32_t, uint16_t> p0{0xDEADCAFE, 0x1234};
-    Pair<uint32_t, uint16_t> p1{0xDEADCAFE, 0x1234};
-    Pair<uint32_t, uint16_t> p2{0xDEADCAFE, 0xABCD};
-    Pair<uint32_t, uint16_t> p3 =
+    uint32_t const deadcafe = 0xDEADCAFE;
+    uint32_t const coffee = 0xC0FFEEEE;
+    uint16_t const onetwothreefour = 0x1234;
+    uint16_t const abcd = 0xABCD;
+    Pair<uint32_t, uint16_t> p0{deadcafe, onetwothreefour};
+    Pair<uint32_t, uint16_t> p1{0xDEADCAFE, std::move(onetwothreefour)};
+    Pair<uint32_t, uint16_t> p2{std::move(deadcafe), abcd};
+    Pair<uint32_t, uint16_t> p3{std::move(coffee), std::move(abcd)};
+    Pair<uint32_t, uint16_t> p4 =
         make_pair((uint32_t)0xC0FFEEEE, (uint16_t)0x1234);
 
     REQUIRE(p0.first == 0xDEADCAFE);
     REQUIRE(p0.second == 0x1234);
+    REQUIRE(p1.first == 0xDEADCAFE);
+    REQUIRE(p1.second == 0x1234);
+    REQUIRE(p2.first == 0xDEADCAFE);
+    REQUIRE(p2.second == 0xABCD);
     REQUIRE(p3.first == 0xC0FFEEEE);
-    REQUIRE(p3.second == 0x1234);
+    REQUIRE(p3.second == 0xABCD);
+    REQUIRE(p4.first == 0xC0FFEEEE);
+    REQUIRE(p4.second == 0x1234);
     REQUIRE(p0 == p1);
     REQUIRE(p0 != p2);
-    REQUIRE(p0 != p3);
+    REQUIRE(p0 != p4);
 }
 
 TEST_CASE("SmallMap::allocate_copy", "[test]")
@@ -950,6 +1011,35 @@ TEST_CASE("SmallMap::allocate_copy", "[test]")
     REQUIRE(*map_move_assigned.find(20) == 21);
     REQUIRE(*map_move_assigned.find(30) == 31);
     REQUIRE(map_move_assigned.size() == 3);
+}
+
+TEST_CASE("SmallMap::insert_lvalue", "[test]")
+{
+    init_dtor_counters();
+
+    SmallMap<DtorObj, DtorObj, 5> map;
+
+    Pair<DtorObj, DtorObj> const lvalue_pair =
+        make_pair(DtorObj{98}, DtorObj{99});
+    map.insert_or_assign(lvalue_pair);
+    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_value_ctor_counter == 2);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 2);
+    REQUIRE(DtorObj::s_move_ctor_counter == 2);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == 0);
+    REQUIRE(map.size() == 1);
+    REQUIRE(map.contains(lvalue_pair.first));
+
+    DtorObj const lvalue_value = DtorObj{97};
+    map.insert_or_assign(DtorObj{96}, lvalue_value);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_value_ctor_counter == 4);
+    REQUIRE(DtorObj::s_copy_ctor_counter == 4);
+    REQUIRE(DtorObj::s_assign_counter == 0);
+    REQUIRE(DtorObj::s_dtor_counter == 1);
+    REQUIRE(map.size() == 2);
+    REQUIRE(map.contains(DtorObj{96}));
 }
 
 TEST_CASE("SmallMap::begin_end", "[test]")

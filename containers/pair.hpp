@@ -11,6 +11,9 @@ template <typename T, typename V> struct Pair
     T first;
     V second;
 
+    Pair(T const &first, V const &second);
+    Pair(T &&first, V const &second);
+    Pair(T const &first, V &&second);
     Pair(T &&first, V &&second);
 
     Pair(Pair<T, V> const &other);
@@ -23,6 +26,21 @@ template <typename T, typename V> Pair<T, V> make_pair(T &&first, V &&second)
 {
     return Pair<T, V>{WHEELS_FWD(first), WHEELS_FWD(second)};
 }
+
+template <typename T, typename V>
+Pair<T, V>::Pair(T const &first, V const &second)
+: first{first}
+, second{second} {};
+
+template <typename T, typename V>
+Pair<T, V>::Pair(T &&first, V const &second)
+: first{WHEELS_FWD(first)}
+, second{second} {};
+
+template <typename T, typename V>
+Pair<T, V>::Pair(T const &first, V &&second)
+: first{first}
+, second{WHEELS_FWD(second)} {};
 
 template <typename T, typename V>
 Pair<T, V>::Pair(T &&first, V &&second)
