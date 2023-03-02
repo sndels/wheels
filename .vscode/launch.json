@@ -5,30 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "MSbuild all",
+            "name": "MSbuild bench (Release)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Release/wheels_test.exe",
+            "program": "${workspaceFolder}/build/Release/wheels_bench.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "MSBuild (Release)"
+            "preLaunchTask": "MSBuild bench (Release)"
         },
         {
-            "name": "MSbuild bench",
+            "name": "MSbuild bench (Debug)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/Release/wheels_test.exe",
-            "args": [
-                "[bench]"
-            ],
+            "program": "${workspaceFolder}/build/debug/wheels_bench.exe",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "MSBuild (Release)"
+            "preLaunchTask": "MSBuild bench (Debug)"
         },
         {
             "name": "MSbuild tests (Release)",
@@ -42,7 +40,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "MSBuild (Release)"
+            "preLaunchTask": "MSBuild test (Release)"
         },
         {
             "name": "MSbuild tests (Debug)",
@@ -56,7 +54,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "internalConsole",
-            "preLaunchTask": "MSBuild (Debug)"
+            "preLaunchTask": "MSBuild test (Debug)"
         },
         {
             "name": "lldb tests (Debug)",
@@ -71,16 +69,24 @@
             "preLaunchTask": "Make (Debug)"
         },
         {
+            "name": "lldb bench (Release)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/wheels_bench",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "preLaunchTask": "Make bench (Release)"
+        },
+        {
             "name": "lldb bench (Debug)",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/build/wheels_test",
-            "args": [
-                "[bench]"
-            ],
+            "program": "${workspaceFolder}/build/wheels_bench",
+            "args": [],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
-            "preLaunchTask": "Make (Debug)"
+            "preLaunchTask": "Make bench (Debug)"
         },
         {
             "name": "lldb all (Debug)",
