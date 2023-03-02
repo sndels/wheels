@@ -4,6 +4,8 @@
 
 #include "container_utils.hpp"
 
+#include <cstring>
+
 namespace wheels
 {
 

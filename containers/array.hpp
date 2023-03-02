@@ -5,6 +5,8 @@
 #include "allocators/allocator.hpp"
 #include "container_utils.hpp"
 
+#include <cstring>
+
 namespace wheels
 {
 
