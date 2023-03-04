@@ -17,6 +17,18 @@
             "preLaunchTask": "MSBuild bench (Release)"
         },
         {
+            "name": "MSbuild bench (RelWithDebInfo)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/RelWithDebInfo/wheels_bench.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "internalConsole",
+            "preLaunchTask": "MSBuild bench (RelWithDebInfo)"
+        },
+        {
             "name": "MSbuild bench (Debug)",
             "type": "cppvsdbg",
             "request": "launch",
@@ -77,6 +89,16 @@
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "preLaunchTask": "Make bench (Release)"
+        },
+        {
+            "name": "lldb bench (RelWithDebInfo)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/wheels_bench",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "preLaunchTask": "Make bench (RelWithDebInfo)"
         },
         {
             "name": "lldb bench (Debug)",

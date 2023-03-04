@@ -102,6 +102,9 @@ if(MSVC)
         /w14906
         /w14928
     )
+
+    # Cmake uses /Ob1 for some reason so we have to override to match Release
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Ob2")
 else()
     target_compile_options(wheels_bench
         PRIVATE
