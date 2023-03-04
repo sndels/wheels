@@ -69,55 +69,48 @@
             "preLaunchTask": "MSBuild test (Debug)"
         },
         {
-            "name": "lldb tests (Debug)",
-            "type": "lldb",
+            "name": "gdb tests (Debug)",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/wheels_test",
-            "args": [
-                "[test]"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "preLaunchTask": "Make (Debug)"
+            "preLaunchTask": "Make test (Debug)"
         },
         {
-            "name": "lldb bench (Release)",
-            "type": "lldb",
+            "name": "gdb bench (Release)",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/wheels_bench",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
             "preLaunchTask": "Make bench (Release)"
         },
         {
-            "name": "lldb bench (RelWithDebInfo)",
-            "type": "lldb",
+            "name": "gdb bench (RelWithDebInfo)",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/wheels_bench",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
             "preLaunchTask": "Make bench (RelWithDebInfo)"
         },
         {
-            "name": "lldb bench (Debug)",
-            "type": "lldb",
+            "name": "gdb bench (Debug)",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/wheels_bench",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
             "preLaunchTask": "Make bench (Debug)"
         },
         {
-            "name": "lldb all (Debug)",
-            "type": "lldb",
+            "name": "gdb all (Debug)",
+            "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/wheels_test",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
             "preLaunchTask": "Make (Debug)"
         }
     ]
