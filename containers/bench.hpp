@@ -430,4 +430,36 @@ BENCHMARK(small_set_doesnt_contain_uint32_t<8>);
 BENCHMARK(small_set_doesnt_contain_uint32_t<16>);
 BENCHMARK(small_set_doesnt_contain_uint32_t<32>);
 
+template <typename T> static void std_hash(benchmark::State &state)
+{
+    std::hash<T> hash;
+    T value = 0;
+    while (state.KeepRunning())
+        benchmark::DoNotOptimize(hash(value++));
+}
+BENCHMARK(std_hash<uint8_t>);
+BENCHMARK(std_hash<uint16_t>);
+BENCHMARK(std_hash<uint32_t>);
+BENCHMARK(std_hash<uint64_t>);
+BENCHMARK(std_hash<float>);
+BENCHMARK(std_hash<double>);
+BENCHMARK(std_hash<uint64_t *>);
+BENCHMARK(std_hash<uint64_t const *>);
+
+template <typename T> static void wheels_hash(benchmark::State &state)
+{
+    Hash<T> hash;
+    T value = 0;
+    while (state.KeepRunning())
+        benchmark::DoNotOptimize(hash(value++));
+}
+BENCHMARK(wheels_hash<uint8_t>);
+BENCHMARK(wheels_hash<uint16_t>);
+BENCHMARK(wheels_hash<uint32_t>);
+BENCHMARK(wheels_hash<uint64_t>);
+BENCHMARK(std_hash<float>);
+BENCHMARK(std_hash<double>);
+BENCHMARK(wheels_hash<uint64_t *>);
+BENCHMARK(wheels_hash<uint64_t const *>);
+
 #endif // CONTAINERS_BENCH_HPP
