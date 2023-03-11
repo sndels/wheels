@@ -55,6 +55,20 @@
             "preLaunchTask": "MSBuild test (Release)"
         },
         {
+            "name": "MSbuild tests (RelWithDebInfo)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/RelWithDebInfo/wheels_test.exe",
+            "args": [
+                "[test]"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "internalConsole",
+            "preLaunchTask": "MSBuild test (RelWithDebInfo)"
+        },
+        {
             "name": "MSbuild tests (Debug)",
             "type": "cppvsdbg",
             "request": "launch",

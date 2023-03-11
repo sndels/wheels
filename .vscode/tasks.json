@@ -112,6 +112,33 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "MSBuild test (RelWithDebInfo)",
+            "type": "shell",
+            "dependsOn": [
+                "cmake"
+            ],
+            "command": "msbuild",
+            "args": [
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                "/t:build",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary",
+                "/property:Configuration=RelWithDebInfo",
+                "wheels_test.vcxproj"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "never"
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "MSBuild test (Debug)",
             "type": "shell",
             "dependsOn": [
