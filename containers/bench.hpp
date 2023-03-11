@@ -7,6 +7,7 @@
 
 #include "allocators/cstdlib_allocator.hpp"
 #include "containers/array.hpp"
+#include "containers/hash_set.hpp"
 #include "containers/pair.hpp"
 #include "containers/small_map.hpp"
 #include "containers/small_set.hpp"
@@ -62,8 +63,10 @@ class DtorObj
         return *this;
     }
 
+    bool operator==(DtorObj const &other) const { return data == other.data; }
+
     uint64_t data{0};
-    uint64_t padding[7];
+    uint64_t padding[7]{};
 };
 
 template <typename Arr>
@@ -115,6 +118,14 @@ void sum_loop(benchmark::State &state, Arr &arr, uint32_t object_count)
 }
 
 } // namespace
+
+template <> struct wheels::Hash<DtorObj>
+{
+    uint64_t operator()(DtorObj const &value) const noexcept
+    {
+        return wyhash(&value.data, sizeof(value.data), 0, _wyp);
+    }
+};
 
 static void empty_std_vector_push_uint32_t(benchmark::State &state)
 {
@@ -318,13 +329,13 @@ BENCHMARK(static_array_sum_uint32_t<512>);
 BENCHMARK(static_array_sum_uint32_t<2048>);
 BENCHMARK(static_array_sum_uint32_t<8096>);
 
-template <uint32_t N>
-static void unordered_set_insert_uint32_t(benchmark::State &state)
+template <typename T, uint32_t N>
+static void unordered_set_insert(benchmark::State &state)
 {
 
     while (state.KeepRunning())
     {
-        std::unordered_set<uint32_t> set;
+        std::unordered_set<T, Hash<T>> set;
         INLINE_ASM("nop # Start loop");
         INLINE_ASM("nop");
         INLINE_ASM("nop");
@@ -335,19 +346,29 @@ static void unordered_set_insert_uint32_t(benchmark::State &state)
         INLINE_ASM("nop # End loop");
     }
 }
-BENCHMARK(unordered_set_insert_uint32_t<2>);
-BENCHMARK(unordered_set_insert_uint32_t<4>);
-BENCHMARK(unordered_set_insert_uint32_t<8>);
-BENCHMARK(unordered_set_insert_uint32_t<16>);
-BENCHMARK(unordered_set_insert_uint32_t<32>);
+BENCHMARK(unordered_set_insert<uint32_t, 4>);
+BENCHMARK(unordered_set_insert<DtorObj, 4>);
+BENCHMARK(unordered_set_insert<uint32_t, 8>);
+BENCHMARK(unordered_set_insert<DtorObj, 8>);
+BENCHMARK(unordered_set_insert<uint32_t, 16>);
+BENCHMARK(unordered_set_insert<DtorObj, 16>);
+BENCHMARK(unordered_set_insert<uint32_t, 32>);
+BENCHMARK(unordered_set_insert<DtorObj, 32>);
+BENCHMARK(unordered_set_insert<uint32_t, 128>);
+BENCHMARK(unordered_set_insert<DtorObj, 128>);
+BENCHMARK(unordered_set_insert<uint32_t, 2048>);
+BENCHMARK(unordered_set_insert<DtorObj, 2048>);
+BENCHMARK(unordered_set_insert<uint32_t, 8096>);
+BENCHMARK(unordered_set_insert<DtorObj, 8096>);
 
-template <uint32_t N>
-static void small_set_insert_uint32_t(benchmark::State &state)
+template <typename T, uint32_t N>
+static void hash_set_insert(benchmark::State &state)
 {
+    CstdlibAllocator allocator;
 
     while (state.KeepRunning())
     {
-        SmallSet<uint32_t, N> set;
+        HashSet<T, Hash<T>> set{allocator, N};
         INLINE_ASM("nop # Start loop");
         INLINE_ASM("nop");
         INLINE_ASM("nop");
@@ -358,77 +379,194 @@ static void small_set_insert_uint32_t(benchmark::State &state)
         INLINE_ASM("nop # End loop");
     }
 }
-BENCHMARK(small_set_insert_uint32_t<2>);
-BENCHMARK(small_set_insert_uint32_t<4>);
-BENCHMARK(small_set_insert_uint32_t<8>);
-BENCHMARK(small_set_insert_uint32_t<16>);
-BENCHMARK(small_set_insert_uint32_t<32>);
+BENCHMARK(hash_set_insert<uint32_t, 4>);
+BENCHMARK(hash_set_insert<DtorObj, 4>);
+BENCHMARK(hash_set_insert<uint32_t, 8>);
+BENCHMARK(hash_set_insert<DtorObj, 8>);
+BENCHMARK(hash_set_insert<uint32_t, 16>);
+BENCHMARK(hash_set_insert<DtorObj, 16>);
+BENCHMARK(hash_set_insert<uint32_t, 32>);
+BENCHMARK(hash_set_insert<DtorObj, 32>);
+BENCHMARK(hash_set_insert<uint32_t, 128>);
+BENCHMARK(hash_set_insert<DtorObj, 128>);
+BENCHMARK(hash_set_insert<uint32_t, 2048>);
+BENCHMARK(hash_set_insert<DtorObj, 2048>);
+BENCHMARK(hash_set_insert<uint32_t, 8096>);
+BENCHMARK(hash_set_insert<DtorObj, 8096>);
 
-template <uint32_t N>
-static void unordered_set_contains_uint32_t(benchmark::State &state)
+template <typename T, uint32_t N>
+static void small_set_insert(benchmark::State &state)
 {
-    std::unordered_set<uint32_t> set;
+
+    while (state.KeepRunning())
+    {
+        SmallSet<T, N> set;
+        INLINE_ASM("nop # Start loop");
+        INLINE_ASM("nop");
+        INLINE_ASM("nop");
+        for (uint32_t i = 0; i < N; ++i)
+            set.insert(i);
+        INLINE_ASM("nop");
+        INLINE_ASM("nop");
+        INLINE_ASM("nop # End loop");
+    }
+}
+BENCHMARK(small_set_insert<uint32_t, 4>);
+BENCHMARK(small_set_insert<DtorObj, 4>);
+BENCHMARK(small_set_insert<uint32_t, 8>);
+BENCHMARK(small_set_insert<DtorObj, 8>);
+BENCHMARK(small_set_insert<uint32_t, 16>);
+BENCHMARK(small_set_insert<DtorObj, 16>);
+BENCHMARK(small_set_insert<uint32_t, 32>);
+BENCHMARK(small_set_insert<DtorObj, 32>);
+BENCHMARK(small_set_insert<uint32_t, 128>);
+BENCHMARK(small_set_insert<DtorObj, 128>);
+
+template <typename T, uint32_t N>
+static void unordered_set_contains_seq_numbers(benchmark::State &state)
+{
+    std::unordered_set<T, Hash<T>> set;
     for (uint32_t i = 0; i < N; ++i)
         set.insert(i);
 
-    bool contained = false;
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains(rand() % N));
 }
-BENCHMARK(unordered_set_contains_uint32_t<2>);
-BENCHMARK(unordered_set_contains_uint32_t<4>);
-BENCHMARK(unordered_set_contains_uint32_t<8>);
-BENCHMARK(unordered_set_contains_uint32_t<16>);
-BENCHMARK(unordered_set_contains_uint32_t<32>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 4>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 4>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 8>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 8>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 16>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 16>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 32>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 32>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 128>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 128>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 2048>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 2048>);
+BENCHMARK(unordered_set_contains_seq_numbers<uint32_t, 8096>);
+BENCHMARK(unordered_set_contains_seq_numbers<DtorObj, 8096>);
 
-template <uint32_t N>
-static void small_set_contains_uint32_t(benchmark::State &state)
+template <typename T, uint32_t N>
+static void hash_set_contains_seq_numbers(benchmark::State &state)
 {
-    SmallSet<uint32_t, N> set;
+    CstdlibAllocator allocator;
+
+    HashSet<T, Hash<T>> set{allocator, N};
     for (uint32_t i = 0; i < N; ++i)
         set.insert(i);
 
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains(rand() % N));
 }
-BENCHMARK(small_set_contains_uint32_t<2>);
-BENCHMARK(small_set_contains_uint32_t<4>);
-BENCHMARK(small_set_contains_uint32_t<8>);
-BENCHMARK(small_set_contains_uint32_t<16>);
-BENCHMARK(small_set_contains_uint32_t<32>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 4>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 4>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 8>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 8>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 16>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 16>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 32>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 32>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 128>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 128>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 2048>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 2048>);
+BENCHMARK(hash_set_contains_seq_numbers<uint32_t, 8096>);
+BENCHMARK(hash_set_contains_seq_numbers<DtorObj, 8096>);
 
-template <uint32_t N>
+template <typename T, uint32_t N>
+static void small_set_contains_seq_numbers(benchmark::State &state)
+{
+    SmallSet<T, N> set;
+    for (uint32_t i = 0; i < N; ++i)
+        set.insert(i);
+
+    while (state.KeepRunning())
+        benchmark::DoNotOptimize(set.contains(rand() % N));
+}
+BENCHMARK(small_set_contains_seq_numbers<uint32_t, 4>);
+BENCHMARK(small_set_contains_seq_numbers<DtorObj, 4>);
+BENCHMARK(small_set_contains_seq_numbers<uint32_t, 8>);
+BENCHMARK(small_set_contains_seq_numbers<DtorObj, 8>);
+BENCHMARK(small_set_contains_seq_numbers<uint32_t, 16>);
+BENCHMARK(small_set_contains_seq_numbers<DtorObj, 16>);
+BENCHMARK(small_set_contains_seq_numbers<uint32_t, 32>);
+BENCHMARK(small_set_contains_seq_numbers<DtorObj, 32>);
+BENCHMARK(small_set_contains_seq_numbers<uint32_t, 128>);
+BENCHMARK(small_set_contains_seq_numbers<DtorObj, 128>);
+
+template <typename T, uint32_t N>
 static void unordered_set_doesnt_contain_uint32_t(benchmark::State &state)
 {
-    std::unordered_set<uint32_t> set;
+    std::unordered_set<T, Hash<T>> set;
     for (uint32_t i = 0; i < N; ++i)
-        set.insert(i);
+        set.insert({i});
 
-    bool contained = false;
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains((rand() % N) + N));
 }
-BENCHMARK(unordered_set_doesnt_contain_uint32_t<2>);
-BENCHMARK(unordered_set_doesnt_contain_uint32_t<4>);
-BENCHMARK(unordered_set_doesnt_contain_uint32_t<8>);
-BENCHMARK(unordered_set_doesnt_contain_uint32_t<16>);
-BENCHMARK(unordered_set_doesnt_contain_uint32_t<32>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 4>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 4>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 8>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 8>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 16>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 16>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 32>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 32>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 128>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 128>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 2048>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 2048>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<uint32_t, 8096>);
+BENCHMARK(unordered_set_doesnt_contain_uint32_t<DtorObj, 8096>);
 
-template <uint32_t N>
-static void small_set_doesnt_contain_uint32_t(benchmark::State &state)
+template <typename T, uint32_t N>
+static void hash_set_doesnt_contain(benchmark::State &state)
 {
-    SmallSet<uint32_t, N> set;
+    CstdlibAllocator allocator;
+
+    HashSet<T, Hash<T>> set{allocator, N};
+    for (uint32_t i = 0; i < N; ++i)
+        set.insert({i});
+
+    while (state.KeepRunning())
+        benchmark::DoNotOptimize(set.contains((rand() % N) + N));
+}
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 4>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 4>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 8>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 8>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 16>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 16>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 32>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 32>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 128>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 128>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 2048>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 2048>);
+BENCHMARK(hash_set_doesnt_contain<uint32_t, 8096>);
+BENCHMARK(hash_set_doesnt_contain<DtorObj, 8096>);
+
+template <typename T, uint32_t N>
+static void small_set_doesnt_contain(benchmark::State &state)
+{
+    SmallSet<T, N> set;
     for (uint32_t i = 0; i < N; ++i)
         set.insert(i);
 
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains((rand() % N) + N));
 }
-BENCHMARK(small_set_doesnt_contain_uint32_t<2>);
-BENCHMARK(small_set_doesnt_contain_uint32_t<4>);
-BENCHMARK(small_set_doesnt_contain_uint32_t<8>);
-BENCHMARK(small_set_doesnt_contain_uint32_t<16>);
-BENCHMARK(small_set_doesnt_contain_uint32_t<32>);
+BENCHMARK(small_set_doesnt_contain<uint32_t, 4>);
+BENCHMARK(small_set_doesnt_contain<DtorObj, 4>);
+BENCHMARK(small_set_doesnt_contain<uint32_t, 8>);
+BENCHMARK(small_set_doesnt_contain<DtorObj, 8>);
+BENCHMARK(small_set_doesnt_contain<uint32_t, 16>);
+BENCHMARK(small_set_doesnt_contain<DtorObj, 16>);
+BENCHMARK(small_set_doesnt_contain<uint32_t, 32>);
+BENCHMARK(small_set_doesnt_contain<DtorObj, 32>);
+BENCHMARK(small_set_doesnt_contain<uint32_t, 128>);
+BENCHMARK(small_set_doesnt_contain<DtorObj, 128>);
 
 template <typename T> static void std_hash(benchmark::State &state)
 {

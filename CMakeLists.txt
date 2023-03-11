@@ -11,6 +11,7 @@ add_library(wheels INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/allocators/allocator_utils.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/array.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/hash.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/containers/hash_set.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/pair.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/small_set.hpp
     ${CMAKE_CURRENT_LIST_DIR}/containers/static_array.hpp
