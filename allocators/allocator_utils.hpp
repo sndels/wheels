@@ -1,7 +1,9 @@
 #ifndef WHEELS_ALLOCATOR_UTILS_HPP
 #define WHEELS_ALLOCATOR_UTILS_HPP
 
+#include <cassert>
 #include <climits>
+#include <cstddef>
 
 namespace wheels
 {
