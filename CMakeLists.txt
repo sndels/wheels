@@ -3,21 +3,7 @@ project(wheels)
 
 add_subdirectory(ext)
 
-add_library(wheels INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/allocators/allocator.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/allocators/cstdlib_allocator.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/allocators/linear_allocator.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/allocators/scoped_scratch.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/allocators/allocator_utils.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/array.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/hash.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/hash_set.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/optional.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/pair.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/small_set.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/static_array.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/containers/container_utils.hpp
-)
+add_library(wheels INTERFACE)
 
 target_include_directories(wheels
     INTERFACE
