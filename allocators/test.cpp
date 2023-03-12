@@ -5,7 +5,6 @@
 #include "linear_allocator.hpp"
 #include "scoped_scratch.hpp"
 
-
 using namespace wheels;
 
 namespace
@@ -20,7 +19,7 @@ static_assert(alignof(AlignedObj) > alignof(uint32_t));
 
 } // namespace
 
-TEST_CASE("aligned_offset", "[test]")
+TEST_CASE("aligned_offset")
 {
     REQUIRE(aligned_offset(0, 8) == 0);
     REQUIRE(aligned_offset(1, 8) == 8);
@@ -28,7 +27,7 @@ TEST_CASE("aligned_offset", "[test]")
     REQUIRE(aligned_offset(8, 8) == 8);
 }
 
-TEST_CASE("LinearAllocator", "[test]")
+TEST_CASE("LinearAllocator")
 {
     LinearAllocator allocator{4096};
     {
@@ -56,7 +55,7 @@ TEST_CASE("LinearAllocator", "[test]")
     }
 }
 
-TEST_CASE("LinearAllocator::aligned_PoD", "[test]")
+TEST_CASE("LinearAllocator::aligned_PoD")
 {
     LinearAllocator allocator{4096};
 
@@ -72,7 +71,7 @@ TEST_CASE("LinearAllocator::aligned_PoD", "[test]")
     REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
 }
 
-TEST_CASE("ScopedScratch::scalar_types", "[test]")
+TEST_CASE("ScopedScratch::scalar_types")
 {
     LinearAllocator allocator{4096};
     {
@@ -106,7 +105,7 @@ struct Float4
     float data[4];
 };
 
-TEST_CASE("ScopedScratch::PoD", "[test]")
+TEST_CASE("ScopedScratch::PoD")
 {
     LinearAllocator allocator{4096};
     {
@@ -126,7 +125,7 @@ TEST_CASE("ScopedScratch::PoD", "[test]")
     }
 }
 
-TEST_CASE("ScopedScratch::aligned_PoD", "[test]")
+TEST_CASE("ScopedScratch::aligned_PoD")
 {
     LinearAllocator allocator{4096};
     {
@@ -159,7 +158,7 @@ class Obj
 };
 uint64_t Obj::s_dtor_counter = 0;
 
-TEST_CASE("ScopedScratch::dtor", "[test]")
+TEST_CASE("ScopedScratch::dtor")
 {
     LinearAllocator allocator{4096};
     Obj::s_dtor_counter = 0;
@@ -177,7 +176,7 @@ TEST_CASE("ScopedScratch::dtor", "[test]")
     REQUIRE(Obj::s_dtor_counter == 1);
 }
 
-TEST_CASE("ScopedScratch::child_scopes", "[test]")
+TEST_CASE("ScopedScratch::child_scopes")
 {
     LinearAllocator allocator{4096};
     Obj::s_dtor_counter = 0;
@@ -201,7 +200,7 @@ TEST_CASE("ScopedScratch::child_scopes", "[test]")
     REQUIRE(Obj::s_dtor_counter == 3);
 }
 
-TEST_CASE("CstdlibAllocator", "[test]")
+TEST_CASE("CstdlibAllocator")
 {
     CstdlibAllocator allocator;
 

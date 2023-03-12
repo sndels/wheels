@@ -264,7 +264,7 @@ SmallMap<DtorObj, DtorObj, N> init_test_small_map_dtor(size_t initial_size)
 
 } // namespace
 
-TEST_CASE("Array::allocate_copy", "[test]")
+TEST_CASE("Array::allocate_copy")
 {
     CstdlibAllocator allocator;
 
@@ -301,7 +301,7 @@ TEST_CASE("Array::allocate_copy", "[test]")
     REQUIRE(arr_move_assigned.capacity() == arr_capacity);
 }
 
-TEST_CASE("Array::push_lvalue", "[test]")
+TEST_CASE("Array::push_lvalue")
 {
     CstdlibAllocator allocator;
 
@@ -318,7 +318,7 @@ TEST_CASE("Array::push_lvalue", "[test]")
     REQUIRE(arr[0] == 99);
 }
 
-TEST_CASE("Array::reserve", "[test]")
+TEST_CASE("Array::reserve")
 {
     CstdlibAllocator allocator;
 
@@ -336,7 +336,7 @@ TEST_CASE("Array::reserve", "[test]")
     REQUIRE(initial_data != arr.data());
 }
 
-TEST_CASE("Array::front_back", "[test]")
+TEST_CASE("Array::front_back")
 {
     CstdlibAllocator allocator;
 
@@ -349,7 +349,7 @@ TEST_CASE("Array::front_back", "[test]")
     REQUIRE(arr_const.back() == 50);
 }
 
-TEST_CASE("Array::begin_end", "[test]")
+TEST_CASE("Array::begin_end")
 {
     CstdlibAllocator allocator;
 
@@ -363,7 +363,7 @@ TEST_CASE("Array::begin_end", "[test]")
     REQUIRE(arr_const.end() == arr_const.data() + arr_const.size());
 }
 
-TEST_CASE("Array::clear", "[test]")
+TEST_CASE("Array::clear")
 {
     CstdlibAllocator allocator;
 
@@ -387,7 +387,7 @@ TEST_CASE("Array::clear", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
-TEST_CASE("Array::emplace", "[test]")
+TEST_CASE("Array::emplace")
 {
     class Obj
     {
@@ -414,7 +414,7 @@ TEST_CASE("Array::emplace", "[test]")
     REQUIRE(arr.size() == 3);
 }
 
-TEST_CASE("Array::pop_back", "[test]")
+TEST_CASE("Array::pop_back")
 {
     class Obj
     {
@@ -439,7 +439,7 @@ TEST_CASE("Array::pop_back", "[test]")
     REQUIRE(arr.size() == 0);
 }
 
-TEST_CASE("Array::resize", "[test]")
+TEST_CASE("Array::resize")
 {
     CstdlibAllocator allocator;
 
@@ -508,7 +508,7 @@ TEST_CASE("Array::resize", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
-TEST_CASE("Array::range_for", "[test]")
+TEST_CASE("Array::range_for")
 {
     CstdlibAllocator allocator;
 
@@ -535,7 +535,7 @@ TEST_CASE("Array::range_for", "[test]")
     REQUIRE(sum == 63);
 }
 
-TEST_CASE("Array::aligned", "[test]")
+TEST_CASE("Array::aligned")
 {
     CstdlibAllocator allocator;
 
@@ -550,7 +550,7 @@ TEST_CASE("Array::aligned", "[test]")
     REQUIRE(arr[1].value == 20);
 }
 
-TEST_CASE("StaticArray::allocate_copy", "[test]")
+TEST_CASE("StaticArray::allocate_copy")
 {
     StaticArray<uint32_t, 4> arr;
     REQUIRE(arr.empty());
@@ -600,7 +600,7 @@ TEST_CASE("StaticArray::allocate_copy", "[test]")
     REQUIRE(arr_move_assigned.capacity() == 4);
 }
 
-TEST_CASE("StaticArray::push_lvalue", "[test]")
+TEST_CASE("StaticArray::push_lvalue")
 {
     init_dtor_counters();
 
@@ -617,7 +617,7 @@ TEST_CASE("StaticArray::push_lvalue", "[test]")
     arr[0].data = 11;
 }
 
-TEST_CASE("StaticArray::front_back", "[test]")
+TEST_CASE("StaticArray::front_back")
 {
     StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
     REQUIRE(arr.front() == 10);
@@ -628,7 +628,7 @@ TEST_CASE("StaticArray::front_back", "[test]")
     REQUIRE(arr_const.back() == 50);
 }
 
-TEST_CASE("StaticArray::begin_end", "[test]")
+TEST_CASE("StaticArray::begin_end")
 {
     StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
     REQUIRE(arr.size() == 5);
@@ -640,7 +640,7 @@ TEST_CASE("StaticArray::begin_end", "[test]")
     REQUIRE(arr_const.end() == arr_const.data() + arr_const.size());
 }
 
-TEST_CASE("StaticArray::clear", "[test]")
+TEST_CASE("StaticArray::clear")
 {
     init_dtor_counters();
     StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
@@ -660,7 +660,7 @@ TEST_CASE("StaticArray::clear", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
-TEST_CASE("StaticArray::emplace", "[test]")
+TEST_CASE("StaticArray::emplace")
 {
     class Obj
     {
@@ -685,7 +685,7 @@ TEST_CASE("StaticArray::emplace", "[test]")
     REQUIRE(arr.size() == 3);
 }
 
-TEST_CASE("StaticArray::pop_back", "[test]")
+TEST_CASE("StaticArray::pop_back")
 {
     class Obj
     {
@@ -707,7 +707,7 @@ TEST_CASE("StaticArray::pop_back", "[test]")
     REQUIRE(arr.size() == 0);
 }
 
-TEST_CASE("StaticArray::resize", "[test]")
+TEST_CASE("StaticArray::resize")
 {
     init_dtor_counters();
 
@@ -774,7 +774,7 @@ TEST_CASE("StaticArray::resize", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
 }
 
-TEST_CASE("StaticArray::range_for", "[test]")
+TEST_CASE("StaticArray::range_for")
 {
     StaticArray<uint32_t, 5> arr;
     // Make sure this skips
@@ -799,7 +799,7 @@ TEST_CASE("StaticArray::range_for", "[test]")
     REQUIRE(sum == 63);
 }
 
-TEST_CASE("StaticArray::aligned", "[test]")
+TEST_CASE("StaticArray::aligned")
 {
     CstdlibAllocator allocator;
 
@@ -814,7 +814,7 @@ TEST_CASE("StaticArray::aligned", "[test]")
     REQUIRE(arr[1].value == 20);
 }
 
-TEST_CASE("SmallSet::allocate_copy", "[test]")
+TEST_CASE("SmallSet::allocate_copy")
 {
     SmallSet<uint32_t, 4> set;
     REQUIRE(set.empty());
@@ -865,7 +865,7 @@ TEST_CASE("SmallSet::allocate_copy", "[test]")
     REQUIRE(set_move_assigned.capacity() == 4);
 }
 
-TEST_CASE("SmallSet::insert_lvalue", "[test]")
+TEST_CASE("SmallSet::insert_lvalue")
 {
     init_dtor_counters();
 
@@ -881,7 +881,7 @@ TEST_CASE("SmallSet::insert_lvalue", "[test]")
     REQUIRE(set.contains(lvalue));
 }
 
-TEST_CASE("SmallSet::begin_end", "[test]")
+TEST_CASE("SmallSet::begin_end")
 {
     SmallSet<uint32_t, 3> set = init_test_small_set_u32<3>(3);
     REQUIRE(set.size() == 3);
@@ -891,7 +891,7 @@ TEST_CASE("SmallSet::begin_end", "[test]")
     REQUIRE(set_const.begin() == set_const.end() - 3);
 }
 
-TEST_CASE("SmallSet::clear", "[test]")
+TEST_CASE("SmallSet::clear")
 {
     init_dtor_counters();
 
@@ -914,7 +914,7 @@ TEST_CASE("SmallSet::clear", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == 5);
 }
 
-TEST_CASE("SmallSet::remove", "[test]")
+TEST_CASE("SmallSet::remove")
 {
     SmallSet<uint32_t, 3> set = init_test_small_set_u32<3>(3);
     REQUIRE(set.size() == 3);
@@ -930,7 +930,7 @@ TEST_CASE("SmallSet::remove", "[test]")
     REQUIRE(set.contains(30));
 }
 
-TEST_CASE("SmallSet::range_for", "[test]")
+TEST_CASE("SmallSet::range_for")
 {
     SmallSet<uint32_t, 5> set;
     // Make sure this skips
@@ -955,7 +955,7 @@ TEST_CASE("SmallSet::range_for", "[test]")
     REQUIRE(sum == 63);
 }
 
-TEST_CASE("SmallSet::aligned", "[test]")
+TEST_CASE("SmallSet::aligned")
 {
     CstdlibAllocator allocator;
 
@@ -973,7 +973,7 @@ TEST_CASE("SmallSet::aligned", "[test]")
     REQUIRE(sum == 30);
 }
 
-TEST_CASE("HashSet::allocate_copy", "[test]")
+TEST_CASE("HashSet::allocate_copy")
 {
     CstdlibAllocator allocator;
 
@@ -1010,7 +1010,7 @@ TEST_CASE("HashSet::allocate_copy", "[test]")
     REQUIRE(set_move_assigned.capacity() == 32);
 }
 
-TEST_CASE("HashSet::grow", "[test]")
+TEST_CASE("HashSet::grow")
 {
     CstdlibAllocator allocator;
 
@@ -1034,7 +1034,7 @@ TEST_CASE("HashSet::grow", "[test]")
         REQUIRE(set.contains(i * 10));
 }
 
-TEST_CASE("HashSet::reinsert", "[test]")
+TEST_CASE("HashSet::reinsert")
 {
     CstdlibAllocator allocator;
 
@@ -1059,7 +1059,7 @@ TEST_CASE("HashSet::reinsert", "[test]")
     REQUIRE(set.size() == 0);
 }
 
-TEST_CASE("HashSet::insert_lvalue", "[test]")
+TEST_CASE("HashSet::insert_lvalue")
 {
     CstdlibAllocator allocator;
 
@@ -1077,7 +1077,7 @@ TEST_CASE("HashSet::insert_lvalue", "[test]")
     REQUIRE(set.contains(lvalue));
 }
 
-TEST_CASE("HashSet::begin_end", "[test]")
+TEST_CASE("HashSet::begin_end")
 {
     CstdlibAllocator allocator;
 
@@ -1093,7 +1093,7 @@ TEST_CASE("HashSet::begin_end", "[test]")
     REQUIRE(iter == set.end());
 }
 
-TEST_CASE("HashSet::clear", "[test]")
+TEST_CASE("HashSet::clear")
 {
     CstdlibAllocator allocator;
 
@@ -1118,7 +1118,7 @@ TEST_CASE("HashSet::clear", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == 8);
 }
 
-TEST_CASE("HashSet::remove", "[test]")
+TEST_CASE("HashSet::remove")
 {
     CstdlibAllocator allocator;
 
@@ -1136,7 +1136,7 @@ TEST_CASE("HashSet::remove", "[test]")
     REQUIRE(set.contains(30));
 }
 
-TEST_CASE("HashSet::range_for", "[test]")
+TEST_CASE("HashSet::range_for")
 {
     CstdlibAllocator allocator;
 
@@ -1163,7 +1163,7 @@ TEST_CASE("HashSet::range_for", "[test]")
     REQUIRE(sum == 60);
 }
 
-TEST_CASE("HashSet::aligned", "[test]")
+TEST_CASE("HashSet::aligned")
 {
     CstdlibAllocator allocator;
 
@@ -1181,7 +1181,7 @@ TEST_CASE("HashSet::aligned", "[test]")
     REQUIRE(sum == 30);
 }
 
-TEST_CASE("Pair", "[test]")
+TEST_CASE("Pair")
 {
     uint32_t const deadcafe = 0xDEADCAFE;
     uint32_t const coffee = 0xC0FFEEEE;
@@ -1209,7 +1209,7 @@ TEST_CASE("Pair", "[test]")
     REQUIRE(p0 != p4);
 }
 
-TEST_CASE("SmallMap::allocate_copy", "[test]")
+TEST_CASE("SmallMap::allocate_copy")
 {
     SmallMap<uint32_t, uint16_t, 4> map;
     REQUIRE(map.empty());
@@ -1264,7 +1264,7 @@ TEST_CASE("SmallMap::allocate_copy", "[test]")
     REQUIRE(map_move_assigned.size() == 3);
 }
 
-TEST_CASE("SmallMap::insert_lvalue", "[test]")
+TEST_CASE("SmallMap::insert_lvalue")
 {
     init_dtor_counters();
 
@@ -1293,7 +1293,7 @@ TEST_CASE("SmallMap::insert_lvalue", "[test]")
     REQUIRE(map.contains(DtorObj{96}));
 }
 
-TEST_CASE("SmallMap::begin_end", "[test]")
+TEST_CASE("SmallMap::begin_end")
 {
     SmallMap<uint32_t, uint32_t, 3> map = init_test_small_map_u32<3>(3);
     REQUIRE(map.size() == 3);
@@ -1303,7 +1303,7 @@ TEST_CASE("SmallMap::begin_end", "[test]")
     REQUIRE(map_const.begin() == map_const.end() - 3);
 }
 
-TEST_CASE("SmallMap::clear", "[test]")
+TEST_CASE("SmallMap::clear")
 {
     init_dtor_counters();
     SmallMap<DtorObj, DtorObj, 5> map = init_test_small_map_dtor<5>(5);
@@ -1326,7 +1326,7 @@ TEST_CASE("SmallMap::clear", "[test]")
     REQUIRE(DtorObj::s_dtor_counter == 10);
 }
 
-TEST_CASE("SmallMap::remove", "[test]")
+TEST_CASE("SmallMap::remove")
 {
     SmallMap<uint32_t, uint32_t, 3> map = init_test_small_map_u32<3>(3);
     REQUIRE(map.size() == 3);
@@ -1344,7 +1344,7 @@ TEST_CASE("SmallMap::remove", "[test]")
     REQUIRE(map.contains(30));
 }
 
-TEST_CASE("SmallMap::range_for", "[test]")
+TEST_CASE("SmallMap::range_for")
 {
     SmallMap<uint32_t, uint32_t, 5> map;
     // Make sure this skips
@@ -1367,7 +1367,7 @@ TEST_CASE("SmallMap::range_for", "[test]")
     REQUIRE(sum == 66);
 }
 
-TEST_CASE("SmallMap::aligned", "[test]")
+TEST_CASE("SmallMap::aligned")
 {
     CstdlibAllocator allocator;
 
@@ -1385,7 +1385,7 @@ TEST_CASE("SmallMap::aligned", "[test]")
     REQUIRE(sum == 32);
 }
 
-TEST_CASE("hash::pointers", "[test][hash]")
+TEST_CASE("hash::pointers", "[hash]")
 {
     {
         Hash<uint64_t *> hasher;
