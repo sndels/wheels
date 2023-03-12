@@ -57,6 +57,8 @@ else()
         -Wall
         -Wextra
         -Wunused
+        -Wno-missing-field-initializers
+        -Wno-self-assign-overloaded
     )
 endif() # NOT MSVC
 
