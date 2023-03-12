@@ -57,14 +57,16 @@ template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(StaticArray<T, N> const &other)
 : m_size{other.m_size}
 {
-    memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+    for (size_t i = 0; i < other.m_size; ++i)
+        new ((T *)m_data + i) T{((T *)other.m_data)[i]};
 }
 
 template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(StaticArray<T, N> &&other)
 : m_size{other.m_size}
 {
-    memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+    for (size_t i = 0; i < other.m_size; ++i)
+        new ((T *)m_data + i) T{WHEELS_MOV(((T *)other.m_data)[i])};
     other.m_size = 0;
 }
 
@@ -75,7 +77,8 @@ StaticArray<T, N> &StaticArray<T, N>::operator=(StaticArray<T, N> const &other)
     {
         clear();
 
-        memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+        for (size_t i = 0; i < other.m_size; ++i)
+            new ((T *)m_data + i) T{((T *)other.m_data)[i]};
         m_size = other.m_size;
     }
     return *this;
@@ -88,7 +91,8 @@ StaticArray<T, N> &StaticArray<T, N>::operator=(StaticArray<T, N> &&other)
     {
         clear();
 
-        memcpy(m_data, other.m_data, other.m_size * sizeof(T));
+        for (size_t i = 0; i < other.m_size; ++i)
+            new ((T *)m_data + i) T{WHEELS_MOV(((T *)other.m_data)[i])};
         m_size = other.m_size;
 
         other.m_size = 0;

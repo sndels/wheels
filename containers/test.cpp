@@ -395,9 +395,9 @@ TEST_CASE("Array::emplace")
         Obj(uint32_t value) { m_data = value; };
 
         Obj(Obj const &) = delete;
-        Obj(Obj &&) = delete;
+        Obj(Obj &&) = default;
         Obj &operator=(Obj const &) = delete;
-        Obj &operator=(Obj &&) = delete;
+        Obj &operator=(Obj &&) = default;
 
         uint32_t m_data{0};
     };

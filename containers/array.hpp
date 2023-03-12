@@ -240,7 +240,8 @@ template <typename T> void Array<T>::reallocate(size_t capacity)
 
     if (m_data != nullptr)
     {
-        memcpy(data, m_data, m_capacity * sizeof(T));
+        for (size_t i = 0; i < m_size; ++i)
+            new (data + i) T{WHEELS_MOV(m_data[i])};
         m_allocator.deallocate(m_data);
     }
 
