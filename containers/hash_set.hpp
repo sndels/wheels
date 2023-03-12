@@ -140,7 +140,7 @@ HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
 }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
+typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
 {
     ConstIterator iter{
         .set = *this,
@@ -155,7 +155,7 @@ HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
 }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end() const
+typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end() const
 {
     return ConstIterator{
         .set = *this,
@@ -185,7 +185,8 @@ bool HashSet<T, Hasher>::contains(T const &value) const
 }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(T const &value) const
+typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
+    T const &value) const
 {
     uint64_t const hash = m_hasher(value);
     uint8_t const h2 = s_h2(hash);
@@ -371,7 +372,7 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::free()
 }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::ConstIterator &HashSet<
+typename HashSet<T, Hasher>::ConstIterator &HashSet<
     T, Hasher>::ConstIterator::operator++()
 {
     assert(pos < set.capacity());
@@ -383,7 +384,7 @@ HashSet<T, Hasher>::ConstIterator &HashSet<
 };
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::ConstIterator &HashSet<
+typename HashSet<T, Hasher>::ConstIterator &HashSet<
     T, Hasher>::ConstIterator::operator++(int)
 {
     return ++*this;
