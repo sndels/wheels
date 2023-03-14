@@ -273,9 +273,9 @@ TEST_CASE("Array::allocate_copy")
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() > 0);
 
-    arr.push_back(10);
-    arr.push_back(20);
-    arr.push_back(30);
+    arr.push_back(10u);
+    arr.push_back(20u);
+    arr.push_back(30u);
     REQUIRE(!arr.empty());
     REQUIRE(arr.size() == 3);
 
@@ -323,7 +323,7 @@ TEST_CASE("Array::reserve")
     CstdlibAllocator allocator;
 
     Array<uint32_t> arr{allocator, 1};
-    arr.push_back(10);
+    arr.push_back(10u);
     REQUIRE(arr.size() == 1);
     REQUIRE(arr.capacity() == 1);
     REQUIRE(arr[0] == 10);
@@ -520,9 +520,9 @@ TEST_CASE("Array::range_for")
     for (auto &v : arr)
         v++;
 
-    arr.push_back(10);
-    arr.push_back(20);
-    arr.push_back(30);
+    arr.push_back(10u);
+    arr.push_back(20u);
+    arr.push_back(30u);
 
     for (auto &v : arr)
         v++;
@@ -544,8 +544,8 @@ TEST_CASE("Array::aligned")
 
     Array<AlignedObj> arr{allocator, 0};
 
-    arr.push_back({10});
-    arr.push_back({20});
+    arr.push_back(AlignedObj{10});
+    arr.push_back(AlignedObj{20});
 
     REQUIRE((std::uintptr_t)&arr[0].value % alignof(AlignedObj) == 0);
     REQUIRE((std::uintptr_t)&arr[1].value % alignof(AlignedObj) == 0);

@@ -3,6 +3,7 @@
 #define WHEELS_CONTAINERS_ARRAY_HPP
 
 #include "../allocators/allocator.hpp"
+#include "concepts.hpp"
 #include "utils.hpp"
 
 #include <cstring>
@@ -41,10 +42,15 @@ template <typename T> class Array
     size_t capacity() const;
 
     void clear();
-    void push_back(T const &value);
-    void push_back(T &&value);
+
+    template <typename U>
+    requires SameAs<U, T> // Let's be pedantic and disallow implicit conversions
+    void push_back(U &&value);
+
     template <typename... Args> void emplace_back(Args &&...args);
+
     T pop_back();
+
     void resize(size_t size);
     void resize(size_t size, T const &value);
 
@@ -166,15 +172,9 @@ template <typename T> void Array<T>::clear()
     m_size = 0;
 }
 
-template <typename T> void Array<T>::push_back(T const &value)
-{
-    if (m_size == m_capacity)
-        reallocate(m_capacity * 2);
-
-    new (m_data + m_size++) T{value};
-}
-
-template <typename T> void Array<T>::push_back(T &&value)
+template <typename T> template <typename U>
+requires SameAs<U, T>
+void Array<T>::push_back(U &&value)
 {
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
