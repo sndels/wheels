@@ -991,9 +991,9 @@ TEST_CASE("HashSet::allocate_copy")
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 32);
 
-    set.insert(10);
-    set.insert(20);
-    set.insert(30);
+    set.insert(10u);
+    set.insert(20u);
+    set.insert(30u);
     REQUIRE(!set.empty());
     REQUIRE(set.size() == 3);
 
@@ -1028,8 +1028,8 @@ TEST_CASE("HashSet::grow")
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 32);
 
-    set.insert(10);
-    set.insert(20);
+    set.insert(10u);
+    set.insert(20u);
     REQUIRE(set.size() == 2);
     REQUIRE(set.capacity() == 32);
 
@@ -1051,7 +1051,7 @@ TEST_CASE("HashSet::reinsert")
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 32);
-    set.insert(0);
+    set.insert(0u);
 
     // Try to cause a case where all of the values are either Full or Deleted
     for (size_t i = 0; i < 8096; ++i)
@@ -1156,9 +1156,9 @@ TEST_CASE("HashSet::range_for")
         sum += v;
     REQUIRE(sum == 0);
 
-    set.insert(10);
-    set.insert(20);
-    set.insert(30);
+    set.insert(10u);
+    set.insert(20u);
+    set.insert(30u);
 
     sum = 0;
     for (auto &v : set)
@@ -1178,8 +1178,8 @@ TEST_CASE("HashSet::aligned")
 
     HashSet<AlignedObj, AlignedHash> set{allocator, 5};
 
-    set.insert({10});
-    set.insert({20});
+    set.insert(AlignedObj{10});
+    set.insert(AlignedObj{20});
 
     REQUIRE(set.contains({10}));
     REQUIRE(set.contains({20}));

@@ -373,7 +373,7 @@ static void hash_set_insert(benchmark::State &state)
         INLINE_ASM("nop");
         INLINE_ASM("nop");
         for (uint32_t i = 0; i < N; ++i)
-            set.insert(i);
+            set.insert(T{i});
         INLINE_ASM("nop");
         INLINE_ASM("nop");
         INLINE_ASM("nop # End loop");
@@ -454,7 +454,7 @@ static void hash_set_contains_seq_numbers(benchmark::State &state)
 
     HashSet<T, Hash<T>> set{allocator, N};
     for (uint32_t i = 0; i < N; ++i)
-        set.insert(i);
+        set.insert(T{i});
 
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains(rand() % N));
@@ -527,7 +527,7 @@ static void hash_set_doesnt_contain(benchmark::State &state)
 
     HashSet<T, Hash<T>> set{allocator, N};
     for (uint32_t i = 0; i < N; ++i)
-        set.insert({i});
+        set.insert(T{i});
 
     while (state.KeepRunning())
         benchmark::DoNotOptimize(set.contains((rand() % N) + N));

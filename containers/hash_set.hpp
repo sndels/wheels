@@ -2,6 +2,7 @@
 #define WHEELS_HASH_SET
 
 #include "allocators/allocator.hpp"
+#include "concepts.hpp"
 #include "container_utils.hpp"
 #include "hash.hpp"
 
@@ -52,8 +53,11 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     ConstIterator find(T const &value) const;
 
     void clear();
-    void insert(T const &value);
-    void insert(T &&value);
+
+    template <typename U>
+    requires SameAs<U, T> // Let's be pedantic and disallow implicit conversions
+    void insert(U &&value);
+
     void remove(T const &value);
 
   private:
@@ -229,34 +233,9 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::clear()
     memset(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
 }
 
-template <typename T, class Hasher>
-void HashSet<T, Hasher>::insert(T const &value)
-{
-    if (is_over_max_load())
-        grow(m_capacity * 2);
-
-    uint64_t const hash = m_hasher(value);
-    uint8_t const h2 = s_h2(hash);
-    // Capacity is a power of 2 so this mask just works
-    size_t pos = s_h1(hash) & (m_capacity - 1);
-    while (true)
-    {
-        if (s_empty_pos(m_metadata, pos))
-        {
-            new (m_data + pos) T{value};
-            m_metadata[pos] = h2;
-            m_size++;
-            return;
-        }
-        else if (h2 == m_metadata[pos] && value == m_data[pos])
-            return;
-
-        // Capacity is a power of 2 so this mask just works
-        pos = (pos + 1) & (m_capacity - 1);
-    }
-}
-
-template <typename T, class Hasher> void HashSet<T, Hasher>::insert(T &&value)
+template <typename T, class Hasher> template <typename U>
+requires SameAs<U, T>
+void HashSet<T, Hasher>::insert(U &&value)
 {
     if (is_over_max_load())
         grow(m_capacity * 2);
