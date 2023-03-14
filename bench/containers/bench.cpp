@@ -1,17 +1,14 @@
-#ifndef CONTAINERS_BENCH_HPP
-#define CONTAINERS_BENCH_HPP
-
 // This is not really a header but included into the main bench file unity build
 
 #include <benchmark/benchmark.h>
 
-#include "allocators/cstdlib_allocator.hpp"
-#include "containers/array.hpp"
-#include "containers/hash_set.hpp"
-#include "containers/pair.hpp"
-#include "containers/small_map.hpp"
-#include "containers/small_set.hpp"
-#include "containers/static_array.hpp"
+#include <allocators/cstdlib_allocator.hpp>
+#include <containers/array.hpp>
+#include <containers/hash_set.hpp>
+#include <containers/pair.hpp>
+#include <containers/small_map.hpp>
+#include <containers/small_set.hpp>
+#include <containers/static_array.hpp>
 
 #include <cstdlib>
 #include <unordered_set>
@@ -599,5 +596,3 @@ BENCHMARK(std_hash<float>);
 BENCHMARK(std_hash<double>);
 BENCHMARK(wheels_hash<uint64_t *>);
 BENCHMARK(wheels_hash<uint64_t const *>);
-
-#endif // CONTAINERS_BENCH_HPP

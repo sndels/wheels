@@ -65,7 +65,7 @@ endif() # NOT MSVC
 target_link_libraries(wheels_test PRIVATE wheels Catch2WithMain)
 
 add_executable(wheels_bench
-    ${CMAKE_CURRENT_LIST_DIR}/bench.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/bench/main.cpp
 )
 target_compile_features(wheels_bench
     PUBLIC
