@@ -465,8 +465,9 @@ TEST_CASE("Array::resize")
     REQUIRE(arr[4].data == 50);
 
     arr.resize(6);
-    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_ctor_counter == 11);
     REQUIRE(DtorObj::s_default_ctor_counter == 1);
+    REQUIRE(DtorObj::s_move_ctor_counter == 5);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 6);
@@ -476,7 +477,7 @@ TEST_CASE("Array::resize")
     REQUIRE(arr[5].data == 0);
 
     arr.resize(1);
-    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_ctor_counter == 11);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
     REQUIRE(arr.size() == 1);
@@ -484,7 +485,7 @@ TEST_CASE("Array::resize")
     REQUIRE(arr[0].data == 10);
 
     arr.resize(4, DtorObj{11});
-    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_ctor_counter == 15);
     REQUIRE(DtorObj::s_value_ctor_counter == 6);
     REQUIRE(DtorObj::s_copy_ctor_counter == 3);
     REQUIRE(DtorObj::s_assign_counter == 0);
@@ -495,7 +496,7 @@ TEST_CASE("Array::resize")
         REQUIRE(arr[i].data == 11);
 
     arr.resize(2, DtorObj{15});
-    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_ctor_counter == 16);
     REQUIRE(DtorObj::s_value_ctor_counter == 7);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 9);
@@ -503,9 +504,11 @@ TEST_CASE("Array::resize")
     REQUIRE(arr[1].data == 11);
 
     arr.clear();
-    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_ctor_counter == 16);
     REQUIRE(DtorObj::s_assign_counter == 0);
-    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
+    REQUIRE(
+        DtorObj::s_dtor_counter ==
+        DtorObj::s_ctor_counter - DtorObj::s_move_ctor_counter);
 }
 
 TEST_CASE("Array::range_for")
@@ -644,8 +647,9 @@ TEST_CASE("StaticArray::clear")
 {
     init_dtor_counters();
     StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_move_ctor_counter == 5);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!arr.empty());
@@ -655,9 +659,11 @@ TEST_CASE("StaticArray::clear")
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() == 5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_assign_counter == 0);
-    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
+    REQUIRE(
+        DtorObj::s_dtor_counter ==
+        DtorObj::s_ctor_counter - DtorObj::s_move_ctor_counter);
 }
 
 TEST_CASE("StaticArray::emplace")
@@ -712,8 +718,9 @@ TEST_CASE("StaticArray::resize")
     init_dtor_counters();
 
     StaticArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_value_ctor_counter == 5);
+    REQUIRE(DtorObj::s_move_ctor_counter == 5);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
@@ -722,7 +729,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[4].data == 50);
 
     arr.resize(5);
-    REQUIRE(DtorObj::s_ctor_counter == 5);
+    REQUIRE(DtorObj::s_ctor_counter == 10);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(arr.size() == 5);
@@ -731,7 +738,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[4].data == 50);
 
     arr.resize(6);
-    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_ctor_counter == 11);
     REQUIRE(DtorObj::s_default_ctor_counter == 1);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
@@ -742,7 +749,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[5].data == 0);
 
     arr.resize(1);
-    REQUIRE(DtorObj::s_ctor_counter == 6);
+    REQUIRE(DtorObj::s_ctor_counter == 11);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
     REQUIRE(arr.size() == 1);
@@ -750,7 +757,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[0].data == 10);
 
     arr.resize(4, DtorObj{11});
-    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_ctor_counter == 15);
     REQUIRE(DtorObj::s_value_ctor_counter == 6);
     REQUIRE(DtorObj::s_copy_ctor_counter == 3);
     REQUIRE(DtorObj::s_assign_counter == 0);
@@ -761,7 +768,7 @@ TEST_CASE("StaticArray::resize")
         REQUIRE(arr[i].data == 11);
 
     arr.resize(2, DtorObj{15});
-    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_ctor_counter == 16);
     REQUIRE(DtorObj::s_value_ctor_counter == 7);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 9);
@@ -769,9 +776,11 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[1].data == 11);
 
     arr.clear();
-    REQUIRE(DtorObj::s_ctor_counter == 11);
+    REQUIRE(DtorObj::s_ctor_counter == 16);
     REQUIRE(DtorObj::s_assign_counter == 0);
-    REQUIRE(DtorObj::s_dtor_counter == DtorObj::s_ctor_counter);
+    REQUIRE(
+        DtorObj::s_dtor_counter ==
+        DtorObj::s_ctor_counter - DtorObj::s_move_ctor_counter);
 }
 
 TEST_CASE("StaticArray::range_for")
@@ -896,9 +905,9 @@ TEST_CASE("SmallSet::clear")
     init_dtor_counters();
 
     SmallSet<DtorObj, 5> set = init_test_small_set_dtor<5>(5);
-    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_ctor_counter == 15);
     REQUIRE(DtorObj::s_value_ctor_counter == 5);
-    REQUIRE(DtorObj::s_move_ctor_counter == 5);
+    REQUIRE(DtorObj::s_move_ctor_counter == 10);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!set.empty());
@@ -909,7 +918,7 @@ TEST_CASE("SmallSet::clear")
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 5);
-    REQUIRE(DtorObj::s_ctor_counter == 10);
+    REQUIRE(DtorObj::s_ctor_counter == 15);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 5);
 }
@@ -1307,10 +1316,10 @@ TEST_CASE("SmallMap::clear")
 {
     init_dtor_counters();
     SmallMap<DtorObj, DtorObj, 5> map = init_test_small_map_dtor<5>(5);
-    REQUIRE(DtorObj::s_ctor_counter == 30);
+    REQUIRE(DtorObj::s_ctor_counter == 40);
     REQUIRE(DtorObj::s_value_ctor_counter == 10);
     REQUIRE(DtorObj::s_copy_ctor_counter == 0);
-    REQUIRE(DtorObj::s_move_ctor_counter == 20);
+    REQUIRE(DtorObj::s_move_ctor_counter == 30);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 0);
     REQUIRE(!map.empty());
@@ -1321,7 +1330,7 @@ TEST_CASE("SmallMap::clear")
     REQUIRE(map.empty());
     REQUIRE(map.size() == 0);
     REQUIRE(map.capacity() == 5);
-    REQUIRE(DtorObj::s_ctor_counter == 30);
+    REQUIRE(DtorObj::s_ctor_counter == 40);
     REQUIRE(DtorObj::s_assign_counter == 0);
     REQUIRE(DtorObj::s_dtor_counter == 10);
 }
