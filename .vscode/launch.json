@@ -77,6 +77,15 @@
             "preLaunchTask": "MSBuild test (Debug)"
         },
         {
+            "name": "gdb tests (Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/wheels_test",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Make test (Release)"
+        },
+        {
             "name": "gdb tests (Debug)",
             "type": "cppdbg",
             "request": "launch",

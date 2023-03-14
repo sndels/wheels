@@ -232,6 +232,28 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "Make test (Release)",
+            "type": "shell",
+            "dependsOn": [
+                "cmake release"
+            ],
+            "command": "make",
+            "args": [
+                "-j",
+                "wheels_test"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "never"
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "Make test (Debug)",
             "type": "shell",
             "dependsOn": [
