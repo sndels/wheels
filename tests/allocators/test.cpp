@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <wheels/allocators/allocator_utils.hpp>
 #include <wheels/allocators/cstdlib_allocator.hpp>
 #include <wheels/allocators/linear_allocator.hpp>
 #include <wheels/allocators/scoped_scratch.hpp>
+#include <wheels/allocators/utils.hpp>
+
 
 using namespace wheels;
 

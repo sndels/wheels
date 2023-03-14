@@ -1,8 +1,8 @@
 
-#ifndef WHEELS_STATIC_ARRAY_HPP
-#define WHEELS_STATIC_ARRAY_HPP
+#ifndef WHEELS_CONTAINERS_STATIC_ARRAY_HPP
+#define WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 
-#include "container_utils.hpp"
+#include "utils.hpp"
 
 #include <cstring>
 
@@ -254,4 +254,4 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
 
 } // namespace wheels
 
-#endif // WHEELS_STATIC_ARRAY_HPP
+#endif // WHEELS_CONTAINERS_STATIC_ARRAY_HPP

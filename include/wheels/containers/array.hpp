@@ -1,9 +1,9 @@
 
-#ifndef WHEELS_ARRAY_HPP
-#define WHEELS_ARRAY_HPP
+#ifndef WHEELS_CONTAINERS_ARRAY_HPP
+#define WHEELS_CONTAINERS_ARRAY_HPP
 
 #include "../allocators/allocator.hpp"
-#include "container_utils.hpp"
+#include "utils.hpp"
 
 #include <cstring>
 
@@ -261,4 +261,4 @@ template <typename T> void Array<T>::free()
 
 } // namespace wheels
 
-#endif // WHEELS_ARRAY_HPP
+#endif // WHEELS_CONTAINERS_ARRAY_HPP

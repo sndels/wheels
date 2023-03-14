@@ -1,9 +1,10 @@
 
-#ifndef WHEELS_SMALL_SET_HPP
-#define WHEELS_SMALL_SET_HPP
+#ifndef WHEELS_CONTAINERS_SMALL_SET_HPP
+#define WHEELS_CONTAINERS_SMALL_SET_HPP
 
-#include "container_utils.hpp"
 #include "static_array.hpp"
+#include "utils.hpp"
+
 
 namespace wheels
 {
@@ -149,4 +150,4 @@ template <typename T, size_t N> void SmallSet<T, N>::remove(T const &value)
 
 } // namespace wheels
 
-#endif // WHEELS_SMALL_SET_HPP
+#endif // WHEELS_CONTAINERS_SMALL_SET_HPP

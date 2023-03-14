@@ -1,5 +1,5 @@
-#ifndef WHEELS_CSTDLIB_ALLOCATOR_HPP
-#define WHEELS_CSTDLIB_ALLOCATOR_HPP
+#ifndef WHEELS_ALLOCATORS_CSTDLIB_ALLOCATOR_HPP
+#define WHEELS_ALLOCATORS_CSTDLIB_ALLOCATOR_HPP
 
 #include "allocator.hpp"
 
@@ -24,4 +24,4 @@ class CstdlibAllocator : public Allocator
 
 } // namespace wheels
 
-#endif // WHEELS_CSTDLIB_ALLOCATOR_HPP
+#endif // WHEELS_ALLOCATORS_CSTDLIB_ALLOCATOR_HPP

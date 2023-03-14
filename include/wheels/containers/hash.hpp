@@ -1,5 +1,5 @@
-#ifndef WHEELS_HASH_HPP
-#define WHEELS_HASH_HPP
+#ifndef WHEELS_CONTAINERS_HASH_HPP
+#define WHEELS_CONTAINERS_HASH_HPP
 
 #include <functional>
 #include <wyhash.h>
@@ -48,4 +48,4 @@ WHEELS_HASH_DEFINE_IMPLEMENTATION(double);
 
 } // namespace wheels
 
-#endif // WHEELS_HASH_HPP
+#endif // WHEELS_CONTAINERS_HASH_HPP

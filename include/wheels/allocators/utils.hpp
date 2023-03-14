@@ -1,5 +1,5 @@
-#ifndef WHEELS_ALLOCATOR_UTILS_HPP
-#define WHEELS_ALLOCATOR_UTILS_HPP
+#ifndef WHEELS_ALLOCATORS_UTILS_HPP
+#define WHEELS_ALLOCATORS_UTILS_HPP
 
 #include <cassert>
 #include <climits>
@@ -21,4 +21,4 @@ constexpr size_t aligned_offset(size_t offset, size_t alignment)
 
 } // namespace wheels
 
-#endif // WHEELS_ALLOCATOR_UTILS_HPP
+#endif // WHEELS_ALLOCATORS_UTILS_HPP

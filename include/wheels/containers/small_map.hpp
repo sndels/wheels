@@ -1,10 +1,11 @@
 
-#ifndef WHEELS_SMALL_MAP_HPP
-#define WHEELS_SMALL_MAP_HPP
+#ifndef WHEELS_CONTAINERS_SMALL_MAP_HPP
+#define WHEELS_CONTAINERS_SMALL_MAP_HPP
 
-#include "container_utils.hpp"
 #include "pair.hpp"
 #include "static_array.hpp"
+#include "utils.hpp"
+
 
 namespace wheels
 {
@@ -213,4 +214,4 @@ void SmallMap<K, V, N>::remove(K const &key)
 
 } // namespace wheels
 
-#endif // WHEELS_SMALL_MAP_HPP
+#endif // WHEELS_CONTAINERS_SMALL_MAP_HPP

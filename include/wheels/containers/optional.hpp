@@ -1,7 +1,7 @@
-#ifndef WHEELS_OPTIONAL_HPP
-#define WHEELS_OPTIONAL_HPP
+#ifndef WHEELS_CONTAINERS_OPTIONAL_HPP
+#define WHEELS_CONTAINERS_OPTIONAL_HPP
 
-#include "container_utils.hpp"
+#include "utils.hpp"
 
 namespace wheels
 {
@@ -142,4 +142,4 @@ template <typename T> T const *Optional<T>::operator->() const noexcept
 
 } // namespace wheels
 
-#endif // WHEELS_OPTIONAL_HPP
+#endif // WHEELS_CONTAINERS_OPTIONAL_HPP

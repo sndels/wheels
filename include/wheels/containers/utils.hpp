@@ -1,5 +1,7 @@
-#ifndef WHEELS_CONTAINER_UTILS_HPP
-#define WHEELS_CONTAINER_UTILS_HPP
+#ifndef WHEELS_CONTAINERS_UTILS_HPP
+#define WHEELS_CONTAINERS_UTILS_HPP
+
+#include <cassert>
 
 // https://www.foonathan.net/2020/09/move-forward/
 // static_cast to rvalue reference
@@ -29,4 +31,4 @@ size_t round_up_power_of_two(size_t value)
 
 } // namespace wheels
 
-#endif // WHEELS_CONTAINER_UTILS_HPP
+#endif // WHEELS_CONTAINERS_UTILS_HPP

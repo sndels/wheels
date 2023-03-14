@@ -1,8 +1,8 @@
-#ifndef WHEELS_LINEAR_ALLOCATOR_HPP
-#define WHEELS_LINEAR_ALLOCATOR_HPP
+#ifndef WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP
+#define WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP
 
 #include "allocator.hpp"
-#include "allocator_utils.hpp"
+#include "utils.hpp"
 
 #include <cassert>
 #include <climits>
@@ -83,4 +83,4 @@ void *LinearAllocator::peek() const { return m_memory; };
 
 } // namespace wheels
 
-#endif // WHEELS_LINEAR_ALLOCATOR_HPP
+#endif // WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP

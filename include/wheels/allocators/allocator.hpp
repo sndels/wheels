@@ -1,5 +1,5 @@
-#ifndef WHEELS_ALLOCATOR_HPP
-#define WHEELS_ALLOCATOR_HPP
+#ifndef WHEELS_ALLOCATORS_ALLOCATOR_HPP
+#define WHEELS_ALLOCATORS_ALLOCATOR_HPP
 
 namespace wheels
 {
@@ -14,4 +14,4 @@ class Allocator
 
 } // namespace wheels
 
-#endif // WHEELS_ALLOCATOR_HPP
+#endif // WHEELS_ALLOCATORS_ALLOCATOR_HPP

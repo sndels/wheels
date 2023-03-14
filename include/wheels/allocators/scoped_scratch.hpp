@@ -1,8 +1,8 @@
-#ifndef WHEELS_SCOPED_SCRATCH_HPP
-#define WHEELS_SCOPED_SCRATCH_HPP
+#ifndef WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
+#define WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
 
-#include "allocator_utils.hpp"
 #include "linear_allocator.hpp"
+#include "utils.hpp"
 
 
 #include <cassert>
@@ -145,4 +145,4 @@ template <typename T> T *ScopedScratch::allocate_object()
 
 } // namespace wheels
 
-#endif // WHEELS_SCOPED_SCRATCH_HPP
+#endif // WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
