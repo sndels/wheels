@@ -7,7 +7,7 @@ add_library(wheels INTERFACE)
 
 target_include_directories(wheels
     INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
 target_link_libraries(wheels

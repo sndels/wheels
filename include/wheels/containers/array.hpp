@@ -2,7 +2,7 @@
 #ifndef WHEELS_ARRAY_HPP
 #define WHEELS_ARRAY_HPP
 
-#include "allocators/allocator.hpp"
+#include "../allocators/allocator.hpp"
 #include "container_utils.hpp"
 
 #include <cstring>

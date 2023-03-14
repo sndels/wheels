@@ -1,7 +1,7 @@
 #ifndef WHEELS_HASH_SET
 #define WHEELS_HASH_SET
 
-#include "allocators/allocator.hpp"
+#include "../allocators/allocator.hpp"
 #include "concepts.hpp"
 #include "container_utils.hpp"
 #include "hash.hpp"
