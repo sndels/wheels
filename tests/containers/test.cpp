@@ -1,14 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "allocators/cstdlib_allocator.hpp"
-#include "array.hpp"
-#include "hash.hpp"
-#include "hash_set.hpp"
-#include "optional.hpp"
-#include "pair.hpp"
-#include "small_map.hpp"
-#include "small_set.hpp"
-#include "static_array.hpp"
+#include <allocators/cstdlib_allocator.hpp>
+#include <containers/array.hpp>
+#include <containers/hash.hpp>
+#include <containers/hash_set.hpp>
+#include <containers/optional.hpp>
+#include <containers/pair.hpp>
+#include <containers/small_map.hpp>
+#include <containers/small_set.hpp>
+#include <containers/static_array.hpp>
 
 using namespace wheels;
 
