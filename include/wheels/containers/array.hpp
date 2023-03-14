@@ -13,6 +13,13 @@ namespace wheels
 
 template <typename T> class Array
 {
+    // Use a static assert instead of a concepts constraint as this will produce
+    // a more understandable error message
+    static_assert(
+        (std::is_trivially_copyable_v<T> || std::move_constructible<T>),
+        "Reallocation requires T to be either trivially copyable or move "
+        "constructible");
+
   public:
     Array(Allocator &allocator, size_t initial_capacity = 4);
     ~Array();
@@ -240,8 +247,13 @@ template <typename T> void Array<T>::reallocate(size_t capacity)
 
     if (m_data != nullptr)
     {
-        for (size_t i = 0; i < m_size; ++i)
-            new (data + i) T{WHEELS_MOV(m_data[i])};
+        if constexpr (std::is_trivially_copyable_v<T>)
+            memcpy(data, m_data, m_size * sizeof(T));
+        else
+        {
+            for (size_t i = 0; i < m_size; ++i)
+                new (data + i) T{WHEELS_MOV(m_data[i])};
+        }
         m_allocator.deallocate(m_data);
     }
 

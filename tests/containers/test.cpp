@@ -12,6 +12,10 @@
 
 using namespace wheels;
 
+// TODO:
+// Check that non trivially copyable types go through move ctor on
+// reallocations and the likes that actually move the objects in memory.
+
 namespace
 {
 
