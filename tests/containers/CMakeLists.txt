@@ -1,0 +1,11 @@
+set(CONTAINER_TESTS_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/array.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/hash_set.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/hash.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/optional.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/pair.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/small_map.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/small_set.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/static_array.cpp
+    PARENT_SCOPE
+)

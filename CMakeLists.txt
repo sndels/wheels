@@ -15,10 +15,9 @@ target_link_libraries(wheels
     wyhash
 )
 
-add_executable(wheels_test
-    ${CMAKE_CURRENT_LIST_DIR}/tests/allocators/test.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/tests/containers/test.cpp
-)
+add_subdirectory(tests)
+
+add_executable(wheels_test ${TESTS_SOURCES})
 target_compile_features(wheels_test
     PUBLIC
     cxx_std_20
