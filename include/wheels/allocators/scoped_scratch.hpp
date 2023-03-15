@@ -4,7 +4,6 @@
 #include "linear_allocator.hpp"
 #include "utils.hpp"
 
-
 #include <cassert>
 #include <climits>
 #include <cstdint>
@@ -55,13 +54,13 @@ class ScopedScratch
     ScopeData *m_objects{nullptr};
 };
 
-ScopedScratch::ScopedScratch(LinearAllocator &allocator)
+inline ScopedScratch::ScopedScratch(LinearAllocator &allocator)
 : m_allocator{allocator}
 , m_alloc_start{allocator.peek()}
 {
 }
 
-ScopedScratch::~ScopedScratch()
+inline ScopedScratch::~ScopedScratch()
 {
     if (m_alloc_start != nullptr)
     {
@@ -79,7 +78,7 @@ ScopedScratch::~ScopedScratch()
     }
 };
 
-ScopedScratch::ScopedScratch(ScopedScratch &&other)
+inline ScopedScratch::ScopedScratch(ScopedScratch &&other)
 : m_allocator{other.m_allocator}
 , m_alloc_start{other.m_alloc_start}
 , m_parent_scope{other.m_parent_scope}
@@ -89,7 +88,7 @@ ScopedScratch::ScopedScratch(ScopedScratch &&other)
     other.m_alloc_start = nullptr;
 };
 
-ScopedScratch ScopedScratch::child_scope()
+inline ScopedScratch ScopedScratch::child_scope()
 {
     assert(
         !m_has_child_scope && "Tried to create a child scope from a "

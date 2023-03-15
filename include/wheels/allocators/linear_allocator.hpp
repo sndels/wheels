@@ -44,14 +44,14 @@ class LinearAllocator : public Allocator
     size_t m_capacity{0};
 };
 
-LinearAllocator::LinearAllocator(size_t capacity)
+inline LinearAllocator::LinearAllocator(size_t capacity)
 : m_capacity{capacity}
 {
     m_memory = new uint8_t[m_capacity];
 }
-LinearAllocator::~LinearAllocator() { delete[] m_memory; };
+inline LinearAllocator::~LinearAllocator() { delete[] m_memory; };
 
-void *LinearAllocator::allocate(size_t num_bytes)
+inline void *LinearAllocator::allocate(size_t num_bytes)
 {
     size_t const ret_offset =
         aligned_offset(m_offset, alignof(std::max_align_t));
@@ -66,11 +66,11 @@ void *LinearAllocator::allocate(size_t num_bytes)
     return m_memory + ret_offset;
 }
 
-void LinearAllocator::deallocate(void * /*ptr*/) { }
+inline void LinearAllocator::deallocate(void * /*ptr*/) { }
 
-void LinearAllocator::reset() { m_offset = 0; }
+inline void LinearAllocator::reset() { m_offset = 0; }
 
-void LinearAllocator::rewind(void *ptr)
+inline void LinearAllocator::rewind(void *ptr)
 {
     assert(
         ptr >= m_memory && ptr < m_memory + m_capacity &&
@@ -79,7 +79,7 @@ void LinearAllocator::rewind(void *ptr)
     m_offset = (uint8_t *)ptr - m_memory;
 }
 
-void *LinearAllocator::peek() const { return m_memory; };
+inline void *LinearAllocator::peek() const { return m_memory; };
 
 } // namespace wheels
 
