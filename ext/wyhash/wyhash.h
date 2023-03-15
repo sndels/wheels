@@ -205,11 +205,12 @@ static inline void make_secret(uint64_t seed, uint64_t *secret){
   }
 }
 
-#endif
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#endif
 
 /* The Unlicense
 This is free and unencumbered software released into the public domain.
