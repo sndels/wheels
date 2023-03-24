@@ -1,5 +1,5 @@
-#ifndef WHEELS_HASH_SET
-#define WHEELS_HASH_SET
+#ifndef WHEELS_HASH_MAP
+#define WHEELS_HASH_MAP
 
 #include "../allocators/allocator.hpp"
 #include "concepts.hpp"
@@ -15,32 +15,35 @@ namespace wheels
 // without the SIMD magic for now
 // https://www.youtube.com/watch?v=ncHmEUmJZf4
 
-template <typename T, class Hasher = Hash<T>> class HashSet
+template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
 {
   public:
     struct ConstIterator
     {
         ConstIterator &operator++();
         ConstIterator &operator++(int);
-        T const &operator*();
-        T const &operator->();
-        bool operator!=(HashSet<T, Hasher>::ConstIterator const &other) const;
-        bool operator==(HashSet<T, Hasher>::ConstIterator const &other) const;
+        Pair<Key const *, Value const *> operator*();
+        Pair<Key const *, Value const *> operator->();
+        bool operator!=(
+            HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
+        bool operator==(
+            HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
 
-        HashSet const &set;
+        HashMap const &map;
         size_t pos{0};
     };
 
     friend struct ConstIterator;
 
   public:
-    HashSet(Allocator &allocator, size_t initial_capacity = 32);
-    ~HashSet();
+    HashMap(Allocator &allocator, size_t initial_capacity = 32);
+    ~HashMap();
 
-    HashSet(HashSet<T, Hasher> const &other) = delete;
-    HashSet(HashSet<T, Hasher> &&other);
-    HashSet<T, Hasher> &operator=(HashSet<T, Hasher> const &other) = delete;
-    HashSet<T, Hasher> &operator=(HashSet<T, Hasher> &&other);
+    HashMap(HashMap<Key, Value, Hasher> const &other) = delete;
+    HashMap(HashMap<Key, Value, Hasher> &&other);
+    HashMap<Key, Value, Hasher> &operator=(
+        HashMap<Key, Value, Hasher> const &other) = delete;
+    HashMap<Key, Value, Hasher> &operator=(HashMap<Key, Value, Hasher> &&other);
 
     ConstIterator begin() const;
     ConstIterator end() const;
@@ -49,17 +52,17 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     size_t size() const;
     size_t capacity() const;
 
-    bool contains(T const &value) const;
-    ConstIterator find(T const &value) const;
+    bool contains(Key const &key) const;
+    ConstIterator find(Key const &key) const;
 
     void clear();
 
-    template <typename U>
+    template <typename K, typename V>
     // Let's be pedantic and disallow implicit conversions
-        requires SameAs<U, T>
-    void insert(U &&value);
+        requires(SameAs<K, Key> && SameAs<V, Value>)
+    void insert(K &&key, V &&value);
 
-    void remove(T const &value);
+    void remove(Key const &key);
 
   private:
     bool is_over_max_load() const;
@@ -87,15 +90,17 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     }
 
     Allocator &m_allocator;
-    T *m_data{nullptr};
+    T *m_keys_data{nullptr};
+    T *m_values_data{nullptr};
     uint8_t *m_metadata{nullptr};
     size_t m_size{0};
     size_t m_capacity{0};
     Hasher m_hasher{};
 };
 
-template <typename T, class Hasher>
-HashSet<T, Hasher>::HashSet(Allocator &allocator, size_t initial_capacity)
+template <typename Key, typename Value, class Hasher>
+HashMap<Key, Value, Hasher>::HashMap(
+    Allocator &allocator, size_t initial_capacity)
 : m_allocator{allocator}
 {
     static_assert(
@@ -111,10 +116,14 @@ HashSet<T, Hasher>::HashSet(Allocator &allocator, size_t initial_capacity)
     grow(initial_capacity);
 }
 
-template <typename T, class Hasher> HashSet<T, Hasher>::~HashSet() { free(); }
+template <typename Key, typename Value, class Hasher>
+HashMap<Key, Value, Hasher>::~HashMap()
+{
+    free();
+}
 
-template <typename T, class Hasher>
-HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other)
+template <typename Key, typename Value, class Hasher>
+HashMap<Key, Value, Hasher>::HashMap(HashMap<Key, Value, Hasher> &&other)
 : m_allocator{other.m_allocator}
 , m_data{other.m_data}
 , m_metadata{other.m_metadata}
@@ -125,8 +134,9 @@ HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other)
     other.m_data = nullptr;
 }
 
-template <typename T, class Hasher>
-HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
+template <typename Key, typename Value, class Hasher>
+HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
+    HashMap<Key, Value, Hasher> &&other)
 {
     if (this != &other)
     {
@@ -144,11 +154,12 @@ HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
     return *this;
 }
 
-template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
+    Key, Value, Hasher>::begin() const
 {
     ConstIterator iter{
-        .set = *this,
+        .map = *this,
         .pos = 0,
     };
 
@@ -159,41 +170,45 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
     return iter;
 }
 
-template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end() const
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
+    Key, Value, Hasher>::end() const
 {
     return ConstIterator{
-        .set = *this,
+        .map = *this,
         .pos = m_capacity,
     };
 }
 
-template <typename T, class Hasher> bool HashSet<T, Hasher>::empty() const
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::empty() const
 {
     return m_size == 0;
 }
 
-template <typename T, class Hasher> size_t HashSet<T, Hasher>::size() const
+template <typename Key, typename Value, class Hasher>
+size_t HashMap<Key, Value, Hasher>::size() const
 {
     return m_size;
 }
 
-template <typename T, class Hasher> size_t HashSet<T, Hasher>::capacity() const
+template <typename Key, typename Value, class Hasher>
+size_t HashMap<Key, Value, Hasher>::capacity() const
 {
     return m_capacity;
 }
 
-template <typename T, class Hasher>
-bool HashSet<T, Hasher>::contains(T const &value) const
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::contains(Key const &key) const
 {
-    return find(value) != end();
+    return find(key) != end();
 }
 
-template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
-    T const &value) const
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
+    Key, Value, Hasher>::find(Key const &key) const
 {
-    uint64_t const hash = m_hasher(value);
+    uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Keep track of start pos so we can break out before looping again if all
     // slots are full or deleted.
@@ -203,9 +218,9 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
     while (m_metadata[pos] != (uint8_t)Ctrl::Empty)
     {
         uint8_t const meta = m_metadata[pos];
-        if (h2 == meta && value == m_data[pos])
+        if (h2 == meta && key == m_data[pos])
             return ConstIterator{
-                .set = *this,
+                .map = *this,
                 .pos = pos,
             };
 
@@ -218,7 +233,8 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
     return end();
 }
 
-template <typename T, class Hasher> void HashSet<T, Hasher>::clear()
+template <typename Key, typename Value, class Hasher>
+void HashMap<Key, Value, Hasher>::clear()
 {
     if (m_size > 0)
     {
@@ -231,18 +247,18 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::clear()
         }
         m_size = 0;
     }
-    memset(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
+    memmap(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
 }
 
-template <typename T, class Hasher>
-template <typename U>
-    requires SameAs<U, T>
-void HashSet<T, Hasher>::insert(U &&value)
+template <typename Key, typename Value, class Hasher>
+template <typename K, typename V>
+    requires(SameAs<K, Key> && SameAs<V, Value>)
+void HashMap<Key, Value, Hasher>::insert(K &&key, V &&value)
 {
     if (is_over_max_load())
         grow(m_capacity * 2);
 
-    uint64_t const hash = m_hasher(value);
+    uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Capacity is a power of 2 so this mask just works
     size_t pos = s_h1(hash) & (m_capacity - 1);
@@ -255,7 +271,7 @@ void HashSet<T, Hasher>::insert(U &&value)
             m_size++;
             return;
         }
-        else if (h2 == m_metadata[pos] && value == m_data[pos])
+        else if (h2 == m_metadata[pos] && key == m_data[pos])
             return;
 
         // Capacity is a power of 2 so this mask just works
@@ -263,10 +279,10 @@ void HashSet<T, Hasher>::insert(U &&value)
     }
 }
 
-template <typename T, class Hasher>
-void HashSet<T, Hasher>::remove(T const &value)
+template <typename Key, typename Value, class Hasher>
+void HashMap<Key, Value, Hasher>::remove(Key const &key)
 {
-    uint64_t const hash = m_hasher(value);
+    uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Keep track of start pos so we can break out before looping again if all
     // slots are full or deleted.
@@ -276,7 +292,7 @@ void HashSet<T, Hasher>::remove(T const &value)
     while (m_metadata[pos] != (uint8_t)Ctrl::Empty)
     {
         uint8_t const meta = m_metadata[pos];
-        if (h2 == meta && value == m_data[pos])
+        if (h2 == meta && key == m_data[pos])
         {
             m_data[pos].~T();
             m_metadata[pos] = (uint8_t)Ctrl::Deleted;
@@ -297,17 +313,17 @@ void HashSet<T, Hasher>::remove(T const &value)
     }
 }
 
-template <typename T, class Hasher>
-bool HashSet<T, Hasher>::is_over_max_load() const
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::is_over_max_load() const
 {
-    // Magic factor from the talk, matching the arbitrary offset SSE version
+    // Magic factor from the talk, matching the arbitrary offmap SSE version
     // as reading one metadata byte at a time is basically the same
     // size / capacity > 15 / 16
     return 16 * m_size > 15 * m_capacity;
 }
 
-template <typename T, class Hasher>
-void HashSet<T, Hasher>::grow(size_t capacity)
+template <typename Key, typename Value, class Hasher>
+void HashMap<Key, Value, Hasher>::grow(size_t capacity)
 {
     assert(capacity > m_capacity);
     // Assume capacity is a power of two so we can avoid modulus operations on
@@ -326,7 +342,7 @@ void HashSet<T, Hasher>::grow(size_t capacity)
     m_size = 0;
     m_capacity = capacity;
 
-    memset(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
+    memmap(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
 
     for (size_t pos = 0; pos < old_capacity; ++pos)
     {
@@ -341,7 +357,8 @@ void HashSet<T, Hasher>::grow(size_t capacity)
     m_allocator.deallocate(old_metadata);
 }
 
-template <typename T, class Hasher> void HashSet<T, Hasher>::free()
+template <typename Key, typename Value, class Hasher>
+void HashMap<Key, Value, Hasher>::free()
 {
     if (m_data != nullptr)
     {
@@ -352,48 +369,48 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::free()
     }
 }
 
-template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator &HashSet<
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
     T, Hasher>::ConstIterator::operator++()
 {
-    assert(pos < set.capacity());
+    assert(pos < map.capacity());
     do
     {
         pos++;
-    } while (pos < set.capacity() && set.s_empty_pos(set.m_metadata, pos));
+    } while (pos < map.capacity() && map.s_empty_pos(map.m_metadata, pos));
     return *this;
 };
 
-template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator &HashSet<
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
     T, Hasher>::ConstIterator::operator++(int)
 {
     return ++*this;
 }
 
-template <typename T, class Hasher>
-T const &HashSet<T, Hasher>::ConstIterator::operator*()
+template <typename Key, typename Value, class Hasher>
+T const &HashMap<Key, Value, Hasher>::ConstIterator::operator*()
 {
-    assert(pos < set.capacity());
-    assert(!set.s_empty_pos(set.m_metadata, pos));
+    assert(pos < map.capacity());
+    assert(!map.s_empty_pos(map.m_metadata, pos));
 
-    return set.m_data[pos];
+    return map.m_data[pos];
 };
 
-template <typename T, class Hasher>
-bool HashSet<T, Hasher>::ConstIterator::operator!=(
-    HashSet<T, Hasher>::ConstIterator const &other) const
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::ConstIterator::operator!=(
+    HashMap<Key, Value, Hasher>::ConstIterator const &other) const
 {
     return pos != other.pos;
 };
 
-template <typename T, class Hasher>
-bool HashSet<T, Hasher>::ConstIterator::operator==(
-    HashSet<T, Hasher>::ConstIterator const &other) const
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::ConstIterator::operator==(
+    HashMap<Key, Value, Hasher>::ConstIterator const &other) const
 {
     return pos == other.pos;
 };
 
 } // namespace wheels
 
-#endif // WHEELS_HASH_SET
+#endif // WHEELS_HASH_MAP

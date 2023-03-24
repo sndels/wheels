@@ -5,7 +5,6 @@
 #include "static_array.hpp"
 #include "utils.hpp"
 
-
 namespace wheels
 {
 

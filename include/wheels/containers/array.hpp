@@ -51,7 +51,8 @@ template <typename T> class Array
     void clear();
 
     template <typename U>
-    requires SameAs<U, T> // Let's be pedantic and disallow implicit conversions
+    // Let's be pedantic and disallow implicit conversions
+        requires SameAs<U, T>
     void push_back(U &&value);
 
     template <typename... Args> void emplace_back(Args &&...args);
@@ -179,8 +180,9 @@ template <typename T> void Array<T>::clear()
     m_size = 0;
 }
 
-template <typename T> template <typename U>
-requires SameAs<U, T>
+template <typename T>
+template <typename U>
+    requires SameAs<U, T>
 void Array<T>::push_back(U &&value)
 {
     if (m_size == m_capacity)
