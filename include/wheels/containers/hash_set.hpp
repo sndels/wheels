@@ -320,7 +320,7 @@ void HashSet<T, Hasher>::grow(size_t capacity)
 
     m_data = (T *)m_allocator.allocate(capacity * sizeof(T));
     assert(m_data != nullptr);
-    m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(T));
+    m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(uint8_t));
     assert(m_metadata != nullptr);
 
     m_size = 0;
