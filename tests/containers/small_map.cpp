@@ -118,8 +118,8 @@ TEST_CASE("SmallMap::clear")
 {
     init_dtor_counters();
     SmallMap<DtorObj, DtorObj, 5> map = init_test_small_map_dtor<5>(5);
-    REQUIRE(DtorObj::s_ctor_counter() == 30);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 20);
+    REQUIRE(DtorObj::s_ctor_counter() == 20);
+    REQUIRE(DtorObj::s_move_ctor_counter() == 10);
     REQUIRE(DtorObj::s_value_ctor_counter() == 10);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -131,7 +131,7 @@ TEST_CASE("SmallMap::clear")
     REQUIRE(map.empty());
     REQUIRE(map.size() == 0);
     REQUIRE(map.capacity() == 5);
-    REQUIRE(DtorObj::s_ctor_counter() == 30);
+    REQUIRE(DtorObj::s_ctor_counter() == 20);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 10);
 }

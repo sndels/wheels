@@ -4,6 +4,7 @@
 #include "../allocators/allocator.hpp"
 #include "concepts.hpp"
 #include "hash.hpp"
+#include "pair.hpp"
 #include "utils.hpp"
 
 #include <cstring>
@@ -17,13 +18,35 @@ namespace wheels
 
 template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
 {
+    static_assert(
+        InvocableHash<Hasher, Key>, "Hasher has to be invocable with Key");
+    static_assert(
+        CorrectHashRetVal<Hasher, Key>,
+        "Hasher return type has to match Hash<T>");
+
   public:
+    struct Iterator
+    {
+        Iterator &operator++();
+        Iterator &operator++(int);
+        // Only value is mutable because changing the key could require
+        // rehashing
+        Pair<Key const *, Value *> operator*();
+        Pair<Key const *, Value const *> operator*() const;
+        bool operator!=(
+            HashMap<Key, Value, Hasher>::Iterator const &other) const;
+        bool operator==(
+            HashMap<Key, Value, Hasher>::Iterator const &other) const;
+
+        HashMap const &map;
+        size_t pos{0};
+    };
+
     struct ConstIterator
     {
         ConstIterator &operator++();
         ConstIterator &operator++(int);
-        Pair<Key const *, Value const *> operator*();
-        Pair<Key const *, Value const *> operator->();
+        Pair<Key const *, Value const *> operator*() const;
         bool operator!=(
             HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
         bool operator==(
@@ -33,6 +56,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         size_t pos{0};
     };
 
+    friend struct Iterator;
     friend struct ConstIterator;
 
   public:
@@ -45,7 +69,9 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         HashMap<Key, Value, Hasher> const &other) = delete;
     HashMap<Key, Value, Hasher> &operator=(HashMap<Key, Value, Hasher> &&other);
 
+    Iterator begin();
     ConstIterator begin() const;
+    Iterator end();
     ConstIterator end() const;
 
     bool empty() const;
@@ -53,14 +79,18 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     size_t capacity() const;
 
     bool contains(Key const &key) const;
-    ConstIterator find(Key const &key) const;
+    Value const *find(Key const &key) const;
+    Value *find(Key const &key);
 
     void clear();
 
     template <typename K, typename V>
     // Let's be pedantic and disallow implicit conversions
         requires(SameAs<K, Key> && SameAs<V, Value>)
-    void insert(K &&key, V &&value);
+    Value *insert_or_assign(K &&key, V &&value);
+    // Don't have a pair insert for now as it would have to either copy every
+    // time or I'd have to write two versions: one for lvalue that copies and
+    // one for rvalue that moves
 
     void remove(Key const &key);
 
@@ -90,8 +120,8 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     }
 
     Allocator &m_allocator;
-    T *m_keys_data{nullptr};
-    T *m_values_data{nullptr};
+    Key *m_keys{nullptr};
+    Value *m_values{nullptr};
     uint8_t *m_metadata{nullptr};
     size_t m_size{0};
     size_t m_capacity{0};
@@ -104,7 +134,8 @@ HashMap<Key, Value, Hasher>::HashMap(
 : m_allocator{allocator}
 {
     static_assert(
-        alignof(T) <= alignof(std::max_align_t) &&
+        alignof(Key) <= alignof(std::max_align_t) &&
+        alignof(Value) <= alignof(std::max_align_t) &&
         "Aligned allocations beyond std::max_align_t aren't supported");
 
     // Our max load factor is 15/16 so we have to have 32 as the capacity to
@@ -125,13 +156,14 @@ HashMap<Key, Value, Hasher>::~HashMap()
 template <typename Key, typename Value, class Hasher>
 HashMap<Key, Value, Hasher>::HashMap(HashMap<Key, Value, Hasher> &&other)
 : m_allocator{other.m_allocator}
-, m_data{other.m_data}
+, m_keys{other.m_keys}
+, m_values{other.m_values}
 , m_metadata{other.m_metadata}
 , m_size{other.m_size}
 , m_capacity{other.m_capacity}
 , m_hasher{WHEELS_MOV(other.m_hasher)}
 {
-    other.m_data = nullptr;
+    other.m_keys = nullptr;
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -143,15 +175,32 @@ HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
         free();
 
         m_allocator = other.m_allocator;
-        m_data = other.m_data;
+        m_keys = other.m_keys;
+        m_values = other.m_values;
         m_metadata = other.m_metadata;
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_hasher = WHEELS_MOV(other.m_hasher);
 
-        other.m_data = nullptr;
+        other.m_keys = nullptr;
     }
     return *this;
+}
+
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::Iterator HashMap<
+    Key, Value, Hasher>::begin()
+{
+    Iterator iter{
+        .map = *this,
+        .pos = 0,
+    };
+
+    if (s_empty_pos(m_metadata, iter.pos))
+        iter++;
+    assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
+
+    return iter;
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -168,6 +217,16 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
     assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
 
     return iter;
+}
+
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::Iterator HashMap<
+    Key, Value, Hasher>::end()
+{
+    return Iterator{
+        .map = *this,
+        .pos = m_capacity,
+    };
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -201,12 +260,11 @@ size_t HashMap<Key, Value, Hasher>::capacity() const
 template <typename Key, typename Value, class Hasher>
 bool HashMap<Key, Value, Hasher>::contains(Key const &key) const
 {
-    return find(key) != end();
+    return find(key) != nullptr;
 }
 
 template <typename Key, typename Value, class Hasher>
-typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
-    Key, Value, Hasher>::find(Key const &key) const
+Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const
 {
     uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
@@ -218,11 +276,8 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
     while (m_metadata[pos] != (uint8_t)Ctrl::Empty)
     {
         uint8_t const meta = m_metadata[pos];
-        if (h2 == meta && key == m_data[pos])
-            return ConstIterator{
-                .map = *this,
-                .pos = pos,
-            };
+        if (h2 == meta && key == m_keys[pos])
+            return &m_values[pos];
 
         // capacity is a power of 2 so this mask just works
         pos = (pos + 1) & (m_capacity - 1);
@@ -230,7 +285,32 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
             break;
     }
 
-    return end();
+    return nullptr;
+}
+
+template <typename Key, typename Value, class Hasher>
+Value *HashMap<Key, Value, Hasher>::find(Key const &key)
+{
+    uint64_t const hash = m_hasher(key);
+    uint8_t const h2 = s_h2(hash);
+    // Keep track of start pos so we can break out before looping again if all
+    // slots are full or deleted.
+    // Capacity is a power of 2 so this mask just works
+    size_t const start_pos = s_h1(hash) & (m_capacity - 1);
+    size_t pos = start_pos;
+    while (m_metadata[pos] != (uint8_t)Ctrl::Empty)
+    {
+        uint8_t const meta = m_metadata[pos];
+        if (h2 == meta && key == m_keys[pos])
+            return &m_values[pos];
+
+        // capacity is a power of 2 so this mask just works
+        pos = (pos + 1) & (m_capacity - 1);
+        if (pos == start_pos) [[unlikely]]
+            break;
+    }
+
+    return nullptr;
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -242,18 +322,19 @@ void HashMap<Key, Value, Hasher>::clear()
         {
             if (!s_empty_pos(m_metadata, i))
             {
-                m_data[i].~T();
+                m_keys[i].~Key();
+                m_values[i].~Value();
             }
         }
         m_size = 0;
     }
-    memmap(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
+    memset(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
 }
 
 template <typename Key, typename Value, class Hasher>
 template <typename K, typename V>
     requires(SameAs<K, Key> && SameAs<V, Value>)
-void HashMap<Key, Value, Hasher>::insert(K &&key, V &&value)
+Value *HashMap<Key, Value, Hasher>::insert_or_assign(K &&key, V &&value)
 {
     if (is_over_max_load())
         grow(m_capacity * 2);
@@ -266,13 +347,18 @@ void HashMap<Key, Value, Hasher>::insert(K &&key, V &&value)
     {
         if (s_empty_pos(m_metadata, pos))
         {
-            new (m_data + pos) T{WHEELS_FWD(value)};
+            new (m_keys + pos) Key{WHEELS_FWD(key)};
+            new (m_values + pos) Value{WHEELS_FWD(value)};
             m_metadata[pos] = h2;
             m_size++;
-            return;
+            return &m_values[pos];
         }
-        else if (h2 == m_metadata[pos] && key == m_data[pos])
-            return;
+        else if (h2 == m_metadata[pos] && key == m_keys[pos])
+        {
+            m_values[pos].~Value();
+            new (m_values + pos) Value{WHEELS_FWD(value)};
+            return &m_values[pos];
+        }
 
         // Capacity is a power of 2 so this mask just works
         pos = (pos + 1) & (m_capacity - 1);
@@ -292,9 +378,10 @@ void HashMap<Key, Value, Hasher>::remove(Key const &key)
     while (m_metadata[pos] != (uint8_t)Ctrl::Empty)
     {
         uint8_t const meta = m_metadata[pos];
-        if (h2 == meta && key == m_data[pos])
+        if (h2 == meta && key == m_keys[pos])
         {
-            m_data[pos].~T();
+            m_keys[pos].~Key();
+            m_values[pos].~Value();
             m_metadata[pos] = (uint8_t)Ctrl::Deleted;
             m_size--;
 
@@ -330,48 +417,111 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity)
     // the hash
     assert(round_up_power_of_two(capacity) == capacity);
 
-    T *old_data = m_data;
+    Key *old_keys = m_keys;
+    Value *old_values = m_values;
     uint8_t *old_metadata = m_metadata;
     size_t const old_capacity = m_capacity;
 
-    m_data = (T *)m_allocator.allocate(capacity * sizeof(T));
-    assert(m_data != nullptr);
-    m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(T));
+    m_keys = (Key *)m_allocator.allocate(capacity * sizeof(Key));
+    assert(m_keys != nullptr);
+    m_values = (Value *)m_allocator.allocate(capacity * sizeof(Value));
+    assert(m_values != nullptr);
+    m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(uint8_t));
     assert(m_metadata != nullptr);
 
     m_size = 0;
     m_capacity = capacity;
 
-    memmap(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
+    memset(m_metadata, (uint8_t)Ctrl::Empty, m_capacity * sizeof(uint8_t));
 
     for (size_t pos = 0; pos < old_capacity; ++pos)
     {
         if (s_empty_pos(old_metadata, pos))
             continue;
 
-        insert(WHEELS_MOV(old_data[pos]));
+        // TODO: We know these are unique, could skip find and just assign
+        insert_or_assign(
+            WHEELS_MOV(old_keys[pos]), WHEELS_MOV(old_values[pos]));
     }
 
     // No need to call dtors as we moved the values
-    m_allocator.deallocate(old_data);
+    m_allocator.deallocate(old_keys);
+    m_allocator.deallocate(old_values);
     m_allocator.deallocate(old_metadata);
 }
 
 template <typename Key, typename Value, class Hasher>
 void HashMap<Key, Value, Hasher>::free()
 {
-    if (m_data != nullptr)
+    if (m_keys != nullptr)
     {
         clear();
-        m_allocator.deallocate(m_data);
+        m_allocator.deallocate(m_keys);
+        m_allocator.deallocate(m_values);
         m_allocator.deallocate(m_metadata);
-        m_data = nullptr;
+        m_keys = nullptr;
     }
 }
 
 template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
+    Key, Value, Hasher>::Iterator::operator++()
+{
+    assert(pos < map.capacity());
+    do
+    {
+        pos++;
+    } while (pos < map.capacity() && map.s_empty_pos(map.m_metadata, pos));
+    return *this;
+};
+
+template <typename Key, typename Value, class Hasher>
+typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
+    Key, Value, Hasher>::Iterator::operator++(int)
+{
+    return ++*this;
+}
+
+template <typename Key, typename Value, class Hasher>
+Pair<Key const *, Value *> HashMap<Key, Value, Hasher>::Iterator::operator*()
+{
+    assert(pos < map.capacity());
+    assert(!map.s_empty_pos(map.m_metadata, pos));
+
+    Key const *key = map.m_keys + pos;
+    Value *value = map.m_values + pos;
+    return make_pair(key, value);
+};
+
+template <typename Key, typename Value, class Hasher>
+Pair<Key const *, Value const *> HashMap<
+    Key, Value, Hasher>::Iterator::operator*() const
+{
+    assert(pos < map.capacity());
+    assert(!map.s_empty_pos(map.m_metadata, pos));
+
+    Key const *key = map.m_keys + pos;
+    Value const *value = map.m_values + pos;
+    return make_pair(key, value);
+};
+
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::Iterator::operator!=(
+    HashMap<Key, Value, Hasher>::Iterator const &other) const
+{
+    return pos != other.pos;
+};
+
+template <typename Key, typename Value, class Hasher>
+bool HashMap<Key, Value, Hasher>::Iterator::operator==(
+    HashMap<Key, Value, Hasher>::Iterator const &other) const
+{
+    return pos == other.pos;
+};
+
+template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
-    T, Hasher>::ConstIterator::operator++()
+    Key, Value, Hasher>::ConstIterator::operator++()
 {
     assert(pos < map.capacity());
     do
@@ -383,18 +533,21 @@ typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
-    T, Hasher>::ConstIterator::operator++(int)
+    Key, Value, Hasher>::ConstIterator::operator++(int)
 {
     return ++*this;
 }
 
 template <typename Key, typename Value, class Hasher>
-T const &HashMap<Key, Value, Hasher>::ConstIterator::operator*()
+Pair<Key const *, Value const *> HashMap<
+    Key, Value, Hasher>::ConstIterator::operator*() const
 {
     assert(pos < map.capacity());
     assert(!map.s_empty_pos(map.m_metadata, pos));
 
-    return map.m_data[pos];
+    Key const *key = map.m_keys + pos;
+    Value const *value = map.m_values + pos;
+    return make_pair(key, value);
 };
 
 template <typename Key, typename Value, class Hasher>
