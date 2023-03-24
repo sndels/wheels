@@ -11,7 +11,7 @@ SpaceInEmptyBlock: true
 BreakBeforeBraces: Allman
 AlwaysBreakAfterReturnType: None
 PenaltyReturnTypeOnItsOwnLine: 9999
-# This is the default, used here to force use of clang-format 16
-RequiresExpressionIndentation: OuterScope
+# Force use of clang-format 15 or later
+RequiresClausePosition: OwnLine
 ---
 
