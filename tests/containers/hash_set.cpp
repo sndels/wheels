@@ -74,6 +74,25 @@ TEST_CASE("HashSet::allocate_copy")
     REQUIRE(set_move_assigned.capacity() == 32);
 }
 
+TEST_CASE("HashSet::find")
+{
+    CstdlibAllocator allocator;
+
+    HashSet<DtorObj, DtorHash> set{allocator, 8};
+    REQUIRE(set.empty());
+    REQUIRE(set.size() == 0);
+    REQUIRE(set.capacity() == 32);
+
+    set.insert(DtorObj{10u});
+    set.insert(DtorObj{20u});
+    set.insert(DtorObj{30u});
+
+    auto iter = set.find(DtorObj{10u});
+    REQUIRE(iter != set.end());
+    REQUIRE((*iter).data == 10u);
+    REQUIRE(iter->data == 10u);
+}
+
 TEST_CASE("HashSet::grow")
 {
     CstdlibAllocator allocator;
