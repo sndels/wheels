@@ -23,7 +23,7 @@ template <typename T, class Hasher = Hash<T>> class HashSet
         ConstIterator &operator++();
         ConstIterator &operator++(int);
         T const &operator*() const;
-        T const &operator->();
+        T const *operator->() const;
         bool operator!=(HashSet<T, Hasher>::ConstIterator const &other) const;
         bool operator==(HashSet<T, Hasher>::ConstIterator const &other) const;
 
@@ -378,6 +378,12 @@ T const &HashSet<T, Hasher>::ConstIterator::operator*() const
     assert(!set.s_empty_pos(set.m_metadata, pos));
 
     return set.m_data[pos];
+};
+
+template <typename T, class Hasher>
+T const *HashSet<T, Hasher>::ConstIterator::operator->() const
+{
+    return &**this;
 };
 
 template <typename T, class Hasher>
