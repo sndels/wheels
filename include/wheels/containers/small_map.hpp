@@ -2,6 +2,7 @@
 #ifndef WHEELS_CONTAINERS_SMALL_MAP_HPP
 #define WHEELS_CONTAINERS_SMALL_MAP_HPP
 
+#include "concepts.hpp"
 #include "pair.hpp"
 #include "static_array.hpp"
 #include "utils.hpp"
@@ -34,8 +35,10 @@ template <typename K, typename V, size_t N> class SmallMap
     V const *find(K const &key) const;
 
     void clear();
-    void insert_or_assign(K const &key, V const &value);
-    void insert_or_assign(K const &key, V &&value);
+    template <typename Key, typename Value>
+    // Let's be pedantic and disallow implicit conversions
+        requires(SameAs<K, Key> && SameAs<V, Value>)
+    void insert_or_assign(Key &&key, Value &&value);
     void remove(K const &key);
 
   private:
@@ -160,21 +163,15 @@ template <typename K, typename V, size_t N> void SmallMap<K, V, N>::clear()
 }
 
 template <typename K, typename V, size_t N>
-void SmallMap<K, V, N>::insert_or_assign(K const &key, V const &value)
+template <typename Key, typename Value>
+// Let's be pedantic and disallow implicit conversions
+    requires(SameAs<K, Key> && SameAs<V, Value>)
+void SmallMap<K, V, N>::insert_or_assign(Key &&key, Value &&value)
 {
     if (V *v = find(key); v != nullptr)
         *v = value;
     else
-        m_data.emplace_back(key, value);
-}
-
-template <typename K, typename V, size_t N>
-void SmallMap<K, V, N>::insert_or_assign(K const &key, V &&value)
-{
-    if (V *v = find(key); v != nullptr)
-        *v = value;
-    else
-        m_data.emplace_back(key, WHEELS_FWD(value));
+        m_data.emplace_back(WHEELS_FWD(key), WHEELS_FWD(value));
 }
 
 template <typename K, typename V, size_t N>

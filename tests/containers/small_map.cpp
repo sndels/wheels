@@ -42,9 +42,9 @@ TEST_CASE("SmallMap::allocate_copy")
     REQUIRE(map.size() == 0);
     REQUIRE(map.capacity() == 4);
 
-    map.insert_or_assign(10, 11);
-    map.insert_or_assign(20, 21);
-    map.insert_or_assign(30, 31);
+    map.insert_or_assign(10u, (uint16_t)11);
+    map.insert_or_assign(20u, (uint16_t)21);
+    map.insert_or_assign(30u, (uint16_t)31);
     REQUIRE(!map.empty());
     REQUIRE(map.size() == 3);
 
@@ -96,9 +96,10 @@ TEST_CASE("SmallMap::insert_lvalue")
     map.insert_or_assign(DtorObj{96}, lvalue_value);
     REQUIRE(DtorObj::s_ctor_counter() == 4);
     REQUIRE(DtorObj::s_value_ctor_counter() == 2);
-    REQUIRE(DtorObj::s_copy_ctor_counter() == 2);
+    REQUIRE(DtorObj::s_copy_ctor_counter() == 1);
+    REQUIRE(DtorObj::s_move_ctor_counter() == 1);
     REQUIRE(DtorObj::s_assign_counter() == 0);
-    REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_dtor_counter() == 0);
     REQUIRE(map.size() == 1);
     REQUIRE(map.contains(DtorObj{96}));
 }
@@ -117,14 +118,8 @@ TEST_CASE("SmallMap::clear")
 {
     init_dtor_counters();
     SmallMap<DtorObj, DtorObj, 5> map = init_test_small_map_dtor<5>(5);
-// TODO: Why do these differ?
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 40);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 30);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 30);
     REQUIRE(DtorObj::s_move_ctor_counter() == 20);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 10);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -136,11 +131,7 @@ TEST_CASE("SmallMap::clear")
     REQUIRE(map.empty());
     REQUIRE(map.size() == 0);
     REQUIRE(map.capacity() == 5);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 40);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 30);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 10);
 }
