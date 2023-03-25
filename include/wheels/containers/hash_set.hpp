@@ -17,6 +17,12 @@ namespace wheels
 
 template <typename T, class Hasher = Hash<T>> class HashSet
 {
+    static_assert(
+        InvocableHash<Hasher, T>, "Hasher has to be invocable with Key");
+    static_assert(
+        CorrectHashRetVal<Hasher, T>,
+        "Hasher return type has to match Hash<T>");
+
   public:
     struct ConstIterator
     {
