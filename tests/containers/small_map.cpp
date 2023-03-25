@@ -28,7 +28,7 @@ SmallMap<DtorObj, DtorObj, N> init_test_small_map_dtor(size_t initial_size)
 
     SmallMap<DtorObj, DtorObj, N> map;
     for (uint32_t i = 0; i < initial_size; ++i)
-        map.insert_or_assign(make_pair(DtorObj{10 * i}, DtorObj{10 * (i + 1)}));
+        map.insert_or_assign(DtorObj{10 * i}, DtorObj{10 * (i + 1)});
 
     return map;
 }
@@ -56,10 +56,6 @@ TEST_CASE("SmallMap::allocate_copy")
     REQUIRE(*map.find(20) == 21);
     REQUIRE(*map.find(30) == 31);
     REQUIRE(map.find(40) == nullptr);
-    map.insert_or_assign(make_pair((uint32_t)30, (uint16_t)29));
-    REQUIRE(map.size() == 3);
-    REQUIRE(*map.find(30) == 29);
-    map.insert_or_assign(make_pair((uint32_t)30, (uint16_t)31));
 
     SmallMap<uint32_t, uint16_t, 4> map_copy_constructed{map};
     REQUIRE(*map_copy_constructed.find(10) == 11);
@@ -96,26 +92,14 @@ TEST_CASE("SmallMap::insert_lvalue")
 
     SmallMap<DtorObj, DtorObj, 5> map;
 
-    Pair<DtorObj, DtorObj> const lvalue_pair =
-        make_pair(DtorObj{98}, DtorObj{99});
-    map.insert_or_assign(lvalue_pair);
-    REQUIRE(DtorObj::s_ctor_counter() == 6);
-    REQUIRE(DtorObj::s_value_ctor_counter() == 2);
-    REQUIRE(DtorObj::s_copy_ctor_counter() == 2);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 2);
-    REQUIRE(DtorObj::s_assign_counter() == 0);
-    REQUIRE(DtorObj::s_dtor_counter() == 0);
-    REQUIRE(map.size() == 1);
-    REQUIRE(map.contains(lvalue_pair.first));
-
     DtorObj const lvalue_value = DtorObj{97};
     map.insert_or_assign(DtorObj{96}, lvalue_value);
-    REQUIRE(DtorObj::s_ctor_counter() == 10);
-    REQUIRE(DtorObj::s_value_ctor_counter() == 4);
-    REQUIRE(DtorObj::s_copy_ctor_counter() == 4);
+    REQUIRE(DtorObj::s_ctor_counter() == 4);
+    REQUIRE(DtorObj::s_value_ctor_counter() == 2);
+    REQUIRE(DtorObj::s_copy_ctor_counter() == 2);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 1);
-    REQUIRE(map.size() == 2);
+    REQUIRE(map.size() == 1);
     REQUIRE(map.contains(DtorObj{96}));
 }
 
@@ -206,8 +190,8 @@ TEST_CASE("SmallMap::aligned")
 {
     SmallMap<AlignedObj, AlignedObj, 2> map;
 
-    map.insert_or_assign(make_pair(AlignedObj{10}, AlignedObj{11}));
-    map.insert_or_assign(make_pair(AlignedObj{20}, AlignedObj{21}));
+    map.insert_or_assign(AlignedObj{10}, AlignedObj{11});
+    map.insert_or_assign(AlignedObj{20}, AlignedObj{21});
 
     REQUIRE(map.contains({10}));
     REQUIRE(map.contains({20}));

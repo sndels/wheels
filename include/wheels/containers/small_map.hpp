@@ -36,8 +36,6 @@ template <typename K, typename V, size_t N> class SmallMap
     void clear();
     void insert_or_assign(K const &key, V const &value);
     void insert_or_assign(K const &key, V &&value);
-    void insert_or_assign(Pair<K, V> const &key_value);
-    void insert_or_assign(Pair<K, V> &&key_value);
     void remove(K const &key);
 
   private:
@@ -177,24 +175,6 @@ void SmallMap<K, V, N>::insert_or_assign(K const &key, V &&value)
         *v = value;
     else
         m_data.emplace_back(key, WHEELS_FWD(value));
-}
-
-template <typename K, typename V, size_t N>
-void SmallMap<K, V, N>::insert_or_assign(Pair<K, V> const &key_value)
-{
-    if (V *v = find(key_value.first); v != nullptr)
-        *v = key_value.second;
-    else
-        m_data.emplace_back(key_value);
-}
-
-template <typename K, typename V, size_t N>
-void SmallMap<K, V, N>::insert_or_assign(Pair<K, V> &&key_value)
-{
-    if (V *v = find(key_value.first); v != nullptr)
-        *v = key_value.second;
-    else
-        m_data.emplace_back(WHEELS_FWD(key_value));
 }
 
 template <typename K, typename V, size_t N>
