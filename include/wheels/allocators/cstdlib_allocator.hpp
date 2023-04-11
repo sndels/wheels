@@ -14,7 +14,7 @@ class CstdlibAllocator : public Allocator
   public:
     CstdlibAllocator() { }
 
-    virtual void *allocate(size_t num_bytes) override
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) override
     {
         return std::malloc(num_bytes);
     }

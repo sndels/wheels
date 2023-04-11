@@ -8,7 +8,7 @@
 namespace wheels
 {
 
-constexpr size_t aligned_offset(size_t offset, size_t alignment)
+[[nodiscard]] constexpr size_t aligned_offset(size_t offset, size_t alignment)
 {
     // We could allocate the base pointers with e.g. alignment of 256 to support
     // powers of two up to it, but let's not worry about that until it's needed.

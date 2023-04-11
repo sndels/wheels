@@ -31,11 +31,11 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         Iterator &operator++(int);
         // Only value is mutable because changing the key could require
         // rehashing
-        Pair<Key const *, Value *> operator*();
-        Pair<Key const *, Value const *> operator*() const;
-        bool operator!=(
+        [[nodiscard]] Pair<Key const *, Value *> operator*();
+        [[nodiscard]] Pair<Key const *, Value const *> operator*() const;
+        [[nodiscard]] bool operator!=(
             HashMap<Key, Value, Hasher>::Iterator const &other) const;
-        bool operator==(
+        [[nodiscard]] bool operator==(
             HashMap<Key, Value, Hasher>::Iterator const &other) const;
 
         HashMap const &map;
@@ -46,10 +46,10 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     {
         ConstIterator &operator++();
         ConstIterator &operator++(int);
-        Pair<Key const *, Value const *> operator*() const;
-        bool operator!=(
+        [[nodiscard]] Pair<Key const *, Value const *> operator*() const;
+        [[nodiscard]] bool operator!=(
             HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
-        bool operator==(
+        [[nodiscard]] bool operator==(
             HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
 
         HashMap const &map;
@@ -69,25 +69,25 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         HashMap<Key, Value, Hasher> const &other) = delete;
     HashMap<Key, Value, Hasher> &operator=(HashMap<Key, Value, Hasher> &&other);
 
-    Iterator begin();
-    ConstIterator begin() const;
-    Iterator end();
-    ConstIterator end() const;
+    [[nodiscard]] Iterator begin();
+    [[nodiscard]] ConstIterator begin() const;
+    [[nodiscard]] Iterator end();
+    [[nodiscard]] ConstIterator end() const;
 
-    bool empty() const;
-    size_t size() const;
-    size_t capacity() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t capacity() const;
 
-    bool contains(Key const &key) const;
-    Value const *find(Key const &key) const;
-    Value *find(Key const &key);
+    [[nodiscard]] bool contains(Key const &key) const;
+    [[nodiscard]] Value const *find(Key const &key) const;
+    [[nodiscard]] Value *find(Key const &key);
 
     void clear();
 
     template <typename K, typename V>
     // Let's be pedantic and disallow implicit conversions
         requires(SameAs<K, Key> && SameAs<V, Value>)
-    Value *insert_or_assign(K &&key, V &&value);
+    [[nodiscard]] Value *insert_or_assign(K &&key, V &&value);
     // Don't have a pair insert for now as it would have to either copy every
     // time or I'd have to write two versions: one for lvalue that copies and
     // one for rvalue that moves
@@ -95,7 +95,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     void remove(Key const &key);
 
   private:
-    bool is_over_max_load() const;
+    [[nodiscard]] bool is_over_max_load() const;
 
     void grow(size_t capacity);
     void free();
@@ -107,14 +107,18 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         // TODO: Sentinel to speed up the tail of table scan?
         // Full = 0b0XXXXXXX, H2 hash
     };
-    static constexpr bool s_empty_pos(uint8_t const *metadata, size_t pos)
+    [[nodiscard]] static constexpr bool s_empty_pos(
+        uint8_t const *metadata, size_t pos)
     {
         return (metadata[pos] & (uint8_t)Ctrl::Empty) == (uint8_t)Ctrl::Empty;
     }
 
-    static constexpr uint64_t s_h1(uint64_t hash) { return hash >> 7; }
+    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash)
+    {
+        return hash >> 7;
+    }
 
-    static constexpr uint8_t s_h2(uint64_t hash)
+    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash)
     {
         return (uint8_t)(hash & 0x7F);
     }

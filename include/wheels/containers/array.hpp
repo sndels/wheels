@@ -29,24 +29,24 @@ template <typename T> class Array
     Array<T> &operator=(Array<T> const &) = delete;
     Array<T> &operator=(Array<T> &&other);
 
-    T &operator[](size_t i);
-    T const &operator[](size_t i) const;
-    T &front();
-    T const &front() const;
-    T &back();
-    T const &back() const;
-    T *data();
-    T const *data() const;
+    [[nodiscard]] T &operator[](size_t i);
+    [[nodiscard]] T const &operator[](size_t i) const;
+    [[nodiscard]] T &front();
+    [[nodiscard]] T const &front() const;
+    [[nodiscard]] T &back();
+    [[nodiscard]] T const &back() const;
+    [[nodiscard]] T *data();
+    [[nodiscard]] T const *data() const;
 
-    T *begin();
-    T const *begin() const;
-    T *end();
-    T const *end() const;
+    [[nodiscard]] T *begin();
+    [[nodiscard]] T const *begin() const;
+    [[nodiscard]] T *end();
+    [[nodiscard]] T const *end() const;
 
-    bool empty() const;
-    size_t size() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
     void reserve(size_t capacity);
-    size_t capacity() const;
+    [[nodiscard]] size_t capacity() const;
 
     void clear();
 

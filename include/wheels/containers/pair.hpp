@@ -25,7 +25,8 @@ template <typename T, typename V> struct Pair
     Pair<T, V> &operator=(Pair<U, W> &&other);
 };
 
-template <typename T, typename V> Pair<T, V> make_pair(T &&first, V &&second)
+template <typename T, typename V>
+[[nodiscard]] Pair<T, V> make_pair(T &&first, V &&second)
 {
     return Pair<T, V>{WHEELS_FWD(first), WHEELS_FWD(second)};
 }
@@ -58,13 +59,13 @@ Pair<T, V> &Pair<T, V>::operator=(Pair<U, W> &&other)
 }
 
 template <typename T, typename V>
-bool operator==(Pair<T, V> const &lhs, Pair<T, V> const &rhs)
+[[nodiscard]] bool operator==(Pair<T, V> const &lhs, Pair<T, V> const &rhs)
 {
     return lhs.first == rhs.first && lhs.second == rhs.second;
 }
 
 template <typename T, typename V>
-bool operator!=(Pair<T, V> const &lhs, Pair<T, V> const &rhs)
+[[nodiscard]] bool operator!=(Pair<T, V> const &lhs, Pair<T, V> const &rhs)
 {
     return lhs.first != rhs.first || lhs.second != rhs.second;
 }

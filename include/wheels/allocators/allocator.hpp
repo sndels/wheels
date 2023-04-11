@@ -8,7 +8,7 @@ class Allocator
 {
   public:
     virtual ~Allocator() { }
-    virtual void *allocate(size_t num_bytes) = 0;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) = 0;
     virtual void deallocate(void *ptr) = 0;
 };
 

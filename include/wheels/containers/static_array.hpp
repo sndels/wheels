@@ -20,23 +20,23 @@ template <typename T, size_t N> class StaticArray
     StaticArray<T, N> &operator=(StaticArray<T, N> const &other);
     StaticArray<T, N> &operator=(StaticArray<T, N> &&other);
 
-    T &operator[](size_t i);
-    T const &operator[](size_t i) const;
-    T &front();
-    T const &front() const;
-    T &back();
-    T const &back() const;
-    T *data();
-    T const *data() const;
+    [[nodiscard]] T &operator[](size_t i);
+    [[nodiscard]] T const &operator[](size_t i) const;
+    [[nodiscard]] T &front();
+    [[nodiscard]] T const &front() const;
+    [[nodiscard]] T &back();
+    [[nodiscard]] T const &back() const;
+    [[nodiscard]] T *data();
+    [[nodiscard]] T const *data() const;
 
-    T *begin();
-    T const *begin() const;
-    T *end();
-    T const *end() const;
+    [[nodiscard]] T *begin();
+    [[nodiscard]] T const *begin() const;
+    [[nodiscard]] T *end();
+    [[nodiscard]] T const *end() const;
 
-    bool empty() const;
-    size_t size() const;
-    size_t capacity() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t capacity() const;
 
     void clear();
     void push_back(T const &value);

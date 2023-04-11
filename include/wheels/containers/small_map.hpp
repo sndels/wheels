@@ -21,18 +21,18 @@ template <typename K, typename V, size_t N> class SmallMap
     SmallMap<K, V, N> &operator=(SmallMap<K, V, N> const &other);
     SmallMap<K, V, N> &operator=(SmallMap<K, V, N> &&other);
 
-    Pair<K, V> *begin();
-    Pair<K, V> const *begin() const;
-    Pair<K, V> *end();
-    Pair<K, V> const *end() const;
+    [[nodiscard]] Pair<K, V> *begin();
+    [[nodiscard]] Pair<K, V> const *begin() const;
+    [[nodiscard]] Pair<K, V> *end();
+    [[nodiscard]] Pair<K, V> const *end() const;
 
-    bool empty() const;
-    size_t size() const;
-    size_t capacity() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t capacity() const;
 
-    bool contains(K const &key) const;
-    V *find(K const &key);
-    V const *find(K const &key) const;
+    [[nodiscard]] bool contains(K const &key) const;
+    [[nodiscard]] V *find(K const &key);
+    [[nodiscard]] V const *find(K const &key) const;
 
     void clear();
     template <typename Key, typename Value>

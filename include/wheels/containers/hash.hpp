@@ -11,12 +11,12 @@ template <typename T> struct Hash
 {
     /// Delete implementation for types that don't specifically override with a
     /// valid hasher implementation
-    uint64_t operator()(T const &value) const noexcept = delete;
+    [[nodiscard]] uint64_t operator()(T const &value) const noexcept = delete;
 };
 
 template <typename T> struct Hash<T *>
 {
-    uint64_t operator()(T const *ptr) const noexcept
+    [[nodiscard]] uint64_t operator()(T const *ptr) const noexcept
     {
         return wyhash(&ptr, sizeof(ptr), 0, _wyp);
     }
@@ -25,7 +25,7 @@ template <typename T> struct Hash<T *>
 #define WHEELS_HASH_DEFINE_IMPLEMENTATION(T)                                   \
     template <> struct Hash<T>                                                 \
     {                                                                          \
-        uint64_t operator()(T const &value) const noexcept                     \
+        [[nodiscard]] uint64_t operator()(T const &value) const noexcept       \
         {                                                                      \
             return wyhash(&value, sizeof(value), 0, _wyp);                     \
         }                                                                      \

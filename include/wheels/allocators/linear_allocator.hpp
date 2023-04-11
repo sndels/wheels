@@ -25,7 +25,7 @@ class LinearAllocator : public Allocator
     LinearAllocator &operator=(LinearAllocator const &) = delete;
     LinearAllocator &operator=(LinearAllocator &&) = delete;
 
-    virtual void *allocate(size_t num_bytes) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
 
     virtual void deallocate(void *ptr) override;
 
@@ -36,7 +36,7 @@ class LinearAllocator : public Allocator
     friend class ScopedScratch;
 
   protected:
-    void *peek() const;
+    [[nodiscard]] void *peek() const;
 
   private:
     uint8_t *m_memory{nullptr};

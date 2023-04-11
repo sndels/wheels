@@ -28,10 +28,12 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     {
         ConstIterator &operator++();
         ConstIterator &operator++(int);
-        T const &operator*() const;
-        T const *operator->() const;
-        bool operator!=(HashSet<T, Hasher>::ConstIterator const &other) const;
-        bool operator==(HashSet<T, Hasher>::ConstIterator const &other) const;
+        [[nodiscard]] T const &operator*() const;
+        [[nodiscard]] T const *operator->() const;
+        [[nodiscard]] bool operator!=(
+            HashSet<T, Hasher>::ConstIterator const &other) const;
+        [[nodiscard]] bool operator==(
+            HashSet<T, Hasher>::ConstIterator const &other) const;
 
         HashSet const &set;
         size_t pos{0};
@@ -48,15 +50,15 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     HashSet<T, Hasher> &operator=(HashSet<T, Hasher> const &other) = delete;
     HashSet<T, Hasher> &operator=(HashSet<T, Hasher> &&other);
 
-    ConstIterator begin() const;
-    ConstIterator end() const;
+    [[nodiscard]] ConstIterator begin() const;
+    [[nodiscard]] ConstIterator end() const;
 
-    bool empty() const;
-    size_t size() const;
-    size_t capacity() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t capacity() const;
 
-    bool contains(T const &value) const;
-    ConstIterator find(T const &value) const;
+    [[nodiscard]] bool contains(T const &value) const;
+    [[nodiscard]] ConstIterator find(T const &value) const;
 
     void clear();
 
@@ -68,7 +70,7 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     void remove(T const &value);
 
   private:
-    bool is_over_max_load() const;
+    [[nodiscard]] bool is_over_max_load() const;
 
     void grow(size_t capacity);
     void free();
@@ -80,14 +82,18 @@ template <typename T, class Hasher = Hash<T>> class HashSet
         // TODO: Sentinel to speed up the tail of table scan?
         // Full = 0b0XXXXXXX, H2 hash
     };
-    static constexpr bool s_empty_pos(uint8_t const *metadata, size_t pos)
+    [[nodiscard]] static constexpr bool s_empty_pos(
+        uint8_t const *metadata, size_t pos)
     {
         return (metadata[pos] & (uint8_t)Ctrl::Empty) == (uint8_t)Ctrl::Empty;
     }
 
-    static constexpr uint64_t s_h1(uint64_t hash) { return hash >> 7; }
+    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash)
+    {
+        return hash >> 7;
+    }
 
-    static constexpr uint8_t s_h2(uint64_t hash)
+    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash)
     {
         return (uint8_t)(hash & 0x7F);
     }

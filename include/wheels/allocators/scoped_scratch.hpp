@@ -38,10 +38,10 @@ class ScopedScratch
     ScopedScratch &operator=(ScopedScratch const &) = delete;
     ScopedScratch &operator=(ScopedScratch &&) = delete;
 
-    ScopedScratch child_scope();
+    [[nodiscard]] ScopedScratch child_scope();
 
-    template <typename T> T *allocate_pod();
-    template <typename T> T *allocate_object();
+    template <typename T> [[nodiscard]] T *allocate_pod();
+    template <typename T> [[nodiscard]] T *allocate_object();
 
   private:
     template <typename T> static void dtor_call(void *ptr);

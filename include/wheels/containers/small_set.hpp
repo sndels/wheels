@@ -19,16 +19,16 @@ template <typename T, size_t N> class SmallSet
     SmallSet<T, N> &operator=(SmallSet<T, N> const &other);
     SmallSet<T, N> &operator=(SmallSet<T, N> &&other);
 
-    T *begin();
-    T const *begin() const;
-    T *end();
-    T const *end() const;
+    [[nodiscard]] T *begin();
+    [[nodiscard]] T const *begin() const;
+    [[nodiscard]] T *end();
+    [[nodiscard]] T const *end() const;
 
-    bool empty() const;
-    size_t size() const;
-    size_t capacity() const;
+    [[nodiscard]] bool empty() const;
+    [[nodiscard]] size_t size() const;
+    [[nodiscard]] size_t capacity() const;
 
-    bool contains(T const &value) const;
+    [[nodiscard]] bool contains(T const &value) const;
 
     void clear();
     void insert(T const &value);

@@ -20,14 +20,14 @@ template <typename T> class Optional
     Optional<T> &operator=(Optional<T> const &other);
     Optional<T> &operator=(Optional<T> &&other);
 
-    bool has_value() const noexcept;
+    [[nodiscard]] bool has_value() const noexcept;
     void reset();
     template <typename... Args> void emplace(Args &&...args);
 
-    T &operator*() noexcept;
-    T const &operator*() const noexcept;
-    T *operator->() noexcept;
-    T const *operator->() const noexcept;
+    [[nodiscard]] T &operator*() noexcept;
+    [[nodiscard]] T const &operator*() const noexcept;
+    [[nodiscard]] T *operator->() noexcept;
+    [[nodiscard]] T const *operator->() const noexcept;
 
   private:
     alignas(T) uint8_t m_data[sizeof(T)];
