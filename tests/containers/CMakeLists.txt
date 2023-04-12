@@ -8,6 +8,7 @@ set(CONTAINER_TESTS_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/small_map.cpp
     ${CMAKE_CURRENT_LIST_DIR}/small_set.cpp
     ${CMAKE_CURRENT_LIST_DIR}/span.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/string.cpp
     ${CMAKE_CURRENT_LIST_DIR}/static_array.cpp
     PARENT_SCOPE
 )
