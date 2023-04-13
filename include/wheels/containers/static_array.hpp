@@ -2,6 +2,7 @@
 #ifndef WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 #define WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 
+#include "span.hpp"
 #include "utils.hpp"
 
 #include <cstring>
@@ -45,6 +46,9 @@ template <typename T, size_t N> class StaticArray
     T pop_back();
     void resize(size_t size);
     void resize(size_t size, T const &value);
+
+    operator Span<T>();
+    operator Span<T const>() const;
 
   private:
     alignas(T) uint8_t m_data[N * sizeof(T)];
@@ -250,6 +254,17 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
             new (((T *)m_data) + i) T{value};
         m_size = size;
     }
+}
+
+template <typename T, size_t N> StaticArray<T, N>::operator Span<T>()
+{
+    return Span{m_data, m_size};
+}
+
+template <typename T, size_t N>
+StaticArray<T, N>::operator Span<T const>() const
+{
+    return Span<T const>{m_data, m_size};
 }
 
 } // namespace wheels

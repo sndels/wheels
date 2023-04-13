@@ -344,3 +344,19 @@ TEST_CASE("StaticArray::aligned")
     REQUIRE(arr[0].value == 10);
     REQUIRE(arr[1].value == 20);
 }
+
+TEST_CASE("StaticArray::span_conversions")
+{
+    StaticArray<uint8_t, 32> arr;
+    for (uint8_t i = 0; i < 10; ++i)
+        arr.push_back(i);
+
+    Span<uint8_t> span = arr;
+    REQUIRE(span.data() == arr.data());
+    REQUIRE(span.size() == arr.size());
+
+    StaticArray<uint8_t, 32> const &const_arr = arr;
+    Span<uint8_t const> const_span = const_arr;
+    REQUIRE(const_span.data() == arr.data());
+    REQUIRE(const_span.size() == arr.size());
+}

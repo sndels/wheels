@@ -1,6 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <wheels/allocators/cstdlib_allocator.hpp>
+#include <wheels/containers/array.hpp>
 #include <wheels/containers/span.hpp>
+#include <wheels/containers/static_array.hpp>
 
 using namespace wheels;
 
@@ -57,5 +60,16 @@ TEST_CASE("Span::loop")
         for (uint8_t e : empty_span)
             didnt_loop = false;
         REQUIRE(didnt_loop);
+    }
+}
+TEST_CASE("Span::const_conversion")
+{
+    uint32_t array[] = {0, 1, 2};
+    Span<uint32_t> span{array, 3};
+    {
+        Span<uint32_t const> const_span = span;
+    }
+    {
+        Span<uint32_t const> const_span{span};
     }
 }

@@ -4,6 +4,7 @@
 
 #include "../allocators/allocator.hpp"
 #include "concepts.hpp"
+#include "span.hpp"
 #include "utils.hpp"
 
 #include <cstring>
@@ -61,6 +62,9 @@ template <typename T> class Array
 
     void resize(size_t size);
     void resize(size_t size, T const &value);
+
+    operator Span<T>();
+    operator Span<T const>() const;
 
   private:
     void reallocate(size_t capacity);
@@ -271,6 +275,16 @@ template <typename T> void Array<T>::free()
         m_allocator.deallocate(m_data);
         m_data = nullptr;
     }
+}
+
+template <typename T> Array<T>::operator Span<T>()
+{
+    return Span{m_data, m_size};
+}
+
+template <typename T> Array<T>::operator Span<T const>() const
+{
+    return Span<T const>{m_data, m_size};
 }
 
 } // namespace wheels

@@ -28,6 +28,8 @@ template <typename T> class Span
     [[nodiscard]] bool empty() const;
     [[nodiscard]] size_t size() const;
 
+    operator Span<T const>() const;
+
   private:
     T *m_data{nullptr};
     size_t m_size{0};
@@ -68,6 +70,11 @@ template <typename T> T const *Span<T>::end() const { return m_data + m_size; }
 template <typename T> bool Span<T>::empty() const { return m_size == 0; }
 
 template <typename T> size_t Span<T>::size() const { return m_size; }
+
+template <typename T> Span<T>::operator Span<T const>() const
+{
+    return Span<T const>{m_data, m_size};
+}
 
 } // namespace wheels
 
