@@ -87,7 +87,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     template <typename K, typename V>
     // Let's be pedantic and disallow implicit conversions
         requires(SameAs<K, Key> && SameAs<V, Value>)
-    [[nodiscard]] Value *insert_or_assign(K &&key, V &&value);
+    Value *insert_or_assign(K &&key, V &&value);
     // Don't have a pair insert for now as it would have to either copy every
     // time or I'd have to write two versions: one for lvalue that copies and
     // one for rvalue that moves
