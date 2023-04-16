@@ -30,6 +30,16 @@ template <typename T> class Span
     [[nodiscard]] bool empty() const;
     [[nodiscard]] size_t size() const;
 
+    // Converting from non-const inner type to const inner type should be really
+    // cheap so let's just have it. Spans to non-const things should be
+    // compatible with interfaces that take spans to const things. Not having an
+    // implicit conversion requires either
+    //   a) templating the interfaces which makes the compiler miss implicit
+    //      conversions from a container into a span
+    // or
+    //   b) mirroring explicit const and non-const versions of interfaces
+    // Both other options seem unnecessarily complex unless this ends up being
+    // expensive in some cases.
     operator Span<T const>() const;
 
   private:
