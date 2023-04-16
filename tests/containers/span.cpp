@@ -70,9 +70,11 @@ TEST_CASE("Span::const_conversion")
     Span<uint32_t> span{array, 3};
     {
         Span<uint32_t const> const_span = span;
+        (void)const_span;
     }
     {
         Span<uint32_t const> const_span{span};
+        (void)const_span;
     }
 }
 
