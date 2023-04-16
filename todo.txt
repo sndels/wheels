@@ -1,12 +1,8 @@
-- split tests, benches to per-header files
 - remove more duplicate code with concepts
 - more memcpy for trivially copyable types
 - constexpr
-- [[nodiscard]]
 - noexcept
-- hash_map
-- string
-- span
 - stack allocator
 - verify container allocators after copy, move ctor and copy, move assignment
-- document container allocator bahavior on copy, move
+- document container allocator behavior on copy, move
+- natvis et al.
