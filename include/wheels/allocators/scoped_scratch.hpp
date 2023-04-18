@@ -26,7 +26,7 @@ struct ScopeData
     ScopeData *previous{nullptr};
 };
 
-class ScopedScratch
+class ScopedScratch : public Allocator
 {
   public:
     ScopedScratch(LinearAllocator &allocator);
@@ -37,6 +37,9 @@ class ScopedScratch
     ScopedScratch(ScopedScratch &&other);
     ScopedScratch &operator=(ScopedScratch const &) = delete;
     ScopedScratch &operator=(ScopedScratch &&) = delete;
+
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
+    virtual void deallocate(void *ptr) override;
 
     [[nodiscard]] ScopedScratch child_scope();
 
@@ -87,6 +90,16 @@ inline ScopedScratch::ScopedScratch(ScopedScratch &&other)
 {
     other.m_alloc_start = nullptr;
 };
+
+inline void *ScopedScratch::allocate(size_t num_bytes)
+{
+    return m_allocator.allocate(num_bytes);
+}
+
+inline void ScopedScratch::deallocate(void *ptr)
+{
+    return m_allocator.deallocate(ptr);
+}
 
 inline ScopedScratch ScopedScratch::child_scope()
 {

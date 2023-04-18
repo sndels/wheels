@@ -142,3 +142,36 @@ TEST_CASE("ScopedScratch::child_scopes")
     }
     REQUIRE(Obj::s_dtor_counter() == 3);
 }
+
+TEST_CASE("ScopedScratch::allocate")
+{
+    LinearAllocator allocator{4096};
+    ScopedScratch scratch{allocator};
+
+    uint8_t *alloc = (uint8_t *)scratch.allocate(2048);
+    REQUIRE(alloc != nullptr);
+    memset(alloc, 0, 2048);
+    alloc[0] = 0x12;
+    alloc[2047] = 0x23;
+    assert(alloc[0] == 0x12);
+    assert(alloc[2047] == 0x23);
+    REQUIRE(scratch.allocate(2048) != nullptr);
+    REQUIRE(scratch.allocate(1) == nullptr);
+}
+
+TEST_CASE("ScopedScratch::allocate_aligned_PoD")
+{
+    LinearAllocator allocator{4096};
+    ScopedScratch scratch{allocator};
+
+    AlignedObj *aligned_alloc0 =
+        (AlignedObj *)scratch.allocate(sizeof(AlignedObj));
+    uint8_t *u8_alloc = (uint8_t *)allocator.allocate(sizeof(uint8_t));
+    AlignedObj *aligned_alloc1 =
+        (AlignedObj *)scratch.allocate(sizeof(AlignedObj));
+    REQUIRE(aligned_alloc0 != nullptr);
+    REQUIRE(u8_alloc != nullptr);
+    REQUIRE(aligned_alloc1 != nullptr);
+    REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
+    REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
+}
