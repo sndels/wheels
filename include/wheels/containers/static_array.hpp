@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <cstring>
+#include <initializer_list>
 
 namespace wheels
 {
@@ -14,6 +15,8 @@ template <typename T, size_t N> class StaticArray
 {
   public:
     StaticArray(){};
+    StaticArray(T const (&elems)[N]);
+    StaticArray(std::initializer_list<T> elems);
     ~StaticArray();
 
     StaticArray(StaticArray<T, N> const &other);
@@ -54,6 +57,28 @@ template <typename T, size_t N> class StaticArray
     alignas(T) uint8_t m_data[N * sizeof(T)];
     size_t m_size{0};
 };
+
+// Deduction from raw arrays
+template <typename T, size_t N>
+StaticArray(T const (&)[N]) -> StaticArray<T, N>;
+
+template <typename T, size_t N>
+StaticArray<T, N>::StaticArray(T const (&elems)[N])
+: m_size{N}
+{
+    memcpy(m_data, elems, N * sizeof(T));
+}
+
+// Deduction from intializer list
+template <typename T, typename... Ts>
+StaticArray(T const &, Ts...) -> StaticArray<T, 1 + sizeof...(Ts)>;
+
+template <typename T, size_t N>
+StaticArray<T, N>::StaticArray(std::initializer_list<T> elems)
+: m_size{elems.size()}
+{
+    memcpy(m_data, elems.begin(), elems.size() * sizeof(T));
+}
 
 template <typename T, size_t N> StaticArray<T, N>::~StaticArray() { clear(); }
 

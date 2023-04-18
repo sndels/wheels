@@ -360,3 +360,18 @@ TEST_CASE("StaticArray::span_conversions")
     REQUIRE(const_span.data() == arr.data());
     REQUIRE(const_span.size() == arr.size());
 }
+
+TEST_CASE("StaticArray::ctor_deduction")
+{
+    {
+        StaticArray arr{1u, 2u, 3u};
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr.capacity() == 3);
+    }
+
+    {
+        StaticArray arr{{1u, 2u, 3u}};
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr.capacity() == 3);
+    }
+}
