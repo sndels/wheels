@@ -19,6 +19,10 @@ namespace wheels
     return (offset + alignment - 1) / alignment * alignment;
 }
 
+[[nodiscard]] constexpr size_t megabytes(size_t mb) { return mb * 1000 * 1000; }
+
+[[nodiscard]] constexpr size_t kilobytes(size_t kb) { return kb * 1000; }
+
 } // namespace wheels
 
 #endif // WHEELS_ALLOCATORS_UTILS_HPP
