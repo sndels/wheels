@@ -4,6 +4,7 @@
 
 #include "concepts.hpp"
 
+#include <cassert>
 #include <cstddef>
 
 namespace wheels
