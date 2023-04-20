@@ -283,13 +283,13 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
 
 template <typename T, size_t N> StaticArray<T, N>::operator Span<T>()
 {
-    return Span{m_data, m_size};
+    return Span{(T*)m_data, m_size};
 }
 
 template <typename T, size_t N>
 StaticArray<T, N>::operator Span<T const>() const
 {
-    return Span<T const>{m_data, m_size};
+    return Span{(T const*)m_data, m_size};
 }
 
 } // namespace wheels

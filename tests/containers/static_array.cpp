@@ -347,18 +347,49 @@ TEST_CASE("StaticArray::aligned")
 
 TEST_CASE("StaticArray::span_conversions")
 {
-    StaticArray<uint8_t, 32> arr;
-    for (uint8_t i = 0; i < 10; ++i)
-        arr.push_back(i);
+    {
+        StaticArray<uint8_t, 32> arr;
+        for (uint8_t i = 0; i < 10; ++i)
+            arr.push_back(i);
 
-    Span<uint8_t> span = arr;
-    REQUIRE(span.data() == arr.data());
-    REQUIRE(span.size() == arr.size());
+        {
+            Span<uint8_t> span = arr;
+            REQUIRE(span.data() == arr.data());
+            REQUIRE(span.size() == arr.size());
 
-    StaticArray<uint8_t, 32> const &const_arr = arr;
-    Span<uint8_t const> const_span = const_arr;
-    REQUIRE(const_span.data() == arr.data());
-    REQUIRE(const_span.size() == arr.size());
+            Span<uint8_t const> const_span = span;
+            REQUIRE(const_span.data() == arr.data());
+            REQUIRE(const_span.size() == arr.size());
+        }
+        {
+            StaticArray<uint8_t, 32> const &const_arr = arr;
+            Span<uint8_t const> const_span = const_arr;
+            REQUIRE(const_span.data() == arr.data());
+            REQUIRE(const_span.size() == arr.size());
+        }
+    }
+    {
+        StaticArray<DtorObj, 32> arr;
+        for (uint8_t i = 0; i < 10; ++i)
+            arr.emplace_back(i);
+
+        {
+            Span<DtorObj> span = arr;
+            REQUIRE(span.data() == arr.data());
+            REQUIRE(span.size() == arr.size());
+
+            Span<DtorObj const> const_span = span;
+            REQUIRE(const_span.data() == arr.data());
+            REQUIRE(const_span.size() == arr.size());
+        }
+
+        {
+            StaticArray<DtorObj, 32> const &const_arr = arr;
+            Span<DtorObj const> const_span = const_arr;
+            REQUIRE(const_span.data() == arr.data());
+            REQUIRE(const_span.size() == arr.size());
+        }
+    }
 }
 
 TEST_CASE("StaticArray::ctor_deduction")
