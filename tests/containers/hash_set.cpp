@@ -41,10 +41,19 @@ TEST_CASE("HashSet::allocate_copy")
 {
     CstdlibAllocator allocator;
 
-    HashSet<uint32_t> set{allocator, 8};
+    { // Initial capacity should be allocated, potentially rounded up
+        size_t const cap = 8;
+        HashSet<uint32_t> set{allocator, cap};
+        REQUIRE(set.empty());
+        REQUIRE(set.size() == 0);
+        REQUIRE(set.capacity() >= cap);
+    }
+
+    HashSet<uint32_t> set{allocator};
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
-    REQUIRE(set.capacity() == 32);
+    REQUIRE(set.capacity() == 0);
+    REQUIRE(set.contains(0) == false);
 
     set.insert(10u);
     set.insert(20u);
@@ -174,6 +183,9 @@ TEST_CASE("HashSet::begin_end")
     REQUIRE(iter != set.end());
     ++iter;
     REQUIRE(iter == set.end());
+
+    HashSet<uint32_t> empty_set{allocator};
+    REQUIRE(empty_set.begin() == empty_set.end());
 }
 
 TEST_CASE("HashSet::clear")
@@ -217,6 +229,9 @@ TEST_CASE("HashSet::remove")
     REQUIRE(set.size() == 2);
     REQUIRE(set.contains(20));
     REQUIRE(set.contains(30));
+
+    HashSet<uint32_t> empty_set{allocator};
+    empty_set.remove(0);
 }
 
 TEST_CASE("HashSet::range_for")

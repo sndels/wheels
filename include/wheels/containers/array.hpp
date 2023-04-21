@@ -22,7 +22,7 @@ template <typename T> class Array
         "constructible");
 
   public:
-    Array(Allocator &allocator, size_t initial_capacity = 4);
+    Array(Allocator &allocator, size_t initial_capacity = 0);
     ~Array();
 
     Array(Array<T> const &) = delete;
@@ -84,9 +84,8 @@ Array<T>::Array(Allocator &allocator, size_t initial_capacity)
         alignof(T) <= alignof(std::max_align_t) &&
         "Aligned allocations beyond std::max_align_t aren't supported");
 
-    if (initial_capacity == 0)
-        initial_capacity = 4;
-    reallocate(initial_capacity);
+    if (initial_capacity > 0)
+        reallocate(initial_capacity);
 }
 
 template <typename T> Array<T>::~Array() { free(); }
@@ -248,6 +247,9 @@ template <typename T> void Array<T>::resize(size_t size, T const &value)
 
 template <typename T> void Array<T>::reallocate(size_t capacity)
 {
+    if (capacity == 0)
+        capacity = 4;
+
     T *data = (T *)m_allocator.allocate(capacity * sizeof(T));
     assert(data != nullptr);
 

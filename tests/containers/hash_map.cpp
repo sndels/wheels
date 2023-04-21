@@ -42,10 +42,22 @@ TEST_CASE("HashMap::allocate_copy")
 {
     CstdlibAllocator allocator;
 
+    { // Initial capacity should be allocated, potentially rounded up
+        size_t const cap = 8;
+        HashMap<uint32_t, uint16_t> map{allocator, cap};
+        REQUIRE(map.empty());
+        REQUIRE(map.size() == 0);
+        REQUIRE(map.capacity() >= cap);
+    }
+
     HashMap<uint32_t, uint16_t> map{allocator};
     REQUIRE(map.empty());
     REQUIRE(map.size() == 0);
-    REQUIRE(map.capacity() == 32);
+    REQUIRE(map.capacity() == 0);
+    REQUIRE(map.find(0) == nullptr);
+
+    HashMap<uint32_t, uint16_t> const &const_map = map;
+    REQUIRE(const_map.find(0) == nullptr);
 
     map.insert_or_assign(10u, (uint16_t)11);
     map.insert_or_assign(20u, (uint16_t)21);
@@ -101,12 +113,16 @@ TEST_CASE("HashMap::begin_end")
 {
     CstdlibAllocator allocator;
 
+    HashMap<uint32_t, uint32_t> empty_map{allocator};
+    REQUIRE(empty_map.size() == 0);
+    REQUIRE(empty_map.begin() == empty_map.end());
+
+    HashMap<uint32_t, uint32_t> const &const_empty_map = empty_map;
+    REQUIRE(const_empty_map.begin() == const_empty_map.end());
+
     HashMap<uint32_t, uint32_t> map = init_test_small_map_u32<3>(allocator, 3);
     REQUIRE(map.size() == 3);
     REQUIRE((map.begin()++ ++ ++) == map.end());
-
-    HashMap<uint32_t, uint32_t> const &map_const = map;
-    REQUIRE((map_const.begin()++ ++ ++) == map_const.end());
 }
 
 TEST_CASE("HashMap::clear")
@@ -132,6 +148,12 @@ TEST_CASE("HashMap::clear")
     REQUIRE(DtorObj::s_ctor_counter() == 20);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 10);
+
+    HashMap<DtorObj, DtorObj, DtorHash> empty_map{allocator};
+    empty_map.clear();
+    REQUIRE(empty_map.empty());
+    REQUIRE(empty_map.size() == 0);
+    REQUIRE(empty_map.capacity() == 0);
 }
 
 TEST_CASE("HashMap::remove")
@@ -152,6 +174,9 @@ TEST_CASE("HashMap::remove")
     REQUIRE(map.size() == 2);
     REQUIRE(map.contains(20));
     REQUIRE(map.contains(30));
+
+    HashMap<uint32_t, uint32_t> empty_map{allocator};
+    empty_map.remove(10);
 }
 
 TEST_CASE("HashMap::range_for")
@@ -183,7 +208,8 @@ TEST_CASE("HashMap::grow_on_assign")
 {
     CstdlibAllocator allocator;
 
-    HashMap<uint32_t, uint32_t> map{allocator};
+    HashMap<uint32_t, uint32_t> map{allocator, 2};
+    // Actual capacity might be rounded up
     size_t const initial_capacity = map.capacity();
     for (size_t i = 0; i < initial_capacity; ++i)
         map.insert_or_assign((uint32_t)i, (uint32_t)i);

@@ -60,7 +60,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     friend struct ConstIterator;
 
   public:
-    HashMap(Allocator &allocator, size_t initial_capacity = 32);
+    HashMap(Allocator &allocator, size_t initial_capacity = 0);
     ~HashMap();
 
     HashMap(HashMap<Key, Value, Hasher> const &other) = delete;
@@ -142,13 +142,8 @@ HashMap<Key, Value, Hasher>::HashMap(
         alignof(Value) <= alignof(std::max_align_t) &&
         "Aligned allocations beyond std::max_align_t aren't supported");
 
-    // Our max load factor is 15/16 so we have to have 32 as the capacity to
-    // ensure we always grow in time so that there always is at least 1 Empty
-    // slot to end find iteration
-    initial_capacity = initial_capacity < 32 ? 32 : initial_capacity;
-    initial_capacity = round_up_power_of_two(initial_capacity);
-
-    grow(initial_capacity);
+    if (initial_capacity > 0)
+        grow(initial_capacity);
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -200,6 +195,9 @@ typename HashMap<Key, Value, Hasher>::Iterator HashMap<
         .pos = 0,
     };
 
+    if (m_capacity == 0)
+        return iter;
+
     if (s_empty_pos(m_metadata, iter.pos))
         iter++;
     assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
@@ -215,6 +213,9 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
         .map = *this,
         .pos = 0,
     };
+
+    if (m_capacity == 0)
+        return iter;
 
     if (s_empty_pos(m_metadata, iter.pos))
         iter++;
@@ -270,6 +271,9 @@ bool HashMap<Key, Value, Hasher>::contains(Key const &key) const
 template <typename Key, typename Value, class Hasher>
 Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const
 {
+    if (m_size == 0)
+        return nullptr;
+
     uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Keep track of start pos so we can break out before looping again if all
@@ -295,6 +299,9 @@ Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const
 template <typename Key, typename Value, class Hasher>
 Value *HashMap<Key, Value, Hasher>::find(Key const &key)
 {
+    if (m_size == 0)
+        return nullptr;
+
     uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Keep track of start pos so we can break out before looping again if all
@@ -372,6 +379,9 @@ Value *HashMap<Key, Value, Hasher>::insert_or_assign(K &&key, V &&value)
 template <typename Key, typename Value, class Hasher>
 void HashMap<Key, Value, Hasher>::remove(Key const &key)
 {
+    if (m_size == 0)
+        return;
+
     uint64_t const hash = m_hasher(key);
     uint8_t const h2 = s_h2(hash);
     // Keep track of start pos so we can break out before looping again if all
@@ -410,16 +420,22 @@ bool HashMap<Key, Value, Hasher>::is_over_max_load() const
     // Magic factor from the talk, matching the arbitrary offmap SSE version
     // as reading one metadata byte at a time is basically the same
     // size / capacity > 15 / 16
-    return 16 * m_size > 15 * m_capacity;
+    return m_capacity == 0 || 16 * m_size > 15 * m_capacity;
 }
 
 template <typename Key, typename Value, class Hasher>
 void HashMap<Key, Value, Hasher>::grow(size_t capacity)
 {
-    assert(capacity > m_capacity);
-    // Assume capacity is a power of two so we can avoid modulus operations on
+    // Our max load factor is 15/16 so we have to have 32 as the capacity to
+    // ensure we always grow in time so that there always is at least 1 Empty
+    // slot to end find iteration
+    if (capacity < 32)
+        capacity = 32;
+    // Have capacity be a power of two so we can avoid modulus operations on
     // the hash
-    assert(round_up_power_of_two(capacity) == capacity);
+    capacity = round_up_power_of_two(capacity);
+
+    assert(capacity > m_capacity);
 
     Key *old_keys = m_keys;
     Value *old_values = m_values;

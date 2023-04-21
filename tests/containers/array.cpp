@@ -37,11 +37,20 @@ Array<DtorObj> init_test_arr_dtor(Allocator &allocator, size_t size)
 TEST_CASE("Array::allocate_copy")
 {
     CstdlibAllocator allocator;
+    { // Initial capacity should be exact
+        size_t const cap = 2;
+        Array<uint32_t> arr{allocator, cap};
+        REQUIRE(arr.empty());
+        REQUIRE(arr.size() == 0);
+        REQUIRE(arr.capacity() == cap);
+        REQUIRE(arr.data() != nullptr);
+    }
 
-    Array<uint32_t> arr{allocator, 0};
+    Array<uint32_t> arr{allocator};
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
-    REQUIRE(arr.capacity() > 0);
+    REQUIRE(arr.capacity() == 0);
+    REQUIRE(arr.data() == nullptr);
 
     arr.push_back(10u);
     arr.push_back(20u);
@@ -123,6 +132,10 @@ TEST_CASE("Array::begin_end")
 {
     CstdlibAllocator allocator;
 
+    Array<uint32_t> empty_arr{allocator};
+    REQUIRE(empty_arr.begin() == empty_arr.data());
+    REQUIRE(empty_arr.end() == empty_arr.begin());
+
     Array<uint32_t> arr = init_test_arr_u32(allocator, 5);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.begin() == arr.data());
@@ -155,6 +168,12 @@ TEST_CASE("Array::clear")
     REQUIRE(DtorObj::s_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == DtorObj::s_ctor_counter());
+
+    Array<uint32_t> empty_arr{allocator};
+    empty_arr.clear();
+    REQUIRE(empty_arr.empty());
+    REQUIRE(empty_arr.size() == 0);
+    REQUIRE(empty_arr.capacity() == 0);
 }
 
 TEST_CASE("Array::emplace")
