@@ -99,7 +99,7 @@ inline void *ScopedScratch::allocate(size_t num_bytes)
 
 inline void ScopedScratch::deallocate(void *ptr)
 {
-    return m_allocator.deallocate(ptr);
+    m_allocator.deallocate(ptr);
 }
 
 inline ScopedScratch ScopedScratch::child_scope()
