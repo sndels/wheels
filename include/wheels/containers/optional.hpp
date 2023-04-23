@@ -140,6 +140,26 @@ template <typename T> T const *Optional<T>::operator->() const noexcept
     return (T const *)m_data;
 }
 
+template <typename T>
+bool operator==(Optional<T> const &lhs, Optional<T> const &rhs) noexcept
+{
+    // Both empty
+    if (!lhs.has_value() && !rhs.has_value())
+        return true;
+
+    // One empty
+    if (lhs.has_value() != rhs.has_value())
+        return false;
+
+    return *lhs == *rhs;
+}
+
+template <typename T>
+bool operator!=(Optional<T> const &lhs, Optional<T> const &rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 } // namespace wheels
 
 #endif // WHEELS_CONTAINERS_OPTIONAL_HPP

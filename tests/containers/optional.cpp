@@ -200,3 +200,30 @@ TEST_CASE("Optional::reset")
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
 }
+
+TEST_CASE("Optional::comparisons")
+{
+    Optional<uint32_t> empty;
+    Optional<uint32_t> empty2;
+    Optional<uint32_t> one{1};
+    Optional<uint32_t> one2{1};
+    Optional<uint32_t> two{2};
+
+    REQUIRE(empty == empty);
+    REQUIRE(empty == empty2);
+    REQUIRE(!(one == empty));
+    REQUIRE(one == one);
+    REQUIRE(one == one2);
+    REQUIRE(one2 == one);
+    REQUIRE(!(one == two));
+    REQUIRE(!(two == one));
+
+    REQUIRE(!(empty != empty));
+    REQUIRE(!(empty != empty2));
+    REQUIRE(one != empty);
+    REQUIRE(!(one != one));
+    REQUIRE(!(one != one2));
+    REQUIRE(!(one2 != one));
+    REQUIRE(one != two);
+    REQUIRE(two != one);
+}
