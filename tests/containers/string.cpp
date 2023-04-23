@@ -89,7 +89,7 @@ TEST_CASE("Create", "[String]")
 
     { // String from a span should have the correct content with exact size
         char const ctest[] = "test";
-        String str{allocator, Span{ctest, sizeof(ctest) - 1}};
+        String str{allocator, StrSpan{ctest, sizeof(ctest) - 1}};
         REQUIRE(!str.empty());
         REQUIRE(str.size() == sizeof(ctest) - 1);
         REQUIRE(str.capacity() == sizeof(ctest) - 1);
@@ -102,7 +102,7 @@ TEST_CASE("Create", "[String]")
       // at data()[size]. Result should still be a valid c-string. Also verify
       // that span to non-const works.
         char test[] = {'t', 'e', 's', 't'};
-        String str{allocator, Span{test, sizeof(test)}};
+        String str{allocator, StrSpan{test, sizeof(test)}};
         REQUIRE(!str.empty());
         REQUIRE(str.size() == sizeof(test));
         REQUIRE(str.capacity() == sizeof(test));
@@ -113,7 +113,7 @@ TEST_CASE("Create", "[String]")
 
     { // Trailing \0s in the span should be included
         char const ctest[] = "test\0\0";
-        String str{allocator, Span{ctest, sizeof(ctest) - 1}};
+        String str{allocator, StrSpan{ctest, sizeof(ctest) - 1}};
         REQUIRE(!str.empty());
         REQUIRE(str.size() == sizeof(ctest) - 1);
         REQUIRE(str.capacity() == sizeof(ctest) - 1);
@@ -131,7 +131,7 @@ TEST_CASE("Span", "[String]")
     {
         // Empty string should be a valid pointer and size 0
         String str{allocator};
-        Span<char const> span{str};
+        StrSpan span{str};
         REQUIRE(span.data() == str.c_str());
         REQUIRE(span.size() == 0);
     }
@@ -140,7 +140,7 @@ TEST_CASE("Span", "[String]")
         // String with content should be a valid pointer and size matching its
         // size
         String str{allocator, "test"};
-        Span<char const> span{str};
+        StrSpan span{str};
         REQUIRE(span.data() == str.c_str());
         REQUIRE(span.size() == str.size());
     }
@@ -148,7 +148,7 @@ TEST_CASE("Span", "[String]")
     {
         // Custom span should have the correct pointer and size
         String str{allocator, "test"};
-        Span<char const> span = str.span(1, 3);
+        StrSpan span = str.span(1, 3);
         REQUIRE(span.data() == str.c_str() + 1);
         REQUIRE(span.size() == 2);
     }
@@ -385,7 +385,7 @@ TEST_CASE("Extend", "[String]")
         REQUIRE(str.size() == 8);
         REQUIRE(str.capacity() == 8);
         REQUIRE(str == "testtest");
-        str.extend(Span{ctest, sizeof(ctest) - 1});
+        str.extend(StrSpan{ctest, sizeof(ctest) - 1});
         REQUIRE(str.size() == 12);
         REQUIRE(str.capacity() == 12);
         REQUIRE(str == "testtesttest");
@@ -398,7 +398,7 @@ TEST_CASE("Extend", "[String]")
         REQUIRE(str.size() == 4);
         REQUIRE(str.capacity() == 4);
         REQUIRE(str == "test");
-        str.extend(Span{ctest, sizeof(ctest) - 1});
+        str.extend(StrSpan{ctest, sizeof(ctest) - 1});
         REQUIRE(str.size() == 10);
         REQUIRE(str.capacity() == 10);
         REQUIRE(str == "testtest");
@@ -419,7 +419,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(!str.find_first("").has_value());
 
             // Span
-            Span<char const> const span{"", strlen("")};
+            StrSpan const span{"", strlen("")};
             REQUIRE(!str.find_first(span).has_value());
         }
 
@@ -430,7 +430,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(!str.find_first(substr).has_value());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.find_first(span).has_value());
         }
 
@@ -441,7 +441,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(!str.find_first(substr).has_value());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.find_first(span).has_value());
         }
 
@@ -452,7 +452,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(!str.find_first(substr).has_value());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.find_first(span).has_value());
         }
 
@@ -463,16 +463,9 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(str.find_first(substr).has_value());
             REQUIRE(*str.find_first(substr) == 0);
 
-            { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                REQUIRE(str.find_first(span).has_value());
-                REQUIRE(*str.find_first(span) == 0);
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                REQUIRE(str.find_first(span).has_value());
-                REQUIRE(*str.find_first(span) == 0);
-            }
+            StrSpan const span{substr, strlen(substr)};
+            REQUIRE(str.find_first(span).has_value());
+            REQUIRE(*str.find_first(span) == 0);
         }
 
         { // Middle
@@ -483,7 +476,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(*str.find_first(substr) == 2);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_first(span).has_value());
             REQUIRE(*str.find_first(span) == 2);
         }
@@ -496,7 +489,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(*str.find_first(substr) == 4);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_first(span).has_value());
             REQUIRE(*str.find_first(span) == 4);
         }
@@ -509,7 +502,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(*str.find_first(substr) == 2);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_first(span).has_value());
             REQUIRE(*str.find_first(span) == 2);
         }
@@ -523,7 +516,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(*str.find_first(substr) == 0);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_first(span).has_value());
             REQUIRE(*str.find_first(span) == 0);
         }
@@ -537,7 +530,7 @@ TEST_CASE("Find first", "[String]")
             REQUIRE(*str.find_first(substr) == 4);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_first(span).has_value());
             REQUIRE(*str.find_first(span) == 4);
         }
@@ -608,7 +601,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(!str.find_last("").has_value());
 
             // Span
-            Span<char const> const span{"", strlen("")};
+            StrSpan const span{"", strlen("")};
             REQUIRE(!str.find_last(span).has_value());
         }
 
@@ -619,7 +612,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(!str.find_last(substr).has_value());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.find_last(span).has_value());
         }
 
@@ -630,7 +623,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(!str.find_last(substr).has_value());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.find_last(span).has_value());
         }
 
@@ -640,14 +633,8 @@ TEST_CASE("Find last", "[String]")
             // C-string
             REQUIRE(!str.find_last(substr).has_value());
 
-            { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                REQUIRE(!str.find_last(span).has_value());
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                REQUIRE(!str.find_last(span).has_value());
-            }
+            StrSpan const span{substr, strlen(substr)};
+            REQUIRE(!str.find_last(span).has_value());
         }
 
         { // Front
@@ -658,7 +645,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 0);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 0);
         }
@@ -671,7 +658,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 2);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 2);
         }
@@ -684,7 +671,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 4);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 4);
         }
@@ -697,7 +684,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 4);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 4);
         }
@@ -711,7 +698,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 0);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 0);
         }
@@ -725,7 +712,7 @@ TEST_CASE("Find last", "[String]")
             REQUIRE(*str.find_last(substr) == 3);
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.find_last(span).has_value());
             REQUIRE(*str.find_last(span) == 3);
         }
@@ -796,7 +783,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(!str.contains(""));
 
             // Span
-            Span<char const> const span{"", strlen("")};
+            StrSpan const span{"", strlen("")};
             REQUIRE(!str.contains(span));
         }
 
@@ -807,7 +794,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(!str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.contains(span));
         }
 
@@ -818,7 +805,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(!str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.contains(span));
         }
 
@@ -828,14 +815,8 @@ TEST_CASE("Contains", "[String]")
             // C-string
             REQUIRE(!str.contains(substr));
 
-            { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                REQUIRE(!str.contains(span));
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                REQUIRE(!str.contains(span));
-            }
+            StrSpan const span{substr, strlen(substr)};
+            REQUIRE(!str.contains(span));
         }
 
         { // Front
@@ -845,7 +826,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
 
@@ -856,7 +837,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
 
@@ -867,7 +848,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
 
@@ -878,7 +859,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
 
@@ -890,7 +871,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
 
@@ -902,7 +883,7 @@ TEST_CASE("Contains", "[String]")
             REQUIRE(str.contains(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.contains(span));
         }
     }
@@ -966,7 +947,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(""));
 
             // Span
-            Span<char const> const span{"", strlen("")};
+            StrSpan const span{"", strlen("")};
             REQUIRE(!str.starts_with(span));
         }
 
@@ -977,7 +958,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.starts_with(span));
         }
 
@@ -988,7 +969,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.starts_with(span));
         }
 
@@ -998,14 +979,8 @@ TEST_CASE("Starts with", "[String]")
             // C-string
             REQUIRE(!str.starts_with(substr));
 
-            { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                REQUIRE(!str.starts_with(span));
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                REQUIRE(!str.starts_with(span));
-            }
+            StrSpan const span{substr, strlen(substr)};
+            REQUIRE(!str.starts_with(span));
         }
 
         { // Front
@@ -1015,7 +990,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.starts_with(span));
         }
 
@@ -1026,7 +1001,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.starts_with(span));
         }
 
@@ -1037,7 +1012,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.starts_with(span));
         }
 
@@ -1049,7 +1024,7 @@ TEST_CASE("Starts with", "[String]")
             REQUIRE(!str.starts_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.starts_with(span));
         }
     }
@@ -1097,7 +1072,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(""));
 
             // Span
-            Span<char const> const span{"", strlen("")};
+            StrSpan const span{"", strlen("")};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1108,7 +1083,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1119,7 +1094,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1129,14 +1104,8 @@ TEST_CASE("Ends with", "[String]")
             // C-string
             REQUIRE(!str.ends_with(substr));
 
-            { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                REQUIRE(!str.ends_with(span));
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                REQUIRE(!str.ends_with(span));
-            }
+            StrSpan const span{substr, strlen(substr)};
+            REQUIRE(!str.ends_with(span));
         }
 
         { // Front
@@ -1146,7 +1115,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1157,7 +1126,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1168,7 +1137,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.ends_with(span));
         }
 
@@ -1180,7 +1149,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(!str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(!str.ends_with(span));
         }
 
@@ -1192,7 +1161,7 @@ TEST_CASE("Ends with", "[String]")
             REQUIRE(str.ends_with(substr));
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.ends_with(span));
         }
     }
@@ -1243,7 +1212,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "test"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, "");
+                Array<StrSpan> split = str.split(allocator, "");
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
@@ -1251,8 +1220,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{"", strlen("")};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{"", strlen("")};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
@@ -1265,15 +1234,15 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "t"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, "");
+                Array<StrSpan> split = str.split(allocator, "");
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
                 REQUIRE(memcmp(split[0].data(), "t", sizeof("t") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{"", strlen("")};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{"", strlen("")};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
@@ -1288,7 +1257,7 @@ TEST_CASE("Split", "[String]")
             REQUIRE(str.split(allocator, substr).empty());
 
             // Span
-            Span<char const> const span{substr, strlen(substr)};
+            StrSpan const span{substr, strlen(substr)};
             REQUIRE(str.split(allocator, span).empty());
         }
 
@@ -1296,7 +1265,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "test"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
@@ -1304,17 +1273,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span to const
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
-                REQUIRE(split.size() == 1);
-                REQUIRE(split[0].data() == str.c_str());
-                REQUIRE(split[0].size() == str.size());
-                REQUIRE(
-                    memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
-            }
-            { // Span to non-const
-                Span<char> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == str.size());
@@ -1327,7 +1287,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, ":;test"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str() + 2);
                 REQUIRE(split[0].size() == str.size() - 2);
@@ -1335,8 +1295,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str() + 2);
                 REQUIRE(split[0].size() == str.size() - 2);
@@ -1349,7 +1309,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "te:;st"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1359,8 +1319,8 @@ TEST_CASE("Split", "[String]")
                 REQUIRE(memcmp(split[1].data(), "st", sizeof("st") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1375,7 +1335,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "test:;"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 4);
@@ -1383,8 +1343,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 4);
@@ -1397,7 +1357,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, ":;te:;st"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str() + 2);
                 REQUIRE(split[0].size() == 2);
@@ -1407,8 +1367,8 @@ TEST_CASE("Split", "[String]")
                 REQUIRE(memcmp(split[1].data(), "st", sizeof("st") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str() + 2);
                 REQUIRE(split[0].size() == 2);
@@ -1423,7 +1383,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, ":;:;test"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str() + 4);
                 REQUIRE(split[0].size() == 4);
@@ -1431,8 +1391,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str() + 4);
                 REQUIRE(split[0].size() == 4);
@@ -1445,7 +1405,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "te:;:;st"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1455,8 +1415,8 @@ TEST_CASE("Split", "[String]")
                 REQUIRE(memcmp(split[1].data(), "st", sizeof("st") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1471,7 +1431,7 @@ TEST_CASE("Split", "[String]")
             String str{allocator, "test:;:;"};
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 4);
@@ -1479,8 +1439,8 @@ TEST_CASE("Split", "[String]")
                     memcmp(split[0].data(), "test", sizeof("test") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 1);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 4);
@@ -1494,7 +1454,7 @@ TEST_CASE("Split", "[String]")
             str[4] = '\0';
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1504,8 +1464,8 @@ TEST_CASE("Split", "[String]")
                 REQUIRE(memcmp(split[1].data(), "\0t", sizeof("\0t") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 2);
@@ -1521,7 +1481,7 @@ TEST_CASE("Split", "[String]")
             str[2] = '\0';
 
             { // C-string
-                Array<Span<char const>> split = str.split(allocator, substr);
+                Array<StrSpan> split = str.split(allocator, substr);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 3);
@@ -1532,8 +1492,8 @@ TEST_CASE("Split", "[String]")
                 REQUIRE(memcmp(split[1].data(), "t", sizeof("t") - 1) == 0);
             }
             { // Span
-                Span<char const> const span{substr, strlen(substr)};
-                Array<Span<char const>> split = str.split(allocator, span);
+                StrSpan const span{substr, strlen(substr)};
+                Array<StrSpan> split = str.split(allocator, span);
                 REQUIRE(split.size() == 2);
                 REQUIRE(split[0].data() == str.c_str());
                 REQUIRE(split[0].size() == 3);
@@ -1550,7 +1510,7 @@ TEST_CASE("Split", "[String]")
         char const ch = ':';
         { // None
             String str{allocator, "test"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 1);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == str.size());
@@ -1559,7 +1519,7 @@ TEST_CASE("Split", "[String]")
 
         { // Front
             String str{allocator, ":test"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 1);
             REQUIRE(split[0].data() == str.c_str() + 1);
             REQUIRE(split[0].size() == 4);
@@ -1568,7 +1528,7 @@ TEST_CASE("Split", "[String]")
 
         { // Back
             String str{allocator, "test:"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 1);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 4);
@@ -1577,7 +1537,7 @@ TEST_CASE("Split", "[String]")
 
         { // Middle
             String str{allocator, "te:st"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 2);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 2);
@@ -1589,7 +1549,7 @@ TEST_CASE("Split", "[String]")
 
         { // Multiple
             String str{allocator, ":te:st"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 2);
             REQUIRE(split[0].data() == str.c_str() + 1);
             REQUIRE(split[0].size() == 2);
@@ -1601,7 +1561,7 @@ TEST_CASE("Split", "[String]")
 
         { // Multiple back-to-back front
             String str{allocator, "::test"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 1);
             REQUIRE(split[0].data() == str.c_str() + 2);
             REQUIRE(split[0].size() == 4);
@@ -1610,7 +1570,7 @@ TEST_CASE("Split", "[String]")
 
         { // Multiple back-to-back middle
             String str{allocator, "te::st"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 2);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 2);
@@ -1622,7 +1582,7 @@ TEST_CASE("Split", "[String]")
 
         { // Multiple back-to-back end
             String str{allocator, "test::"};
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 1);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 4);
@@ -1632,7 +1592,7 @@ TEST_CASE("Split", "[String]")
         { // Before middle \0
             String str{allocator, "t:est"};
             str[2] = '\0';
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 2);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 1);
@@ -1645,7 +1605,7 @@ TEST_CASE("Split", "[String]")
         { // After middle \0
             String str{allocator, "tes:t"};
             str[2] = '\0';
-            Array<Span<char const>> split = str.split(allocator, ch);
+            Array<StrSpan> split = str.split(allocator, ch);
             REQUIRE(split.size() == 2);
             REQUIRE(split[0].data() == str.c_str());
             REQUIRE(split[0].size() == 3);

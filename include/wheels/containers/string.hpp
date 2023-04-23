@@ -26,7 +26,7 @@ class String
   public:
     String(Allocator &allocator, size_t initial_capacity = 16);
     String(Allocator &allocator, char const *str);
-    String(Allocator &allocator, Span<char const> str);
+    String(Allocator &allocator, StrSpan str);
     ~String();
 
     String(String const &) = delete;
@@ -69,58 +69,55 @@ class String
     // concat() instead. Have extend() instead of operator+= to just not have
     // overloaded math operators.
 
+    friend String concat(Allocator &allocator, StrSpan first, StrSpan second);
     friend String concat(
-        Allocator &allocator, Span<char const> first, Span<char const> second);
+        Allocator &allocator, StrSpan first, char const *second);
     friend String concat(
-        Allocator &allocator, Span<char const> first, char const *second);
-    friend String concat(
-        Allocator &allocator, char const *first, Span<char const> second);
+        Allocator &allocator, char const *first, StrSpan second);
 
-    String &extend(Span<char const> str);
+    String &extend(StrSpan str);
     String &extend(char const *str);
 
-    [[nodiscard]] Optional<size_t> find_first(Span<char const> substr) const;
+    [[nodiscard]] Optional<size_t> find_first(StrSpan substr) const;
     [[nodiscard]] Optional<size_t> find_first(char const *substr) const;
     [[nodiscard]] Optional<size_t> find_first(char ch) const;
 
-    [[nodiscard]] Optional<size_t> find_last(Span<char const> substr) const;
+    [[nodiscard]] Optional<size_t> find_last(StrSpan substr) const;
     [[nodiscard]] Optional<size_t> find_last(char const *substr) const;
     [[nodiscard]] Optional<size_t> find_last(char ch) const;
 
-    [[nodiscard]] bool contains(Span<char const> substr) const;
+    [[nodiscard]] bool contains(StrSpan substr) const;
     [[nodiscard]] bool contains(char const *substr) const;
     [[nodiscard]] bool contains(char ch) const;
 
-    [[nodiscard]] bool starts_with(Span<char const> substr) const;
+    [[nodiscard]] bool starts_with(StrSpan substr) const;
     [[nodiscard]] bool starts_with(char const *substr) const;
     [[nodiscard]] bool starts_with(char ch) const;
 
-    [[nodiscard]] bool ends_with(Span<char const> substr) const;
+    [[nodiscard]] bool ends_with(StrSpan substr) const;
     [[nodiscard]] bool ends_with(char const *substr) const;
     [[nodiscard]] bool ends_with(char ch) const;
 
     // Require explicit allocator for split for the same reason as concat()
 
-    [[nodiscard]] Array<Span<char const>> split(
-        Allocator &allocator, Span<char const> substr) const;
-    [[nodiscard]] Array<Span<char const>> split(
+    [[nodiscard]] Array<StrSpan> split(
+        Allocator &allocator, StrSpan substr) const;
+    [[nodiscard]] Array<StrSpan> split(
         Allocator &allocator, char const *substr) const;
-    [[nodiscard]] Array<Span<char const>> split(
-        Allocator &allocator, char ch) const;
+    [[nodiscard]] Array<StrSpan> split(Allocator &allocator, char ch) const;
 
-    operator Span<char const>() const;
-    Span<char const> span(size_t begin, size_t end) const;
+    operator StrSpan() const;
+    StrSpan span(size_t begin, size_t end) const;
 
   private:
     void reallocate(size_t capacity);
     void free();
 
-    [[nodiscard]] static Span<char const> span(char const *str);
+    [[nodiscard]] static StrSpan span(char const *str);
 
     [[nodiscard]] static Optional<size_t> find_first(
-        Span<char const> from, Span<char const> substr);
-    [[nodiscard]] static Optional<size_t> find_first(
-        Span<char const> from, char ch);
+        StrSpan from, StrSpan substr);
+    [[nodiscard]] static Optional<size_t> find_first(StrSpan from, char ch);
 
     Allocator &m_allocator;
     char *m_data{nullptr};
@@ -150,7 +147,7 @@ inline String::String(Allocator &allocator, char const *str)
     m_size = len;
 }
 
-inline String::String(Allocator &allocator, Span<char const> str)
+inline String::String(Allocator &allocator, StrSpan str)
 : m_allocator{allocator}
 {
     reallocate(str.size() + 1);
@@ -294,7 +291,7 @@ inline void String::resize(size_t size, char ch)
     m_data[m_size] = '\0';
 }
 
-inline String &String::extend(Span<char const> str)
+inline String &String::extend(StrSpan str)
 {
     reserve(m_size + str.size());
 
@@ -307,9 +304,9 @@ inline String &String::extend(Span<char const> str)
 
 inline String &String::extend(char const *str) { return extend(span(str)); }
 
-inline Optional<size_t> String::find_first(Span<char const> substr) const
+inline Optional<size_t> String::find_first(StrSpan substr) const
 {
-    return find_first(Span<char const>(*this), substr);
+    return find_first(StrSpan(*this), substr);
 }
 
 inline Optional<size_t> String::find_first(char const *substr) const
@@ -319,10 +316,10 @@ inline Optional<size_t> String::find_first(char const *substr) const
 
 inline Optional<size_t> String::find_first(char ch) const
 {
-    return find_first(Span<char const>{*this}, ch);
+    return find_first(StrSpan{*this}, ch);
 }
 
-inline Optional<size_t> String::find_last(Span<char const> substr) const
+inline Optional<size_t> String::find_last(StrSpan substr) const
 {
     if (m_size < substr.size())
         return {};
@@ -357,7 +354,7 @@ inline Optional<size_t> String::find_last(char ch) const
     return {};
 }
 
-inline bool String::contains(Span<char const> substr) const
+inline bool String::contains(StrSpan substr) const
 {
     return find_first(substr).has_value();
 }
@@ -372,7 +369,7 @@ inline bool String::contains(char ch) const
     return find_first(ch).has_value();
 }
 
-inline bool String::starts_with(Span<char const> substr) const
+inline bool String::starts_with(StrSpan substr) const
 {
     Optional<size_t> const found = find_first(substr);
     if (found.has_value())
@@ -395,7 +392,7 @@ inline bool String::starts_with(char ch) const
     return false;
 }
 
-inline bool String::ends_with(Span<char const> substr) const
+inline bool String::ends_with(StrSpan substr) const
 {
     Optional<size_t> const found = find_last(substr);
     if (found.has_value())
@@ -418,12 +415,11 @@ inline bool String::ends_with(char ch) const
     return false;
 }
 
-inline Array<Span<char const>> String::split(
-    Allocator &allocator, Span<char const> substr) const
+inline Array<StrSpan> String::split(Allocator &allocator, StrSpan substr) const
 {
-    Array<Span<char const>> spans{allocator, 16};
+    Array<StrSpan> spans{allocator, 16};
 
-    Span<char const> remaining{m_data, m_size};
+    StrSpan remaining{m_data, m_size};
     Optional<size_t> found = find_first(remaining, substr);
     while (found.has_value())
     {
@@ -432,7 +428,8 @@ inline Array<Span<char const>> String::split(
             spans.emplace_back(remaining.data(), *found);
 
         size_t const offset = *found + substr.size();
-        remaining = Span{remaining.data() + offset, remaining.size() - offset};
+        remaining =
+            StrSpan{remaining.data() + offset, remaining.size() - offset};
         found = find_first(remaining, substr);
     }
 
@@ -442,18 +439,17 @@ inline Array<Span<char const>> String::split(
     return spans;
 }
 
-inline Array<Span<char const>> String::split(
+inline Array<StrSpan> String::split(
     Allocator &allocator, char const *substr) const
 {
     return split(allocator, span(substr));
 }
 
-inline Array<Span<char const>> String::split(
-    Allocator &allocator, char ch) const
+inline Array<StrSpan> String::split(Allocator &allocator, char ch) const
 {
-    Array<Span<char const>> spans{allocator, 16};
+    Array<StrSpan> spans{allocator, 16};
 
-    Span<char const> remaining{m_data, m_size};
+    StrSpan remaining{m_data, m_size};
     Optional<size_t> found = find_first(remaining, ch);
     while (found.has_value())
     {
@@ -462,7 +458,8 @@ inline Array<Span<char const>> String::split(
             spans.emplace_back(remaining.data(), *found);
 
         size_t const offset = *found + 1;
-        remaining = Span{remaining.data() + offset, remaining.size() - offset};
+        remaining =
+            StrSpan{remaining.data() + offset, remaining.size() - offset};
         found = find_first(remaining, ch);
     }
 
@@ -496,14 +493,9 @@ inline void String::free()
     }
 }
 
-inline Span<char const> String::span(char const *str)
-{
-    size_t const len = strlen(str);
-    return Span{str, len};
-}
+inline StrSpan String::span(char const *str) { return StrSpan{str}; }
 
-inline Optional<size_t> String::find_first(
-    Span<char const> from, Span<char const> substr)
+inline Optional<size_t> String::find_first(StrSpan from, StrSpan substr)
 {
     if (from.size() < substr.size())
         return {};
@@ -524,7 +516,7 @@ inline Optional<size_t> String::find_first(
     return {};
 }
 
-inline Optional<size_t> String::find_first(Span<char const> from, char ch)
+inline Optional<size_t> String::find_first(StrSpan from, char ch)
 {
     size_t const size = from.size();
     for (size_t i = 0; i < size; ++i)
@@ -535,22 +527,18 @@ inline Optional<size_t> String::find_first(Span<char const> from, char ch)
     return {};
 }
 
-inline String::operator Span<char const>() const
-{
-    return Span<char const>{m_data, m_size};
-}
+inline String::operator StrSpan() const { return StrSpan{m_data, m_size}; }
 
-inline Span<char const> String::span(size_t begin, size_t end) const
+inline StrSpan String::span(size_t begin, size_t end) const
 {
     assert(begin <= end);
     assert(end <= m_size);
-    return Span<char const>{m_data + begin, end - begin};
+    return StrSpan{m_data + begin, end - begin};
 }
 
 static inline bool operator==(String const &lhs, String const &rhs)
 {
-    return compare_str(
-        Span{lhs.c_str(), lhs.size()}, Span{rhs.c_str(), rhs.size()});
+    return StrSpan{lhs.c_str(), lhs.size()} == StrSpan{rhs.c_str(), rhs.size()};
 }
 
 static inline bool operator!=(String const &lhs, String const &rhs)
@@ -560,8 +548,7 @@ static inline bool operator!=(String const &lhs, String const &rhs)
 
 static inline bool operator==(String const &lhs, char const *rhs)
 {
-    size_t const rhs_len = strlen(rhs);
-    return compare_str(Span{lhs.c_str(), lhs.size()}, Span{rhs, rhs_len});
+    return StrSpan{lhs.c_str(), lhs.size()} == StrSpan{rhs};
 }
 
 static inline bool operator!=(String const &lhs, char const *rhs)
@@ -571,8 +558,7 @@ static inline bool operator!=(String const &lhs, char const *rhs)
 
 static inline bool operator==(char const *lhs, String const &rhs)
 {
-    size_t const lhs_len = strlen(lhs);
-    return compare_str(Span{lhs, lhs_len}, Span{rhs.c_str(), rhs.size()});
+    return StrSpan{lhs} == StrSpan{rhs.c_str(), rhs.size()};
 }
 
 static inline bool operator!=(char const *lhs, String const &rhs)
@@ -580,8 +566,7 @@ static inline bool operator!=(char const *lhs, String const &rhs)
     return !(lhs == rhs);
 }
 
-inline String concat(
-    Allocator &allocator, Span<char const> first, Span<char const> second)
+inline String concat(Allocator &allocator, StrSpan first, StrSpan second)
 {
     String ret{allocator, first.size() + second.size()};
 
@@ -594,14 +579,12 @@ inline String concat(
     return ret;
 }
 
-inline String concat(
-    Allocator &allocator, Span<char const> first, char const *second)
+inline String concat(Allocator &allocator, StrSpan first, char const *second)
 {
     return concat(allocator, first, String::span(second));
 }
 
-inline String concat(
-    Allocator &allocator, char const *first, Span<char const> second)
+inline String concat(Allocator &allocator, char const *first, StrSpan second)
 {
     return concat(allocator, String::span(first), second);
 }

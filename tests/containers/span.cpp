@@ -136,7 +136,25 @@ TEST_CASE("Span::comparisons")
     }
 }
 
-TEST_CASE("Span::compare_str")
+TEST_CASE("StrSpan::create")
+{
+    const char ctest[] = "test";
+    {
+        StrSpan span{ctest};
+        REQUIRE(span.data() == ctest);
+        REQUIRE(span.size() == sizeof(ctest) - 1);
+        REQUIRE(!span.empty());
+    }
+
+    {
+        StrSpan span{ctest, 3};
+        REQUIRE(span.data() == ctest);
+        REQUIRE(span.size() == 3);
+        REQUIRE(!span.empty());
+    }
+}
+
+TEST_CASE("StrSpan::comparisons")
 {
     // Behavior should be equal to c-string comparisons with the added flavor
     // that a truncating view is treated like the next character was \0.
@@ -147,28 +165,45 @@ TEST_CASE("Span::compare_str")
     char const ctett[] = "tett";
     char const ctestnull[] = "test\0\0\0";
 
-    Span<char> empty{cempty, 0};
-    Span<char const> empty2{cempty, 0};
-    Span<char const> test{ctest, sizeof(ctest) - 1};
-    Span<char const> test2{ctester, sizeof(ctester) - 3};
-    Span<char const> tett{ctett, sizeof(ctett) - 1};
-    Span<char const> tester{ctester, sizeof(ctester) - 1};
-    Span<char const> testnull{ctestnull, sizeof(ctestnull) - 1};
+    StrSpan empty{cempty, 0};
+    StrSpan empty2{cempty, 0};
+    StrSpan test{ctest, sizeof(ctest) - 1};
+    StrSpan test2{ctester, sizeof(ctester) - 3};
+    StrSpan tett{ctett, sizeof(ctett) - 1};
+    StrSpan tester{ctester, sizeof(ctester) - 1};
+    StrSpan testnull{ctestnull, sizeof(ctestnull) - 1};
 
-    REQUIRE(compare_str(empty, empty));
-    REQUIRE(compare_str(empty, empty2));
-    REQUIRE(compare_str(empty2, empty));
-    REQUIRE(!compare_str(empty, test));
-    REQUIRE(!compare_str(test, empty));
+    REQUIRE(empty == empty);
+    REQUIRE(empty == empty2);
+    REQUIRE(empty2 == empty);
+    REQUIRE(!(empty == test));
+    REQUIRE(!(test == empty));
 
-    REQUIRE(compare_str(test, test));
-    REQUIRE(compare_str(test, test2));
-    REQUIRE(compare_str(test2, test2));
-    REQUIRE(compare_str(test2, test2));
-    REQUIRE(!compare_str(test, tett));
-    REQUIRE(!compare_str(tett, test));
-    REQUIRE(!compare_str(test, tester));
-    REQUIRE(!compare_str(tester, test));
-    REQUIRE(compare_str(test, testnull));
-    REQUIRE(compare_str(testnull, test));
+    REQUIRE(test == test);
+    REQUIRE(test == test2);
+    REQUIRE(test2 == test2);
+    REQUIRE(test2 == test2);
+    REQUIRE(!(test == tett));
+    REQUIRE(!(tett == test));
+    REQUIRE(!(test == tester));
+    REQUIRE(!(tester == test));
+    REQUIRE(test == testnull);
+    REQUIRE(testnull == test);
+
+    REQUIRE(!(empty != empty));
+    REQUIRE(!(empty != empty2));
+    REQUIRE(!(empty2 != empty));
+    REQUIRE(empty != test);
+    REQUIRE(test != empty);
+
+    REQUIRE(!(test != test));
+    REQUIRE(!(test != test2));
+    REQUIRE(!(test2 != test2));
+    REQUIRE(!(test2 != test2));
+    REQUIRE(test != tett);
+    REQUIRE(tett != test);
+    REQUIRE(test != tester);
+    REQUIRE(tester != test);
+    REQUIRE(!(test != testnull));
+    REQUIRE(!(testnull != test));
 }

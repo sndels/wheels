@@ -49,6 +49,13 @@ template <typename T> class Span
     size_t m_size{0};
 };
 
+class StrSpan : public Span<char const>
+{
+  public:
+    StrSpan(char const *str);
+    StrSpan(char const *str, size_t size);
+};
+
 template <typename T>
 Span<T>::Span(T *ptr, size_t size)
 : m_data{ptr}
@@ -93,8 +100,8 @@ template <typename T> Span<T>::operator Span<T const>() const
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator==(Span<T> lhs, Span<V> rhs)
+    requires SameAs<T, V>
+bool operator==(Span<T> lhs, Span<V> rhs)
 {
     if (lhs.size() != rhs.size())
         return false;
@@ -117,10 +124,20 @@ operator==(Span<T> lhs, Span<V> rhs)
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator!=(Span<T> lhs, Span<T> rhs)
+    requires SameAs<T, V>
+bool operator!=(Span<T> lhs, Span<T> rhs)
 {
     return !(lhs == rhs);
+}
+
+inline StrSpan::StrSpan(char const *str)
+: Span{str, strlen(str)}
+{
+}
+
+inline StrSpan::StrSpan(char const *str, size_t size)
+: Span{str, size}
+{
 }
 
 // Returns true if the spans are equal as c-strings, treating data()[size()] as
@@ -128,10 +145,11 @@ operator!=(Span<T> lhs, Span<T> rhs)
 // final null. This includes the assumption that the character at data()[size()]
 // is allocated and may or may not be \0, depending on the span being a full
 // view into the string or not.
-template <typename T, typename V>
-    requires(SameAs<T, char> && SameAs<V, char>) bool
-compare_str(Span<T> lhs, Span<V> rhs)
+inline bool operator==(StrSpan lhs, StrSpan rhs)
 {
+    if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
+        return true;
+
     size_t first_len = 0;
     size_t second_len = 0;
     char const *first_ptr = nullptr;
@@ -159,6 +177,8 @@ compare_str(Span<T> lhs, Span<V> rhs)
     // after the common part
     return first_len == second_len || second_ptr[first_len] == '\0';
 }
+
+inline bool operator!=(StrSpan lhs, StrSpan rhs) { return !(lhs == rhs); }
 
 } // namespace wheels
 
