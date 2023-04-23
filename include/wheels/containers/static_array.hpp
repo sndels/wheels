@@ -66,7 +66,9 @@ template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(T const (&elems)[N])
 : m_size{N}
 {
-    memcpy(m_data, elems, N * sizeof(T));
+    // TODO: memcpy for entire elems array if T is trivially copyable
+    for (size_t i = 0; i < N; ++i)
+        new (((T *)m_data) + i) T{WHEELS_MOV(elems[i])};
 }
 
 // Deduction from intializer list
@@ -77,7 +79,11 @@ template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(std::initializer_list<T> elems)
 : m_size{elems.size()}
 {
-    memcpy(m_data, elems.begin(), elems.size() * sizeof(T));
+    // TODO: memcpy for entire elems array if T is trivially copyable
+    size_t i = 0;
+    auto const end = elems.end();
+    for (auto iter = elems.begin(); iter != end; ++iter, ++i)
+        new (((T *)m_data) + i) T{WHEELS_MOV(*iter)};
 }
 
 template <typename T, size_t N> StaticArray<T, N>::~StaticArray() { clear(); }
@@ -283,13 +289,13 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
 
 template <typename T, size_t N> StaticArray<T, N>::operator Span<T>()
 {
-    return Span{(T*)m_data, m_size};
+    return Span{(T *)m_data, m_size};
 }
 
 template <typename T, size_t N>
 StaticArray<T, N>::operator Span<T const>() const
 {
-    return Span{(T const*)m_data, m_size};
+    return Span{(T const *)m_data, m_size};
 }
 
 } // namespace wheels
