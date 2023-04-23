@@ -103,6 +103,9 @@ template <typename T, typename V>
     requires SameAs<T, V>
 bool operator==(Span<T> lhs, Span<V> rhs)
 {
+    if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
+        return true;
+
     if (lhs.size() != rhs.size())
         return false;
 
