@@ -1210,7 +1210,6 @@ TEST_CASE("Ends with", "[String]")
         }
 
         { // Back
-            char const ch = ':';
             String str{allocator, "test:"};
             REQUIRE(str.ends_with(ch));
         }
