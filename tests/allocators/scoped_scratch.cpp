@@ -24,6 +24,8 @@ class Obj
     }
 
     Obj(){};
+    Obj(uint64_t data)
+    : data{data} {};
     ~Obj()
     {
         s_dtor_counter()++;
@@ -109,14 +111,21 @@ TEST_CASE("ScopedScratch::dtor")
     {
         ScopedScratch scratch{allocator};
 
-        Obj *obj = scratch.allocate_object<Obj>();
-        REQUIRE(obj != nullptr);
-        obj->data = 0xDEADCAFEBEEFBABE;
-        REQUIRE(obj->data == 0xDEADCAFEBEEFBABE);
+        {
+            Obj *obj = scratch.allocate_object<Obj>();
+            REQUIRE(obj != nullptr);
+            REQUIRE(obj->data == 0);
+        }
+
+        {
+            Obj *obj = scratch.allocate_object<Obj>(0xDEADCAFEBEEFBABE);
+            REQUIRE(obj != nullptr);
+            REQUIRE(obj->data == 0xDEADCAFEBEEFBABE);
+        }
 
         REQUIRE(Obj::s_dtor_counter() == 0);
     }
-    REQUIRE(Obj::s_dtor_counter() == 1);
+    REQUIRE(Obj::s_dtor_counter() == 2);
 }
 
 TEST_CASE("ScopedScratch::child_scopes")

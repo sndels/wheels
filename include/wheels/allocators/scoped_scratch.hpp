@@ -44,7 +44,8 @@ class ScopedScratch : public Allocator
     [[nodiscard]] ScopedScratch child_scope();
 
     template <typename T> [[nodiscard]] T *allocate_pod();
-    template <typename T> [[nodiscard]] T *allocate_object();
+    template <typename T, typename... Args>
+    [[nodiscard]] T *allocate_object(Args &&...args);
 
   private:
     template <typename T> static void dtor_call(void *ptr);
@@ -127,7 +128,8 @@ template <typename T> T *ScopedScratch::allocate_pod()
     return (T *)m_allocator.allocate(sizeof(T));
 }
 
-template <typename T> T *ScopedScratch::allocate_object()
+template <typename T, typename... Args>
+T *ScopedScratch::allocate_object(Args &&...args)
 {
     static_assert(
         alignof(T) <= alignof(std::max_align_t) &&
@@ -151,6 +153,8 @@ template <typename T> T *ScopedScratch::allocate_object()
     scope->previous = m_objects;
 
     m_objects = scope;
+
+    new (scope->data) T{WHEELS_FWD(args)...};
 
     return (T *)scope->data;
 }
