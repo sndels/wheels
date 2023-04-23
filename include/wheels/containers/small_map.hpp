@@ -2,10 +2,10 @@
 #ifndef WHEELS_CONTAINERS_SMALL_MAP_HPP
 #define WHEELS_CONTAINERS_SMALL_MAP_HPP
 
+#include "../common/utils.hpp"
 #include "concepts.hpp"
 #include "pair.hpp"
 #include "static_array.hpp"
-#include "utils.hpp"
 
 namespace wheels
 {

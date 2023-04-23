@@ -2,6 +2,7 @@
 #define WHEELS_HASH_MAP
 
 #include "../allocators/allocator.hpp"
+#include "../common/utils.hpp"
 #include "concepts.hpp"
 #include "hash.hpp"
 #include "pair.hpp"
