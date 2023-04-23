@@ -87,6 +87,13 @@ TEST_CASE("StaticArray::allocate_copy")
     REQUIRE(arr_move_assigned[2] == 30);
     REQUIRE(arr_move_assigned.size() == 3);
     REQUIRE(arr_move_assigned.capacity() == 4);
+
+    StaticArray<uint32_t, 4> default_arr{0xDEADCAFE};
+    REQUIRE(!default_arr.empty());
+    REQUIRE(default_arr.size() == 4);
+    REQUIRE(default_arr.capacity() == 4);
+    for (uint32_t e : default_arr)
+        REQUIRE(e == 0xDEADCAFE);
 }
 
 TEST_CASE("StaticArray::push_lvalue")

@@ -16,6 +16,8 @@ template <typename T, size_t N> class StaticArray
   public:
     StaticArray(){};
     StaticArray(T const (&elems)[N]);
+    // Takes in either a single default value for the entire array or a list of
+    // values filling all slots
     StaticArray(std::initializer_list<T> elems);
     ~StaticArray();
 
@@ -79,11 +81,23 @@ template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(std::initializer_list<T> elems)
 : m_size{elems.size()}
 {
-    // TODO: memcpy for entire elems array if T is trivially copyable
-    size_t i = 0;
-    auto const end = elems.end();
-    for (auto iter = elems.begin(); iter != end; ++iter, ++i)
-        new (((T *)m_data) + i) T{WHEELS_MOV(*iter)};
+    assert(elems.size() == 1 || elems.size() == N);
+
+    if (elems.size() == 1)
+    {
+        m_size = N;
+        T const &default_value = *elems.begin();
+        for (size_t i = 0; i < N; ++i)
+            new (((T *)m_data) + i) T{default_value};
+    }
+    else
+    {
+        // TODO: memcpy for entire elems array if T is trivially copyable
+        size_t i = 0;
+        auto const end = elems.end();
+        for (auto iter = elems.begin(); iter != end; ++iter, ++i)
+            new (((T *)m_data) + i) T{WHEELS_MOV(*iter)};
+    }
 }
 
 template <typename T, size_t N> StaticArray<T, N>::~StaticArray() { clear(); }
