@@ -79,7 +79,7 @@ inline void LinearAllocator::rewind(void *ptr)
     m_offset = (uint8_t *)ptr - m_memory;
 }
 
-inline void *LinearAllocator::peek() const { return m_memory; };
+inline void *LinearAllocator::peek() const { return m_memory + m_offset; };
 
 } // namespace wheels
 

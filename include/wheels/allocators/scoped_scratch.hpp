@@ -47,6 +47,10 @@ class ScopedScratch : public Allocator
     template <typename T, typename... Args>
     [[nodiscard]] T *allocate_object(Args &&...args);
 
+#ifdef WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
+    void *peek() const;
+#endif // WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
+
   private:
     template <typename T> static void dtor_call(void *ptr);
 
@@ -158,6 +162,10 @@ T *ScopedScratch::allocate_object(Args &&...args)
 
     return (T *)scope->data;
 }
+
+#ifdef WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
+void *ScopedScratch::peek() const { return m_allocator.peek(); }
+#endif // WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
 
 } // namespace wheels
 

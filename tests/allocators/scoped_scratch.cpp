@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#define WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
 #include <wheels/allocators/scoped_scratch.hpp>
 
 #include "common.hpp"
@@ -183,4 +184,22 @@ TEST_CASE("ScopedScratch::allocate_aligned_PoD")
     REQUIRE(aligned_alloc1 != nullptr);
     REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
     REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
+}
+
+TEST_CASE("ScopedScratch::rewind_behavior")
+{
+    LinearAllocator allocator{4096};
+    ScopedScratch scratch{allocator};
+
+    uint8_t *alloc = (uint8_t *)scratch.allocate(2048);
+    REQUIRE(alloc != nullptr);
+
+    uint8_t *scratch_peek_before_child = (uint8_t *)scratch.peek();
+    REQUIRE(scratch_peek_before_child == alloc + 2048);
+    { // Child from a full allocator should return nullptrs
+        ScopedScratch child = scratch.child_scope();
+        uint8_t *child_alloc = (uint8_t *)child.allocate(20);
+        REQUIRE(child_alloc != nullptr);
+    }
+    REQUIRE(scratch_peek_before_child == (uint8_t *)scratch.peek());
 }
