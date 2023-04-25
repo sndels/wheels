@@ -5,6 +5,7 @@ option(WHEELS_BUILD_TESTS "Include tests" ON)
 option(WHEELS_BUILD_BENCHES "Include benchmarks" ON)
 
 add_subdirectory(ext)
+add_subdirectory(natvis)
 
 add_library(wheels INTERFACE)
 
@@ -16,6 +17,11 @@ target_include_directories(wheels
 target_link_libraries(wheels
     INTERFACE
     wyhash
+)
+
+target_sources(wheels
+    INTERFACE
+    ${NATVIS_SOURCES}
 )
 
 if(WHEELS_BUILD_TESTS)
