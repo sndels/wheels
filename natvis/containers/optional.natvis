@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="wheels::Optional&lt;*&gt;">
+        <Expand>
+            <Item Name="[has_value]" ExcludeView="simple">m_has_value</Item>
+            <Item Name="[value]" ExcludeView="simple">($T1*)m_data</Item>
+        </Expand>
+    </Type>
+</AutoVisualizer>
