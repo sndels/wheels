@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="wheels::HashMap&lt;*&gt;">
+        <Expand>
+            <Item Name="[size]" ExcludeView="simple">m_size</Item>
+            <Item Name="[capacity]" ExcludeView="simple">m_capacity</Item>
+            <Synthetic Name="keys">
+                <Expand>
+                    <ArrayItems>
+                        <Size>m_capacity</Size>
+                        <ValuePointer>($T1*)m_keys</ValuePointer>
+                    </ArrayItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="values">
+                <Expand>
+                    <ArrayItems>
+                        <Size>m_capacity</Size>
+                        <ValuePointer>($T2*)m_values</ValuePointer>
+                    </ArrayItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="metadata">
+                <Expand>
+                    <ArrayItems>
+                        <Size>m_capacity</Size>
+                        <ValuePointer>m_metadata</ValuePointer>
+                    </ArrayItems>
+                </Expand>
+            </Synthetic>
+        </Expand>
+    </Type>
+</AutoVisualizer>
