@@ -31,6 +31,8 @@ template <typename T, typename V>
     return Pair<T, V>{WHEELS_FWD(first), WHEELS_FWD(second)};
 }
 
+template <typename T, typename V> Pair(T &&first, V &&second) -> Pair<T, V>;
+
 template <typename T, typename V>
 template <typename U, typename W>
     requires(SameAs<U, T> && SameAs<W, V>)
