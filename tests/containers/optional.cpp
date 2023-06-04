@@ -193,6 +193,25 @@ TEST_CASE("Optional::swap")
     REQUIRE(DtorObj::s_dtor_counter() == 1);
 }
 
+TEST_CASE("Optional::take")
+{
+    init_dtor_counters();
+    Optional<DtorObj> opt{DtorObj{2}};
+    REQUIRE(DtorObj::s_ctor_counter() == 2);
+    REQUIRE(DtorObj::s_value_ctor_counter() == 1);
+    REQUIRE(DtorObj::s_move_ctor_counter() == 1);
+    REQUIRE(DtorObj::s_assign_counter() == 0);
+    REQUIRE(DtorObj::s_dtor_counter() == 0);
+    DtorObj obj{opt.take()};
+    REQUIRE(DtorObj::s_ctor_counter() == 3);
+    REQUIRE(DtorObj::s_value_ctor_counter() == 1);
+    REQUIRE(DtorObj::s_move_ctor_counter() == 2);
+    REQUIRE(DtorObj::s_assign_counter() == 0);
+    REQUIRE(DtorObj::s_dtor_counter() == 0);
+    REQUIRE(!opt.has_value());
+    REQUIRE(obj.data == 2);
+}
+
 TEST_CASE("Optional::emplace")
 {
     init_dtor_counters();

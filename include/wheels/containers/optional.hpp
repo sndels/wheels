@@ -22,6 +22,7 @@ template <typename T> class Optional
 
     [[nodiscard]] bool has_value() const noexcept;
     void reset();
+    T &&take();
     [[nodiscard]] Optional<T> swap(T &&value);
     template <typename... Args> void emplace(Args &&...args);
 
@@ -109,6 +110,14 @@ template <typename T> void Optional<T>::reset()
         (*(T *)m_data).~T();
         m_has_value = false;
     }
+}
+
+template <typename T> T &&Optional<T>::take()
+{
+    assert(has_value());
+    m_has_value = false;
+
+    return WHEELS_MOV(*(T *)m_data);
 }
 
 template <typename T> Optional<T> Optional<T>::swap(T &&value)
