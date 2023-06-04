@@ -163,6 +163,36 @@ TEST_CASE("Optional::aligned")
     REQUIRE(map->value == value.value);
 }
 
+TEST_CASE("Optional::swap")
+{
+    init_dtor_counters();
+    Optional<DtorObj> opt;
+    {
+        const Optional<DtorObj> prev = opt.swap(DtorObj{2});
+        REQUIRE(DtorObj::s_ctor_counter() == 2);
+        REQUIRE(DtorObj::s_value_ctor_counter() == 1);
+        REQUIRE(DtorObj::s_move_ctor_counter() == 1);
+        REQUIRE(DtorObj::s_assign_counter() == 0);
+        REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(opt.has_value());
+        REQUIRE(opt->data == 2);
+        REQUIRE(!prev.has_value());
+    }
+    {
+        const Optional<DtorObj> prev = opt.swap(DtorObj{3});
+        REQUIRE(DtorObj::s_ctor_counter() == 6);
+        REQUIRE(DtorObj::s_value_ctor_counter() == 2);
+        REQUIRE(DtorObj::s_move_ctor_counter() == 4);
+        REQUIRE(DtorObj::s_assign_counter() == 0);
+        REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(opt.has_value());
+        REQUIRE(opt->data == 3);
+        REQUIRE(prev.has_value());
+        REQUIRE(prev->data == 2);
+    }
+    REQUIRE(DtorObj::s_dtor_counter() == 1);
+}
+
 TEST_CASE("Optional::emplace")
 {
     init_dtor_counters();
