@@ -129,7 +129,7 @@ template <typename T> Optional<T> Optional<T>::swap(T &&value)
         ret.m_has_value = true;
     }
 
-    new (m_data) T{WHEELS_MOV(value)};
+    new (m_data) T{WHEELS_FWD(value)};
     m_has_value = true;
 
     return ret;
@@ -141,7 +141,7 @@ void Optional<T>::emplace(Args &&...args)
 {
     reset();
 
-    new (m_data) T{WHEELS_MOV(args)...};
+    new (m_data) T{WHEELS_FWD(args)...};
     m_has_value = true;
 }
 
