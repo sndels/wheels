@@ -270,15 +270,21 @@ template <typename T, size_t N> void StaticArray<T, N>::resize(size_t size)
 {
     if (size < m_size)
     {
-        for (size_t i = size; i < m_size; ++i)
-            ((T *)m_data)[i].~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = size; i < m_size; ++i)
+                ((T *)m_data)[i].~T();
+        }
         m_size = size;
     }
     else
     {
         assert(size <= N);
-        for (size_t i = m_size; i < size; ++i)
-            new (((T *)m_data) + i) T{};
+        if constexpr (std::is_class_v<T>)
+        {
+            for (size_t i = m_size; i < size; ++i)
+                new (((T *)m_data) + i) T{};
+        }
         m_size = size;
     }
 }
@@ -288,13 +294,19 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
 {
     if (size < m_size)
     {
-        for (size_t i = size; i < m_size; ++i)
-            ((T *)m_data)[i].~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = size; i < m_size; ++i)
+                ((T *)m_data)[i].~T();
+        }
         m_size = size;
     }
     else
     {
         assert(size <= N);
+        // TODO:
+        // Is it faster to init a bunch of non-class values by assigning
+        // directly instead of placement new?
         for (size_t i = m_size; i < size; ++i)
             new (((T *)m_data) + i) T{value};
         m_size = size;
