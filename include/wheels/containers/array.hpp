@@ -215,15 +215,21 @@ template <typename T> void Array<T>::resize(size_t size)
 {
     if (size < m_size)
     {
-        for (size_t i = size; i < m_size; ++i)
-            m_data[i].~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = size; i < m_size; ++i)
+                m_data[i].~T();
+        }
         m_size = size;
     }
     else
     {
         reserve(size);
-        for (size_t i = m_size; i < size; ++i)
-            new (m_data + i) T{};
+        if constexpr (std::is_class_v<T>)
+        {
+            for (size_t i = m_size; i < size; ++i)
+                new (m_data + i) T{};
+        }
         m_size = size;
     }
 }
@@ -232,13 +238,19 @@ template <typename T> void Array<T>::resize(size_t size, T const &value)
 {
     if (size < m_size)
     {
-        for (size_t i = size; i < m_size; ++i)
-            m_data[i].~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            for (size_t i = size; i < m_size; ++i)
+                m_data[i].~T();
+        }
         m_size = size;
     }
     else
     {
         reserve(size);
+        // TODO:
+        // Is it faster to init a bunch of non-class values by assigning
+        // directly instead of placement new?
         for (size_t i = m_size; i < size; ++i)
             new (m_data + i) T{value};
         m_size = size;
