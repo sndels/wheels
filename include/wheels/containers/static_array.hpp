@@ -233,8 +233,11 @@ template <typename T, size_t N> size_t StaticArray<T, N>::capacity() const
 
 template <typename T, size_t N> void StaticArray<T, N>::clear()
 {
-    for (auto &v : *this)
-        v.~T();
+    if constexpr (!std::is_trivially_destructible_v<T>)
+    {
+        for (auto &v : *this)
+            v.~T();
+    }
     m_size = 0;
 }
 
