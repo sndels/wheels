@@ -178,8 +178,11 @@ template <typename T> size_t Array<T>::capacity() const { return m_capacity; }
 
 template <typename T> void Array<T>::clear()
 {
-    for (auto &v : *this)
-        v.~T();
+    if constexpr (!std::is_trivially_destructible_v<T>)
+    {
+        for (auto &v : *this)
+            v.~T();
+    }
     m_size = 0;
 }
 
