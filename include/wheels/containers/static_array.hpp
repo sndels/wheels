@@ -42,7 +42,7 @@ template <typename T, size_t N> class StaticArray
 
     [[nodiscard]] bool empty() const;
     [[nodiscard]] size_t size() const;
-    [[nodiscard]] size_t capacity() const;
+    [[nodiscard]] static constexpr size_t capacity() { return N; }
 
     void clear();
     void push_back(T const &value);
@@ -224,11 +224,6 @@ template <typename T, size_t N> bool StaticArray<T, N>::empty() const
 template <typename T, size_t N> size_t StaticArray<T, N>::size() const
 {
     return m_size;
-}
-
-template <typename T, size_t N> size_t StaticArray<T, N>::capacity() const
-{
-    return N;
 }
 
 template <typename T, size_t N> void StaticArray<T, N>::clear()
