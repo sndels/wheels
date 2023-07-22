@@ -6,3 +6,45 @@
 - verify container allocators after copy, move ctor and copy, move assignment
 - document container allocator behavior on copy, move
 - natvis et al.
+  - Debug views that actually work on linux, natvis seems to be VS only still
+  - How to implement without making implementation messier and more bugprone?
+- TlsfAllocator
+  - 'Implementation of a constant-time dynamic storage allocator'
+  - Minimum block size 128 bytes
+    - Smaller sizes require special handling as they won't fill the second level
+      ranges
+    - Just ignore at the start and add debug tracking for the number of smappler
+      blocks. Special case can be implemented if the number of small blocks gets
+      out of hand.
+  - Need to find block with size of at least requested_size_bytes + alignof(T) - 1
+    - Starting addr might be whatever and we need to align
+  - Need to track blocks for the allocations so that free works
+    - Allocate extra space to store block metadata just before the pointer 
+      that's given out?
+      - Actual block start addr and size?
+        - void* and size_t so 8+8 bytes on a 64bit arch
+      - Need to be careful about alignment
+        - Block metadata before the output pointer needs to be aligned
+        - Output pointer needs to be aligned for requested type
+        - Need to calculate a worst case space on alloc, where both alignments
+          can be satisfied regardless of the start address of the block we find
+        - On free, read block metadata from the first properly aligned address
+          at least sizeof(metadata) before the freed address
+      - Wastes space for small allocs but should be fast and pretty simple
+        - Metadata requires 16+7 space before the returned addr to ensure space
+          and alignment
+        - Bad for small requested sizes as metadata dominates required allocation
+  - Ensure all blocks start at an addr aligned at smallest block size?
+    - So basically ensure the entire block that TLSF hands out blocks from begins
+      aligned to smallest block
+    - If smallest block size >= biggest supported alignment, alloc extra memory
+      might boil down to max(16+7+8, alignof(T))
+      - Types with alignment 1,2,4,8 can be placed at the end of the aligned metadata block
+        so total required size is 16 + 7 + alignof(T) (metadata, metadata align, data)
+      - 16 might need 8 bytes of padding after metadata to align
+        - 16B metadata, 7B metadata alignment and 8B data alignment
+      - For types with alignment of 32 and above, the 16 byte metadata can always
+        be packed right before the actual data by only reserving an e
+      - If at least 32B aligned pointers are given, should be able to go with just
+        the extra alignof(T) - 1 required by type and plop metadata in front of it
+      
