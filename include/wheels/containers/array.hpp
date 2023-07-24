@@ -44,6 +44,9 @@ template <typename T> class Array
     [[nodiscard]] T *end();
     [[nodiscard]] T const *end() const;
 
+    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i);
+    [[nodiscard]] Span<T const> span(size_t begin_i, size_t end_i) const;
+
     [[nodiscard]] bool empty() const;
     [[nodiscard]] size_t size() const;
     void reserve(size_t capacity);
@@ -164,6 +167,21 @@ template <typename T> T const *Array<T>::begin() const { return m_data; }
 template <typename T> T *Array<T>::end() { return m_data + m_size; }
 
 template <typename T> T const *Array<T>::end() const { return m_data + m_size; }
+
+template <typename T> Span<T> Array<T>::span(size_t begin_i, size_t end_i)
+{
+    assert(begin_i < m_size);
+    assert(end_i <= m_size);
+    return Span{begin() + begin_i, end_i - begin_i};
+}
+
+template <typename T>
+Span<T const> Array<T>::span(size_t begin_i, size_t end_i) const
+{
+    assert(begin_i < m_size);
+    assert(end_i <= m_size);
+    return Span{begin() + begin_i, end_i - begin_i};
+}
 
 template <typename T> bool Array<T>::empty() const { return m_size == 0; }
 
