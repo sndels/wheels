@@ -59,6 +59,7 @@ template <typename T> class Array
     template <typename... Args> void emplace_back(Args &&...args);
 
     T pop_back();
+    void erase(size_t index);
 
     void resize(size_t size);
     void resize(size_t size, T const &value);
@@ -212,6 +213,23 @@ template <typename T> T Array<T>::pop_back()
     assert(m_size > 0);
     m_size--;
     return WHEELS_MOV(m_data[m_size]);
+}
+
+template <typename T> void Array<T>::erase(size_t index)
+{
+    assert(index < m_size);
+
+    m_data[index].~T();
+
+    if constexpr (std::is_trivially_copyable_v<T>)
+        memcpy(
+            m_data + index, m_data + index + 1, (m_size - index) * sizeof(T));
+    else
+    {
+        for (size_t i = index + 1; i < m_size; ++i)
+            new (m_data + i - 1) T{WHEELS_MOV(m_data[i])};
+    }
+    m_size--;
 }
 
 template <typename T> void Array<T>::resize(size_t size)
