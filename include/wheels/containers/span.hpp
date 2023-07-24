@@ -14,6 +14,7 @@ namespace wheels
 template <typename T> class Span
 {
   public:
+    Span() = default;
     Span(T *ptr, size_t size);
 
     Span(Span<T> const &other) = default;
@@ -100,8 +101,8 @@ template <typename T> Span<T>::operator Span<T const>() const
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V>
-bool operator==(Span<T> lhs, Span<V> rhs)
+    requires SameAs<T, V> bool
+operator==(Span<T> lhs, Span<V> rhs)
 {
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
@@ -127,8 +128,8 @@ bool operator==(Span<T> lhs, Span<V> rhs)
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V>
-bool operator!=(Span<T> lhs, Span<T> rhs)
+    requires SameAs<T, V> bool
+operator!=(Span<T> lhs, Span<T> rhs)
 {
     return !(lhs == rhs);
 }
