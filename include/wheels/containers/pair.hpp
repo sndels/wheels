@@ -13,6 +13,10 @@ template <typename T, typename V> struct Pair
     T first;
     V second;
 
+    Pair()
+        requires(std::default_initializable<T> && std::default_initializable<V>)
+    = default;
+
     // Let's be pedantic and disallow implicit conversions
     template <typename U, typename W>
         requires(SameAs<U, T> && SameAs<W, V>)
