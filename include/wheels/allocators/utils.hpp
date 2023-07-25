@@ -1,6 +1,7 @@
 #ifndef WHEELS_ALLOCATORS_UTILS_HPP
 #define WHEELS_ALLOCATORS_UTILS_HPP
 
+#include <bit>
 #include <cassert>
 #include <climits>
 #include <cstddef>
@@ -19,9 +20,25 @@ namespace wheels
     return (offset + alignment - 1) / alignment * alignment;
 }
 
+template <typename T> [[nodiscard]] constexpr void *aligned_ptr(void *ptr)
+{
+    size_t const alignment = alignof(T);
+    // This may already be required by spec
+    static_assert(
+        std::has_single_bit(alignment),
+        "Implementation assumes only power of 2 alignments");
+
+    uintptr_t uptr = (uintptr_t)ptr;
+    if ((uptr & (alignment - 1)) != 0)
+        uptr += alignment - (uptr & (alignment - 1));
+    return (void *)uptr;
+}
+
 [[nodiscard]] constexpr size_t megabytes(size_t mb) { return mb * 1000 * 1000; }
 
 [[nodiscard]] constexpr size_t kilobytes(size_t kb) { return kb * 1000; }
+
+[[nodiscard]] constexpr size_t pow2(size_t c) { return (size_t)1 << c; }
 
 } // namespace wheels
 
