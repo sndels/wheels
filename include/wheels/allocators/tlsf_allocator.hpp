@@ -189,7 +189,7 @@ class TlsfAllocator : public Allocator
     {
         // Round up size to the next range, so that whatever block we find is
         // large enough
-        r += (1 << (fls(r) - s_J)) - 1;
+        r += ((size_t)1 << (fls(r) - s_J)) - 1;
         return mapping_insert(r);
     }
 
@@ -280,11 +280,15 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity)
     // Set up metadata
     m_second_level_bitmaps =
         Span{(BitMapT *)(m_data), first_level_bucket_count};
-    memset(m_second_level_bitmaps.begin(), 0, m_second_level_bitmaps.size() * sizeof(BitMapT));
+    memset(
+        m_second_level_bitmaps.begin(), 0,
+        m_second_level_bitmaps.size() * sizeof(BitMapT));
     m_segregated_lists = Span{
         (SecondLevelRangesLists *)m_second_level_bitmaps.end(),
         first_level_bucket_count};
-    memset(m_segregated_lists.begin(), 0, m_segregated_lists.size() * sizeof(SecondLevelRangesLists));
+    memset(
+        m_segregated_lists.begin(), 0,
+        m_segregated_lists.size() * sizeof(SecondLevelRangesLists));
 
     uintptr_t front_tag_addr = (uintptr_t)m_segregated_lists.end();
     assert(front_tag_addr % alignof(BoundaryTag) == 0);
@@ -428,7 +432,7 @@ inline void TlsfAllocator::deallocate(void *ptr)
     block = merge_next(block);
     assert(block->tag.allocated == s_flag_free);
 
-    // Tag or end tag location might have changed 
+    // Tag or end tag location might have changed
     copy_front_tag_to_back(block);
 
     insert_block(block);
@@ -442,6 +446,7 @@ inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
 inline TlsfAllocator::FreeListIndex TlsfAllocator::find_suitable_block(
     FreeListIndex start_index)
 {
+    assert(start_index.sl < 64);
     BitMapT bitmap_tmp =
         m_second_level_bitmaps[start_index.fl] & ((size_t)-1 << start_index.sl);
 
@@ -452,6 +457,7 @@ inline TlsfAllocator::FreeListIndex TlsfAllocator::find_suitable_block(
         return FreeListIndex{start_index.fl, (uint8_t)non_empty_sl};
     }
 
+    assert(start_index.fl < 64);
     bitmap_tmp = m_first_level_bitmap & ((size_t)-1 << (start_index.fl + 1));
     if (bitmap_tmp == 0)
         return FreeListIndex::null();

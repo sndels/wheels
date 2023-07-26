@@ -12,16 +12,16 @@ using namespace wheels;
 TEST_CASE("Span::create")
 {
     uint8_t arr[5] = {0, 1, 2, 3, 4};
-    Span<uint8_t> span{arr, 5};
-    REQUIRE(span.data() == arr);
+    Span<uint8_t> span{(uint8_t *)arr, 5};
+    REQUIRE(span.data() == (uint8_t *)arr);
     REQUIRE(span.size() == 5);
     REQUIRE(!span.empty());
 
-    Span<uint8_t> const const_span{arr, 5};
-    REQUIRE(const_span.data() == arr);
+    Span<uint8_t> const const_span{(uint8_t *)arr, 5};
+    REQUIRE(const_span.data() == (uint8_t *)arr);
     REQUIRE(const_span.size() == 5);
 
-    Span<uint8_t> empty_span{arr, 0};
+    Span<uint8_t> empty_span{(uint8_t *)arr, 0};
     REQUIRE(empty_span.size() == 0);
     REQUIRE(empty_span.empty());
 }
@@ -30,11 +30,12 @@ TEST_CASE("Span::loop")
 {
     uint8_t arr[5] = {0, 1, 2, 3, 4};
     {
-        Span<uint8_t> span{arr, 5};
-        REQUIRE(span.data() == arr);
+        Span<uint8_t> span{(uint8_t *)arr, 5};
+        REQUIRE(span.data() == (uint8_t *)arr);
         REQUIRE(span.size() == 5);
         REQUIRE(!span.empty());
         for (size_t i = 0; i < span.size(); ++i)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
             REQUIRE(span[i] == arr[i]);
         uint8_t sum = 0;
         for (uint8_t e : span)
@@ -43,10 +44,11 @@ TEST_CASE("Span::loop")
     }
 
     {
-        Span<uint8_t> const const_span{arr, 5};
-        REQUIRE(const_span.data() == arr);
+        Span<uint8_t> const const_span{(uint8_t *)arr, 5};
+        REQUIRE(const_span.data() == (uint8_t *)arr);
         REQUIRE(const_span.size() == 5);
         for (size_t i = 0; i < const_span.size(); ++i)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
             REQUIRE(const_span[i] == arr[i]);
         uint8_t sum = 0;
         for (uint8_t e : const_span)
@@ -55,19 +57,22 @@ TEST_CASE("Span::loop")
     }
 
     {
-        Span<uint8_t> empty_span{arr, 0};
+        Span<uint8_t> empty_span{(uint8_t *)arr, 0};
         REQUIRE(empty_span.size() == 0);
         REQUIRE(empty_span.empty());
         bool didnt_loop = true;
-        for (uint8_t e : empty_span)
+        for (uint8_t s : empty_span)
+        {
+            (void)s;
             didnt_loop = false;
+        }
         REQUIRE(didnt_loop);
     }
 }
 TEST_CASE("Span::const_conversion")
 {
     uint32_t array[] = {0, 1, 2};
-    Span<uint32_t> span{array, 3};
+    Span<uint32_t> span{(uint32_t *)array, 3};
     {
         Span<uint32_t const> const_span = span;
         (void)const_span;
@@ -86,12 +91,12 @@ TEST_CASE("Span::comparisons")
 
         // No inner const to make sure that works
         Span<uint32_t> const span_partial{
-            array, sizeof(array) / sizeof(uint32_t) - 1};
+            (uint32_t *)array, sizeof(array) / sizeof(uint32_t) - 1};
         Span<uint32_t const> const span_full{
-            array, sizeof(array) / sizeof(uint32_t)};
+            (uint32_t const *)array, sizeof(array) / sizeof(uint32_t)};
         Span<uint32_t const> const span_full2{
-            array2, sizeof(array2) / sizeof(uint32_t)};
-        Span<uint32_t const> const span_empty{array, 0};
+            (uint32_t const *)array2, sizeof(array2) / sizeof(uint32_t)};
+        Span<uint32_t const> const span_empty{(uint32_t *)array, 0};
 
         REQUIRE(span_partial == span_partial);
         REQUIRE(!(span_partial == span_full));
@@ -113,12 +118,12 @@ TEST_CASE("Span::comparisons")
         DtorObj const array2[] = {{0}, {1}, {3}};
 
         Span<DtorObj const> const span_partial{
-            array, sizeof(array) / sizeof(DtorObj) - 1};
+            (DtorObj const *)array, sizeof(array) / sizeof(DtorObj) - 1};
         Span<DtorObj const> const span_full{
-            array, sizeof(array) / sizeof(DtorObj)};
+            (DtorObj const *)array, sizeof(array) / sizeof(DtorObj)};
         Span<DtorObj const> const span_full2{
-            array2, sizeof(array2) / sizeof(DtorObj)};
-        Span<DtorObj const> const span_empty{array, 0};
+            (DtorObj const *)array2, sizeof(array2) / sizeof(DtorObj)};
+        Span<DtorObj const> const span_empty{(DtorObj *)array, 0};
 
         REQUIRE(span_partial == span_partial);
         REQUIRE(!(span_partial == span_full));
@@ -140,15 +145,15 @@ TEST_CASE("StrSpan::create")
 {
     const char ctest[] = "test";
     {
-        StrSpan span{ctest};
-        REQUIRE(span.data() == ctest);
+        StrSpan span{(char const *)ctest};
+        REQUIRE(span.data() == (char const *)ctest);
         REQUIRE(span.size() == sizeof(ctest) - 1);
         REQUIRE(!span.empty());
     }
 
     {
-        StrSpan span{ctest, 3};
-        REQUIRE(span.data() == ctest);
+        StrSpan span{(char const *)ctest, 3};
+        REQUIRE(span.data() == (char const *)ctest);
         REQUIRE(span.size() == 3);
         REQUIRE(!span.empty());
     }
@@ -165,13 +170,13 @@ TEST_CASE("StrSpan::comparisons")
     char const ctett[] = "tett";
     char const ctestnull[] = "test\0\0\0";
 
-    StrSpan empty{cempty, 0};
-    StrSpan empty2{cempty, 0};
-    StrSpan test{ctest, sizeof(ctest) - 1};
-    StrSpan test2{ctester, sizeof(ctester) - 3};
-    StrSpan tett{ctett, sizeof(ctett) - 1};
-    StrSpan tester{ctester, sizeof(ctester) - 1};
-    StrSpan testnull{ctestnull, sizeof(ctestnull) - 1};
+    StrSpan empty{(char const *)cempty, 0};
+    StrSpan empty2{(char const *)cempty, 0};
+    StrSpan test{(char const *)ctest, sizeof(ctest) - 1};
+    StrSpan test2{(char const *)ctester, sizeof(ctester) - 3};
+    StrSpan tett{(char const *)ctett, sizeof(ctett) - 1};
+    StrSpan tester{(char const *)ctester, sizeof(ctester) - 1};
+    StrSpan testnull{(char const *)ctestnull, sizeof(ctestnull) - 1};
 
     REQUIRE(empty == empty);
     REQUIRE(empty == empty2);

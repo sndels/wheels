@@ -7,6 +7,9 @@
 
 using namespace wheels;
 
+// Adressing these would make this test code quite a bit less concise
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-array-to-pointer-decay,bugprone-string-literal-with-embedded-nul)
+
 TEST_CASE("Create", "[String]")
 {
     CstdlibAllocator allocator;
@@ -163,24 +166,28 @@ TEST_CASE("Access", "[String]")
 
     REQUIRE(str.front() == tester[0]);
     for (size_t i = 0; i < sizeof(tester) - 1; ++i)
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         REQUIRE(str[i] == tester[i]);
     REQUIRE(str.back() == tester[sizeof(tester) - 2]);
 
     String const &const_str = str;
     REQUIRE(const_str.front() == tester[0]);
     for (size_t i = 0; i < sizeof(tester) - 1; ++i)
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
         REQUIRE(const_str[i] == tester[i]);
     REQUIRE(const_str.back() == tester[sizeof(tester) - 2]);
 
     {
         size_t i = 0;
         for (char c : str)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
             REQUIRE(c == tester[i++]);
     }
 
     {
         size_t i = 0;
         for (char c : const_str)
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
             REQUIRE(c == tester[i++]);
     }
 }
@@ -1770,3 +1777,5 @@ TEST_CASE("Concat", "[String]")
         REQUIRE(str == "foo");
     }
 }
+
+// NOLINTEND(cppcoreguidelines-pro-bounds-array-to-pointer-decay,bugprone-string-literal-with-embedded-nul)

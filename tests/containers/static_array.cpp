@@ -173,7 +173,11 @@ TEST_CASE("StaticArray::emplace")
     class Obj
     {
       public:
-        Obj(uint32_t value) { m_data = value; };
+        Obj(uint32_t value)
+        : m_data{value}
+        {
+        }
+        ~Obj() = default;
 
         Obj(Obj const &) = delete;
         Obj(Obj &&) = delete;
@@ -198,12 +202,24 @@ TEST_CASE("StaticArray::pop_back")
     class Obj
     {
       public:
-        Obj(uint32_t value) { m_data = value; };
+        Obj(uint32_t value)
+        : m_data{value}
+        {
+        }
+        ~Obj() = default;
 
         Obj(Obj const &) = delete;
-        Obj(Obj &&other)
+        Obj(Obj &&other) noexcept
         : m_data{other.m_data} {};
         Obj &operator=(Obj const &) = delete;
+        Obj &operator=(Obj &&other) noexcept
+        {
+            if (this != &other)
+            {
+                m_data = other.m_data;
+            }
+            return *this;
+        };
 
         uint32_t m_data{0};
     };

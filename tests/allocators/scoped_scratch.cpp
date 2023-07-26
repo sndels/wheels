@@ -24,7 +24,11 @@ class Obj
         return counter;
     }
 
-    Obj(){};
+    Obj() = default;
+    Obj(Obj const &) = default;
+    Obj &operator=(Obj const &) = default;
+    Obj(Obj &&) = default;
+    Obj &operator=(Obj &&) = default;
     Obj(uint64_t data)
     : data{data} {};
     ~Obj()

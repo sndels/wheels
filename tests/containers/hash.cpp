@@ -7,7 +7,7 @@ using namespace wheels;
 TEST_CASE("hash::pointers", "[hash]")
 {
     {
-        Hash<uint64_t *> hasher;
+        Hash<uint64_t *> const hasher;
         uint64_t zero = 0;
         uint64_t const const_zero = 0;
         REQUIRE(hasher(&zero) == hasher(&zero));

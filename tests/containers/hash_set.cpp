@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <random>
 
 #include <wheels/allocators/cstdlib_allocator.hpp>
 #include <wheels/containers/hash.hpp>
@@ -139,7 +140,11 @@ TEST_CASE("HashSet::reinsert")
     // Try to cause a case where all of the values are either Full or Deleted
     for (size_t i = 0; i < 8096; ++i)
     {
-        uint32_t const value = rand();
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        std::uniform_int_distribution<uint32_t> dist;
+
+        uint32_t const value = dist(mt);
         set.insert(value == 0 ? 1 : value);
         REQUIRE(set.contains(value == 0 ? 1 : value));
         set.remove(value == 0 ? 1 : value);
@@ -250,7 +255,7 @@ TEST_CASE("HashSet::range_for")
     set.insert(30u);
 
     sum = 0;
-    for (auto &v : set)
+    for (auto const &v : set)
         sum += v;
     REQUIRE(sum == 60);
 

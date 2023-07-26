@@ -199,7 +199,11 @@ TEST_CASE("Array::emplace")
     class Obj
     {
       public:
-        Obj(uint32_t value) { m_data = value; };
+        Obj(uint32_t value)
+        : m_data{value}
+        {
+        }
+        ~Obj() = default;
 
         Obj(Obj const &) = delete;
         Obj(Obj &&) = default;
@@ -226,12 +230,16 @@ TEST_CASE("Array::pop_back")
     class Obj
     {
       public:
-        Obj(uint32_t value) { m_data = value; };
+        Obj(uint32_t value)
+        : m_data{value}
+        {
+        }
+        ~Obj() = default;
 
         Obj(Obj const &) = delete;
-        Obj(Obj &&other)
-        : m_data{other.m_data} {};
+        Obj(Obj &&) = default;
         Obj &operator=(Obj const &) = delete;
+        Obj &operator=(Obj &&) = default;
 
         uint32_t m_data{0};
     };
@@ -267,12 +275,16 @@ TEST_CASE("Array::erase")
         class Obj
         {
           public:
-            Obj(uint32_t value) { m_data = value; };
+            Obj(uint32_t value)
+            : m_data{value}
+            {
+            }
+            ~Obj() = default;
 
             Obj(Obj const &) = delete;
-            Obj(Obj &&other)
-            : m_data{other.m_data} {};
+            Obj(Obj &&other) = default;
             Obj &operator=(Obj const &) = delete;
+            Obj &operator=(Obj &&other) = default;
 
             uint32_t m_data{0};
         };
