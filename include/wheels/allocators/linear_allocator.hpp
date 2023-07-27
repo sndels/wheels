@@ -33,6 +33,8 @@ class LinearAllocator : public Allocator
 
     void rewind(void *ptr);
 
+    size_t allocated_byte_count_high_watermark() const;
+
     friend class ScopedScratch;
 
   protected:
@@ -42,6 +44,7 @@ class LinearAllocator : public Allocator
     uint8_t *m_memory{nullptr};
     size_t m_offset{0};
     size_t m_capacity{0};
+    size_t m_allocated_byte_count_high_watermark{0};
 };
 
 inline LinearAllocator::LinearAllocator(size_t capacity)
@@ -62,6 +65,8 @@ inline void *LinearAllocator::allocate(size_t num_bytes)
         return nullptr;
 
     m_offset = new_offset;
+    if (m_offset > m_allocated_byte_count_high_watermark)
+        m_allocated_byte_count_high_watermark = m_offset;
 
     return m_memory + ret_offset;
 }
@@ -77,6 +82,11 @@ inline void LinearAllocator::rewind(void *ptr)
         "Tried to rewind to a pointer that doesn't belong to this "
         "allocator");
     m_offset = (uint8_t *)ptr - m_memory;
+}
+
+inline size_t LinearAllocator::allocated_byte_count_high_watermark() const
+{
+    return m_allocated_byte_count_high_watermark;
 }
 
 inline void *LinearAllocator::peek() const { return m_memory + m_offset; };
