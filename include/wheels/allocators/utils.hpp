@@ -5,6 +5,7 @@
 #include <cassert>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 
 namespace wheels
 {

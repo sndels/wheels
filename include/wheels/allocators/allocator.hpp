@@ -1,6 +1,8 @@
 #ifndef WHEELS_ALLOCATORS_ALLOCATOR_HPP
 #define WHEELS_ALLOCATORS_ALLOCATOR_HPP
 
+#include <cstddef>
+
 namespace wheels
 {
 
