@@ -225,6 +225,37 @@ TEST_CASE("Array::emplace")
     REQUIRE(arr.size() == 3);
 }
 
+TEST_CASE("Array::extend")
+{
+    CstdlibAllocator allocator;
+
+    {
+        Array<uint32_t> arr{allocator, 0};
+        uint32_t const lvalue[3] = {21, 22, 23};
+        arr.extend(Span{&lvalue[0], 3});
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr[0] == 21);
+        REQUIRE(arr[1] == 22);
+        REQUIRE(arr[2] == 23);
+    }
+
+    {
+        Array<DtorObj> arr{allocator, 0};
+        init_dtor_counters();
+        DtorObj const lvalue[3] = {{11}, {12}, {13}};
+        arr.extend(Span{&lvalue[0], 3});
+        REQUIRE(DtorObj::s_ctor_counter() == 6);
+        REQUIRE(DtorObj::s_value_ctor_counter() == 3);
+        REQUIRE(DtorObj::s_copy_ctor_counter() == 3);
+        REQUIRE(DtorObj::s_assign_counter() == 0);
+        REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr[0] == 11);
+        REQUIRE(arr[1] == 12);
+        REQUIRE(arr[2] == 13);
+    }
+}
+
 TEST_CASE("Array::pop_back")
 {
     class Obj

@@ -61,6 +61,8 @@ template <typename T> class Array
 
     template <typename... Args> void emplace_back(Args &&...args);
 
+    void extend(Span<const T> values);
+
     T pop_back();
     void erase(size_t index);
 
@@ -224,6 +226,27 @@ void Array<T>::emplace_back(Args &&...args)
         reallocate(m_capacity * 2);
 
     new (m_data + m_size++) T{WHEELS_FWD(args)...};
+}
+
+template <typename T> void Array<T>::extend(Span<const T> values)
+{
+    const size_t required_size = m_size + values.size();
+    if (required_size >= m_capacity)
+    {
+        if (required_size <= m_capacity * 2)
+            reallocate(m_capacity * 2);
+        else
+            reallocate(required_size);
+    }
+
+    if constexpr (std::is_trivially_copyable_v<T>)
+        memcpy(m_data + m_size, values.data(), values.size() * sizeof(T));
+    else
+    {
+        for (size_t i = 0; i < values.size(); ++i)
+            new (m_data + m_size + i) T{WHEELS_MOV(values[i])};
+    }
+    m_size += values.size();
 }
 
 template <typename T> T Array<T>::pop_back()
