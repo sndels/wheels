@@ -231,7 +231,7 @@ void Array<T>::emplace_back(Args &&...args)
 template <typename T> void Array<T>::extend(Span<const T> values)
 {
     const size_t required_size = m_size + values.size();
-    if (required_size >= m_capacity)
+    if (required_size > m_capacity)
     {
         if (required_size <= m_capacity * 2)
             reallocate(m_capacity * 2);
