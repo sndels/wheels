@@ -3,6 +3,7 @@
 #define WHEELS_CONTAINERS_ARRAY_HPP
 
 #include "../allocators/allocator.hpp"
+#include "../assert.hpp"
 #include "../utils.hpp"
 #include "concepts.hpp"
 #include "span.hpp"
@@ -124,37 +125,37 @@ template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other)
 
 template <typename T> T &Array<T>::operator[](size_t i)
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
 template <typename T> T const &Array<T>::operator[](size_t i) const
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
 template <typename T> T &Array<T>::front()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return *m_data;
 }
 
 template <typename T> T const &Array<T>::front() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return *m_data;
 }
 
 template <typename T> T &Array<T>::back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 }
 
 template <typename T> T const &Array<T>::back() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 }
 
@@ -172,16 +173,16 @@ template <typename T> T const *Array<T>::end() const { return m_data + m_size; }
 
 template <typename T> Span<T> Array<T>::span(size_t begin_i, size_t end_i)
 {
-    assert(begin_i < m_size);
-    assert(end_i <= m_size);
+    WHEELS_ASSERT(begin_i < m_size);
+    WHEELS_ASSERT(end_i <= m_size);
     return Span{begin() + begin_i, end_i - begin_i};
 }
 
 template <typename T>
 Span<T const> Array<T>::span(size_t begin_i, size_t end_i) const
 {
-    assert(begin_i < m_size);
-    assert(end_i <= m_size);
+    WHEELS_ASSERT(begin_i < m_size);
+    WHEELS_ASSERT(end_i <= m_size);
     return Span{begin() + begin_i, end_i - begin_i};
 }
 
@@ -251,14 +252,14 @@ template <typename T> void Array<T>::extend(Span<const T> values)
 
 template <typename T> T Array<T>::pop_back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     m_size--;
     return WHEELS_MOV(m_data[m_size]);
 }
 
 template <typename T> void Array<T>::erase(size_t index)
 {
-    assert(index < m_size);
+    WHEELS_ASSERT(index < m_size);
 
     m_data[index].~T();
 
@@ -325,7 +326,7 @@ template <typename T> void Array<T>::reallocate(size_t capacity)
         capacity = 4;
 
     T *data = (T *)m_allocator.allocate(capacity * sizeof(T));
-    assert(data != nullptr);
+    WHEELS_ASSERT(data != nullptr);
 
     if (m_data != nullptr)
     {

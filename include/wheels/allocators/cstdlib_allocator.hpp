@@ -3,7 +3,6 @@
 
 #include "allocator.hpp"
 
-#include <cassert>
 #include <cstdlib>
 
 namespace wheels

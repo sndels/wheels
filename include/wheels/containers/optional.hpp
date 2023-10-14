@@ -1,6 +1,7 @@
 #ifndef WHEELS_CONTAINERS_OPTIONAL_HPP
 #define WHEELS_CONTAINERS_OPTIONAL_HPP
 
+#include "../assert.hpp"
 #include "../utils.hpp"
 
 namespace wheels
@@ -114,7 +115,7 @@ template <typename T> void Optional<T>::reset()
 
 template <typename T> T &&Optional<T>::take()
 {
-    assert(has_value());
+    WHEELS_ASSERT(has_value());
     m_has_value = false;
 
     return WHEELS_MOV(*(T *)m_data);

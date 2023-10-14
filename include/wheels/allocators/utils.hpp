@@ -1,6 +1,8 @@
 #ifndef WHEELS_ALLOCATORS_UTILS_HPP
 #define WHEELS_ALLOCATORS_UTILS_HPP
 
+#include "../assert.hpp"
+
 #include <bit>
 #include <cassert>
 #include <climits>
@@ -14,10 +16,10 @@ namespace wheels
 {
     // We could allocate the base pointers with e.g. alignment of 256 to support
     // powers of two up to it, but let's not worry about that until it's needed.
-    assert(
+    WHEELS_ASSERT(
         alignment <= alignof(std::max_align_t) &&
         "Alignment over std::max_align_t isn't supported.");
-    assert(SIZE_MAX - alignment > offset);
+    WHEELS_ASSERT(SIZE_MAX - alignment > offset);
     return (offset + alignment - 1) / alignment * alignment;
 }
 

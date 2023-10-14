@@ -3,10 +3,12 @@
 #define WHEELS_CONTAINERS_STRING_HPP
 
 #include "../allocators/allocator.hpp"
+#include "../assert.hpp"
 #include "array.hpp"
 #include "hash.hpp"
 #include "optional.hpp"
 #include "utils.hpp"
+
 
 #include <cstddef>
 #include <cstring>
@@ -187,37 +189,37 @@ inline String &String::operator=(String &&other)
 
 inline char &String::operator[](size_t i)
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
 inline char const &String::operator[](size_t i) const
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
 inline char &String::front()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[0];
 }
 
 inline char const &String::front() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[0];
 }
 
 inline char &String::back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 };
 
 inline char const &String::back() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 };
 
@@ -270,7 +272,7 @@ inline void String::push_back(char ch)
 
 inline char String::pop_back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     m_size--;
     char const ret = m_data[m_size];
     m_data[m_size] = '\0';
@@ -472,7 +474,7 @@ inline Array<StrSpan> String::split(Allocator &allocator, char ch) const
 inline void String::reallocate(size_t capacity)
 {
     char *data = (char *)m_allocator.allocate(capacity * sizeof(char));
-    assert(data != nullptr);
+    WHEELS_ASSERT(data != nullptr);
 
     if (m_data != nullptr)
     {
@@ -531,8 +533,8 @@ inline String::operator StrSpan() const { return StrSpan{m_data, m_size}; }
 
 inline StrSpan String::span(size_t begin, size_t end) const
 {
-    assert(begin <= end);
-    assert(end <= m_size);
+    WHEELS_ASSERT(begin <= end);
+    WHEELS_ASSERT(end <= m_size);
     return StrSpan{m_data + begin, end - begin};
 }
 

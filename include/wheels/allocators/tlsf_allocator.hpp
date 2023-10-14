@@ -1,6 +1,7 @@
 #ifndef WHEELS_ALLOCATORS_TLSF_ALLOCATOR_HPP
 #define WHEELS_ALLOCATORS_TLSF_ALLOCATOR_HPP
 
+#include "../assert.hpp"
 #include "../containers/array.hpp"
 #include "../containers/pair.hpp"
 #include "allocator.hpp"
@@ -179,8 +180,8 @@ class TlsfAllocator : public Allocator
     {
         size_t const i = fls(r);
         size_t const j = (r >> (i - s_J)) - pow2(s_J);
-        assert(i < 255);
-        assert(j < 255);
+        WHEELS_ASSERT(i < 255);
+        WHEELS_ASSERT(j < 255);
 
         return FreeListIndex{(uint8_t)i, (uint8_t)j};
     }
@@ -195,11 +196,11 @@ class TlsfAllocator : public Allocator
 
     static void copy_front_tag_to_back(FreeBlock *block)
     {
-        assert(block->tag.byte_count >= s_min_block_size);
+        WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
         uintptr_t const tag_addr =
             (uintptr_t)block + block->tag.byte_count - sizeof(BoundaryTag);
-        assert(tag_addr % sizeof(BoundaryTag) == 0);
+        WHEELS_ASSERT(tag_addr % sizeof(BoundaryTag) == 0);
 
         BoundaryTag *tag = (BoundaryTag *)tag_addr;
         *tag = block->tag;
@@ -209,7 +210,7 @@ class TlsfAllocator : public Allocator
     {
         uintptr_t const tag_addr =
             (uintptr_t)block + block->tag.byte_count - sizeof(BoundaryTag);
-        assert(tag_addr % sizeof(BoundaryTag) == 0);
+        WHEELS_ASSERT(tag_addr % sizeof(BoundaryTag) == 0);
         BoundaryTag *tag = (BoundaryTag *)tag_addr;
 
         bool const flags_match = tag->allocated == block->tag.allocated;
@@ -250,7 +251,7 @@ class TlsfAllocator : public Allocator
 inline TlsfAllocator::TlsfAllocator(size_t capacity)
 {
     // Let's assume we have a few first-level buckets, first one will be 128
-    assert(capacity >= kilobytes(1));
+    WHEELS_ASSERT(capacity >= kilobytes(1));
 
     // Boundary tags will be written after the main block
     capacity = aligned_offset(capacity, alignof(BoundaryTag));
@@ -291,13 +292,13 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity)
         m_segregated_lists.size() * sizeof(SecondLevelRangesLists));
 
     uintptr_t front_tag_addr = (uintptr_t)m_segregated_lists.end();
-    assert(front_tag_addr % alignof(BoundaryTag) == 0);
+    WHEELS_ASSERT(front_tag_addr % alignof(BoundaryTag) == 0);
     BoundaryTag *front_tag = (BoundaryTag *)front_tag_addr;
     front_tag->allocated = s_flag_allocated;
     front_tag->byte_count = 0;
 
     uintptr_t back_tag_addr = front_tag_addr + sizeof(BoundaryTag) + block_size;
-    assert(back_tag_addr % alignof(BoundaryTag) == 0);
+    WHEELS_ASSERT(back_tag_addr % alignof(BoundaryTag) == 0);
     BoundaryTag *back_tag = (BoundaryTag *)back_tag_addr;
     back_tag->allocated = s_flag_allocated;
     back_tag->byte_count = 0;
@@ -305,8 +306,8 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity)
     // Insert the empty block that's after the metadata
     void *first_addr = (void *)(front_tag_addr + sizeof(BoundaryTag));
     first_addr = aligned_ptr<FreeBlock>(first_addr);
-    assert((uintptr_t)first_addr - (uintptr_t)m_data <= metadata_size);
-    assert((uintptr_t)first_addr % alignof(BoundaryTag) == 0);
+    WHEELS_ASSERT((uintptr_t)first_addr - (uintptr_t)m_data <= metadata_size);
+    WHEELS_ASSERT((uintptr_t)first_addr % alignof(BoundaryTag) == 0);
     m_first_block_addr = first_addr;
 
     FreeBlock *block = (FreeBlock *)first_addr;
@@ -321,13 +322,13 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity)
 
 inline TlsfAllocator::~TlsfAllocator()
 {
-    assert(
+    WHEELS_ASSERT(
         std::popcount(m_first_level_bitmap) == 1 &&
         "Expected one contiguous block remaining. Not all allocations were "
         "deallocated before the allocator was destroyed.");
-    assert(m_stats.allocation_count == 0);
-    assert(m_stats.small_allocation_count == 0);
-    assert(m_stats.allocated_byte_count == 0);
+    WHEELS_ASSERT(m_stats.allocation_count == 0);
+    WHEELS_ASSERT(m_stats.small_allocation_count == 0);
+    WHEELS_ASSERT(m_stats.allocated_byte_count == 0);
 
     std::free(m_data);
 }
@@ -351,12 +352,12 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
     if (index.is_null())
         // No suiltable blocks left
         return nullptr;
-    assert(m_segregated_lists[index.fl][index.sl] != nullptr);
+    WHEELS_ASSERT(m_segregated_lists[index.fl][index.sl] != nullptr);
 
     FreeBlock *block = remove_head(index);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= num_bytes);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= num_bytes);
 
     // Need to split and put potential extra memory back into free blocks
     if (block->tag.byte_count - num_bytes > s_min_block_size)
@@ -372,7 +373,7 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
 
     // Need to insert pointer to front so deallocate can find the front tag
     uintptr_t const ptr_to_front_addr = (uintptr_t)alloc_ptr - sizeof(void *);
-    assert(ptr_to_front_addr % alignof(void *) == 0);
+    WHEELS_ASSERT(ptr_to_front_addr % alignof(void *) == 0);
     void **ptr_to_front = (void **)ptr_to_front_addr;
     *ptr_to_front = (void *)block;
 
@@ -399,21 +400,21 @@ inline void TlsfAllocator::deallocate(void *ptr)
     if (ptr == nullptr)
         return;
 
-    assert(
+    WHEELS_ASSERT(
         (uintptr_t)ptr > (uintptr_t)m_data &&
         (uintptr_t)ptr - (uintptr_t)m_data < m_full_size);
 
     // We stored a pointer to the front of the block just before the allocation
     // pointer
     uintptr_t const ptr_to_front_addr = (uintptr_t)ptr - sizeof(void *);
-    assert(ptr_to_front_addr % alignof(void *) == 0);
+    WHEELS_ASSERT(ptr_to_front_addr % alignof(void *) == 0);
     void *ptr_to_front = *(void **)ptr_to_front_addr;
 
-    assert((uintptr_t)ptr_to_front % alignof(FreeBlock) == 0);
+    WHEELS_ASSERT((uintptr_t)ptr_to_front % alignof(FreeBlock) == 0);
     // This aliases the front tag that's already there
     FreeBlock *block = (FreeBlock *)ptr_to_front;
-    assert(block->tag.allocated == s_flag_allocated);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(block->tag.allocated == s_flag_allocated);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
     block->next = nullptr;
     block->previous = nullptr;
 
@@ -430,7 +431,7 @@ inline void TlsfAllocator::deallocate(void *ptr)
     // Do merging to avoid needless fragmentation
     block = merge_previous(block);
     block = merge_next(block);
-    assert(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
 
     // Tag or end tag location might have changed
     copy_front_tag_to_back(block);
@@ -446,37 +447,37 @@ inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
 inline TlsfAllocator::FreeListIndex TlsfAllocator::find_suitable_block(
     FreeListIndex start_index)
 {
-    assert(start_index.sl < 64);
+    WHEELS_ASSERT(start_index.sl < 64);
     BitMapT bitmap_tmp =
         m_second_level_bitmaps[start_index.fl] & ((size_t)-1 << start_index.sl);
 
     if (bitmap_tmp != 0)
     {
         size_t const non_empty_sl = ffs(bitmap_tmp);
-        assert(non_empty_sl < 255);
+        WHEELS_ASSERT(non_empty_sl < 255);
         return FreeListIndex{start_index.fl, (uint8_t)non_empty_sl};
     }
 
-    assert(start_index.fl < 64);
+    WHEELS_ASSERT(start_index.fl < 64);
     bitmap_tmp = m_first_level_bitmap & ((size_t)-1 << (start_index.fl + 1));
     if (bitmap_tmp == 0)
         return FreeListIndex::null();
 
     size_t const non_empty_fl = ffs(bitmap_tmp);
     size_t const non_empty_sl = ffs(m_second_level_bitmaps[non_empty_fl]);
-    assert(non_empty_fl < 255);
-    assert(non_empty_sl < 255);
+    WHEELS_ASSERT(non_empty_fl < 255);
+    WHEELS_ASSERT(non_empty_sl < 255);
 
     return FreeListIndex{(uint8_t)non_empty_fl, (uint8_t)non_empty_sl};
 }
 
 inline void TlsfAllocator::insert_block(FreeBlock *block)
 {
-    assert(block != nullptr);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->previous == nullptr);
-    assert(block->next == nullptr);
+    WHEELS_ASSERT(block != nullptr);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->previous == nullptr);
+    WHEELS_ASSERT(block->next == nullptr);
 
     FreeListIndex const index = mapping_insert(block->tag.byte_count);
 
@@ -501,12 +502,12 @@ inline void TlsfAllocator::insert_block(FreeBlock *block)
 inline TlsfAllocator::FreeBlock *TlsfAllocator::remove_head(FreeListIndex index)
 {
     FreeBlock **list_ptr = &m_segregated_lists[index.fl][index.sl];
-    assert(*list_ptr != nullptr);
+    WHEELS_ASSERT(*list_ptr != nullptr);
 
     FreeBlock *block = *list_ptr;
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
     if (block->next == nullptr)
     {
@@ -531,16 +532,16 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::remove_head(FreeListIndex index)
 
 inline void TlsfAllocator::remove_block(FreeBlock *block)
 {
-    assert(block != nullptr);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(block != nullptr);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
     if (block->previous == nullptr)
     {
         FreeListIndex index = mapping_insert(block->tag.byte_count);
         FreeBlock *head = remove_head(index);
-        assert(head == block);
+        WHEELS_ASSERT(head == block);
     }
     else
     {
@@ -556,13 +557,13 @@ inline void TlsfAllocator::remove_block(FreeBlock *block)
 inline TlsfAllocator::FreeBlock *TlsfAllocator::split_block(
     FreeBlock *block, size_t first_byte_count)
 {
-    assert(block != nullptr);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(block != nullptr);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
     uintptr_t const remaining_block_addr = (uintptr_t)block + first_byte_count;
-    assert(remaining_block_addr % alignof(FreeBlock) == 0);
+    WHEELS_ASSERT(remaining_block_addr % alignof(FreeBlock) == 0);
 
     FreeBlock *remaining_block = (FreeBlock *)remaining_block_addr;
     remaining_block->tag.allocated = s_flag_free;
@@ -579,13 +580,13 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::split_block(
 
 inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(FreeBlock *block)
 {
-    assert(block != nullptr);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(block != nullptr);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
     uintptr_t const prev_tag_addr = (uintptr_t)block - sizeof(BoundaryTag);
-    assert(prev_tag_addr % alignof(BoundaryTag) == 0);
+    WHEELS_ASSERT(prev_tag_addr % alignof(BoundaryTag) == 0);
 
     BoundaryTag const prev_tag = *(BoundaryTag *)prev_tag_addr;
 
@@ -596,8 +597,8 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(FreeBlock *block)
 
     uintptr_t const prev_block_addr =
         prev_tag_addr - prev_tag.byte_count + sizeof(BoundaryTag);
-    assert(prev_block_addr % alignof(FreeBlock) == 0);
-    assert(prev_block_addr >= (uintptr_t)m_first_block_addr);
+    WHEELS_ASSERT(prev_block_addr % alignof(FreeBlock) == 0);
+    WHEELS_ASSERT(prev_block_addr >= (uintptr_t)m_first_block_addr);
 
     FreeBlock *prev_block = (FreeBlock *)prev_block_addr;
     remove_block(prev_block);
@@ -610,13 +611,13 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(FreeBlock *block)
 
 inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_next(FreeBlock *block)
 {
-    assert(block != nullptr);
-    assert(front_and_back_tags_match(block));
-    assert(block->tag.allocated == s_flag_free);
-    assert(block->tag.byte_count >= s_min_block_size);
+    WHEELS_ASSERT(block != nullptr);
+    WHEELS_ASSERT(front_and_back_tags_match(block));
+    WHEELS_ASSERT(block->tag.allocated == s_flag_free);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
     uintptr_t const next_tag_addr = (uintptr_t)block + block->tag.byte_count;
-    assert(next_tag_addr % alignof(BoundaryTag) == 0);
+    WHEELS_ASSERT(next_tag_addr % alignof(BoundaryTag) == 0);
 
     BoundaryTag const next_tag = *(BoundaryTag *)next_tag_addr;
 

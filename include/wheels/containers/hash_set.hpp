@@ -2,6 +2,7 @@
 #define WHEELS_HASH_SET
 
 #include "../allocators/allocator.hpp"
+#include "../assert.hpp"
 #include "../utils.hpp"
 #include "concepts.hpp"
 #include "hash.hpp"
@@ -165,7 +166,7 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
 
     if (s_empty_pos(m_metadata, iter.pos))
         iter++;
-    assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
+    WHEELS_ASSERT(iter == end() || !s_empty_pos(m_metadata, iter.pos));
 
     return iter;
 }
@@ -335,16 +336,16 @@ void HashSet<T, Hasher>::grow(size_t capacity)
     // the hash
     capacity = round_up_power_of_two(capacity);
 
-    assert(capacity > m_capacity);
+    WHEELS_ASSERT(capacity > m_capacity);
 
     T *old_data = m_data;
     uint8_t *old_metadata = m_metadata;
     size_t const old_capacity = m_capacity;
 
     m_data = (T *)m_allocator.allocate(capacity * sizeof(T));
-    assert(m_data != nullptr);
+    WHEELS_ASSERT(m_data != nullptr);
     m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(uint8_t));
-    assert(m_metadata != nullptr);
+    WHEELS_ASSERT(m_metadata != nullptr);
 
     m_size = 0;
     m_capacity = capacity;
@@ -379,7 +380,7 @@ template <typename T, class Hasher>
 typename HashSet<T, Hasher>::ConstIterator &HashSet<
     T, Hasher>::ConstIterator::operator++()
 {
-    assert(pos < set.capacity());
+    WHEELS_ASSERT(pos < set.capacity());
     do
     {
         pos++;
@@ -397,8 +398,8 @@ typename HashSet<T, Hasher>::ConstIterator &HashSet<
 template <typename T, class Hasher>
 T const &HashSet<T, Hasher>::ConstIterator::operator*() const
 {
-    assert(pos < set.capacity());
-    assert(!set.s_empty_pos(set.m_metadata, pos));
+    WHEELS_ASSERT(pos < set.capacity());
+    WHEELS_ASSERT(!set.s_empty_pos(set.m_metadata, pos));
 
     return set.m_data[pos];
 };

@@ -2,9 +2,9 @@
 #ifndef WHEELS_CONTAINERS_SPAN_HPP
 #define WHEELS_CONTAINERS_SPAN_HPP
 
+#include "../assert.hpp"
 #include "concepts.hpp"
 
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 
@@ -62,18 +62,18 @@ Span<T>::Span(T *ptr, size_t size)
 : m_data{ptr}
 , m_size{size}
 {
-    assert(m_data != nullptr);
+    WHEELS_ASSERT(m_data != nullptr);
 }
 
 template <typename T> T &Span<T>::operator[](size_t i)
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
 template <typename T> T const &Span<T>::operator[](size_t i) const
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 

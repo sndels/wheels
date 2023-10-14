@@ -2,6 +2,7 @@
 #ifndef WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 #define WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 
+#include "../assert.hpp"
 #include "../utils.hpp"
 #include "span.hpp"
 
@@ -81,7 +82,7 @@ template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(std::initializer_list<T> elems)
 : m_size{elems.size()}
 {
-    assert(elems.size() == 1 || elems.size() == N);
+    WHEELS_ASSERT(elems.size() == 1 || elems.size() == N);
 
     if (elems.size() == 1)
     {
@@ -151,38 +152,38 @@ StaticArray<T, N> &StaticArray<T, N>::operator=(StaticArray<T, N> &&other)
 
 template <typename T, size_t N> T &StaticArray<T, N>::operator[](size_t i)
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return ((T *)m_data)[i];
 }
 
 template <typename T, size_t N>
 T const &StaticArray<T, N>::operator[](size_t i) const
 {
-    assert(i < m_size);
+    WHEELS_ASSERT(i < m_size);
     return ((T *)m_data)[i];
 }
 
 template <typename T, size_t N> T &StaticArray<T, N>::front()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return *((T *)m_data);
 }
 
 template <typename T, size_t N> T const &StaticArray<T, N>::front() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return *((T *)m_data);
 }
 
 template <typename T, size_t N> T &StaticArray<T, N>::back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return ((T *)m_data)[m_size - 1];
 }
 
 template <typename T, size_t N> T const &StaticArray<T, N>::back() const
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     return ((T *)m_data)[m_size - 1];
 }
 
@@ -239,13 +240,13 @@ template <typename T, size_t N> void StaticArray<T, N>::clear()
 template <typename T, size_t N>
 void StaticArray<T, N>::push_back(T const &value)
 {
-    assert(m_size < N);
+    WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{value};
 }
 
 template <typename T, size_t N> void StaticArray<T, N>::push_back(T &&value)
 {
-    assert(m_size < N);
+    WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{WHEELS_FWD(value)};
 }
 
@@ -253,13 +254,13 @@ template <typename T, size_t N>
 template <typename... Args>
 void StaticArray<T, N>::emplace_back(Args &&...args)
 {
-    assert(m_size < N);
+    WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{WHEELS_FWD(args)...};
 }
 
 template <typename T, size_t N> T StaticArray<T, N>::pop_back()
 {
-    assert(m_size > 0);
+    WHEELS_ASSERT(m_size > 0);
     m_size--;
     return WHEELS_MOV(((T *)m_data)[m_size]);
 }
@@ -277,7 +278,7 @@ template <typename T, size_t N> void StaticArray<T, N>::resize(size_t size)
     }
     else
     {
-        assert(size <= N);
+        WHEELS_ASSERT(size <= N);
         if constexpr (std::is_class_v<T>)
         {
             for (size_t i = m_size; i < size; ++i)
@@ -301,7 +302,7 @@ void StaticArray<T, N>::resize(size_t size, T const &value)
     }
     else
     {
-        assert(size <= N);
+        WHEELS_ASSERT(size <= N);
         // TODO:
         // Is it faster to init a bunch of non-class values by assigning
         // directly instead of placement new?

@@ -1,10 +1,10 @@
 #ifndef WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP
 #define WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP
 
+#include "../assert.hpp"
 #include "allocator.hpp"
 #include "utils.hpp"
 
-#include <cassert>
 #include <climits>
 #include <cstdint>
 
@@ -58,7 +58,7 @@ inline void *LinearAllocator::allocate(size_t num_bytes)
 {
     size_t const ret_offset =
         aligned_offset(m_offset, alignof(std::max_align_t));
-    assert(SIZE_MAX - num_bytes > ret_offset);
+    WHEELS_ASSERT(SIZE_MAX - num_bytes > ret_offset);
 
     size_t const new_offset = ret_offset + num_bytes;
     if (new_offset > m_capacity)
@@ -77,7 +77,7 @@ inline void LinearAllocator::reset() { m_offset = 0; }
 
 inline void LinearAllocator::rewind(void *ptr)
 {
-    assert(
+    WHEELS_ASSERT(
         ptr >= m_memory && ptr < m_memory + m_capacity &&
         "Tried to rewind to a pointer that doesn't belong to this "
         "allocator");

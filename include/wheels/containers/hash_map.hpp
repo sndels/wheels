@@ -2,6 +2,7 @@
 #define WHEELS_HASH_MAP
 
 #include "../allocators/allocator.hpp"
+#include "../assert.hpp"
 #include "../utils.hpp"
 #include "concepts.hpp"
 #include "hash.hpp"
@@ -201,7 +202,7 @@ typename HashMap<Key, Value, Hasher>::Iterator HashMap<
 
     if (s_empty_pos(m_metadata, iter.pos))
         iter++;
-    assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
+    WHEELS_ASSERT(iter == end() || !s_empty_pos(m_metadata, iter.pos));
 
     return iter;
 }
@@ -220,7 +221,7 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
 
     if (s_empty_pos(m_metadata, iter.pos))
         iter++;
-    assert(iter == end() || !s_empty_pos(m_metadata, iter.pos));
+    WHEELS_ASSERT(iter == end() || !s_empty_pos(m_metadata, iter.pos));
 
     return iter;
 }
@@ -436,7 +437,7 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity)
     // the hash
     capacity = round_up_power_of_two(capacity);
 
-    assert(capacity > m_capacity);
+    WHEELS_ASSERT(capacity > m_capacity);
 
     Key *old_keys = m_keys;
     Value *old_values = m_values;
@@ -444,11 +445,11 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity)
     size_t const old_capacity = m_capacity;
 
     m_keys = (Key *)m_allocator.allocate(capacity * sizeof(Key));
-    assert(m_keys != nullptr);
+    WHEELS_ASSERT(m_keys != nullptr);
     m_values = (Value *)m_allocator.allocate(capacity * sizeof(Value));
-    assert(m_values != nullptr);
+    WHEELS_ASSERT(m_values != nullptr);
     m_metadata = (uint8_t *)m_allocator.allocate(capacity * sizeof(uint8_t));
-    assert(m_metadata != nullptr);
+    WHEELS_ASSERT(m_metadata != nullptr);
 
     m_size = 0;
     m_capacity = capacity;
@@ -488,7 +489,7 @@ template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
     Key, Value, Hasher>::Iterator::operator++()
 {
-    assert(pos < map.capacity());
+    WHEELS_ASSERT(pos < map.capacity());
     do
     {
         pos++;
@@ -506,8 +507,8 @@ typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
 template <typename Key, typename Value, class Hasher>
 Pair<Key const *, Value *> HashMap<Key, Value, Hasher>::Iterator::operator*()
 {
-    assert(pos < map.capacity());
-    assert(!map.s_empty_pos(map.m_metadata, pos));
+    WHEELS_ASSERT(pos < map.capacity());
+    WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
 
     Key const *key = map.m_keys + pos;
     Value *value = map.m_values + pos;
@@ -518,8 +519,8 @@ template <typename Key, typename Value, class Hasher>
 Pair<Key const *, Value const *> HashMap<
     Key, Value, Hasher>::Iterator::operator*() const
 {
-    assert(pos < map.capacity());
-    assert(!map.s_empty_pos(map.m_metadata, pos));
+    WHEELS_ASSERT(pos < map.capacity());
+    WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
 
     Key const *key = map.m_keys + pos;
     Value const *value = map.m_values + pos;
@@ -544,7 +545,7 @@ template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
     Key, Value, Hasher>::ConstIterator::operator++()
 {
-    assert(pos < map.capacity());
+    WHEELS_ASSERT(pos < map.capacity());
     do
     {
         pos++;
@@ -563,8 +564,8 @@ template <typename Key, typename Value, class Hasher>
 Pair<Key const *, Value const *> HashMap<
     Key, Value, Hasher>::ConstIterator::operator*() const
 {
-    assert(pos < map.capacity());
-    assert(!map.s_empty_pos(map.m_metadata, pos));
+    WHEELS_ASSERT(pos < map.capacity());
+    WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
 
     Key const *key = map.m_keys + pos;
     Value const *value = map.m_values + pos;

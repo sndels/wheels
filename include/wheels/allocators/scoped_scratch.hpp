@@ -1,6 +1,7 @@
 #ifndef WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
 #define WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
 
+#include "../assert.hpp"
 #include "../utils.hpp"
 #include "linear_allocator.hpp"
 
@@ -108,7 +109,7 @@ inline void ScopedScratch::deallocate(void *ptr)
 
 inline ScopedScratch ScopedScratch::child_scope()
 {
-    assert(
+    WHEELS_ASSERT(
         !m_has_child_scope && "Tried to create a child scope from a "
                               "ScopedScratch that already has one");
 
@@ -125,7 +126,7 @@ template <typename T> T *ScopedScratch::allocate_pod()
     static_assert(
         alignof(T) <= alignof(std::max_align_t) &&
         "Aligned allocations beyond std::max_align_t aren't supported");
-    assert(
+    WHEELS_ASSERT(
         !m_has_child_scope &&
         "Tried to allocate from a ScopedScratch that has a child scope");
 
@@ -138,7 +139,7 @@ T *ScopedScratch::allocate_object(Args &&...args)
     static_assert(
         alignof(T) <= alignof(std::max_align_t) &&
         "Aligned allocations beyond std::max_align_t aren't supported");
-    assert(
+    WHEELS_ASSERT(
         !m_has_child_scope &&
         "Tried to allocate from a ScopedScratch that has a child scope");
 

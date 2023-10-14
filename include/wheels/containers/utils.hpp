@@ -1,14 +1,14 @@
 #ifndef WHEELS_CONTAINERS_UTILS_HPP
 #define WHEELS_CONTAINERS_UTILS_HPP
 
-#include <cassert>
+#include "../assert.hpp"
 
 namespace wheels
 {
 
 [[nodiscard]] inline size_t round_up_power_of_two(size_t value)
 {
-    assert(value < 0xFFFFFFFF);
+    WHEELS_ASSERT(value < 0xFFFFFFFF);
     // https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2
     // TODO: This would be much cleaner with clz
     value--;
