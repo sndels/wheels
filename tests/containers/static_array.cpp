@@ -16,7 +16,7 @@ namespace
 template <size_t N>
 StaticArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     StaticArray<uint32_t, N> arr;
     for (uint32_t i = 0; i < initial_size; ++i)
@@ -28,7 +28,7 @@ StaticArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
 template <size_t N>
 StaticArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     StaticArray<DtorObj, N> arr;
     for (uint32_t i = 0; i < initial_size; ++i)

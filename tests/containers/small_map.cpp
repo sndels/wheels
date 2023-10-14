@@ -12,7 +12,7 @@ namespace
 template <size_t N>
 SmallMap<uint32_t, uint32_t, N> init_test_small_map_u32(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     SmallMap<uint32_t, uint32_t, N> map;
     for (uint32_t i = 0; i < initial_size; ++i)
@@ -24,7 +24,7 @@ SmallMap<uint32_t, uint32_t, N> init_test_small_map_u32(size_t initial_size)
 template <size_t N>
 SmallMap<DtorObj, DtorObj, N> init_test_small_map_dtor(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     SmallMap<DtorObj, DtorObj, N> map;
     for (uint32_t i = 0; i < initial_size; ++i)

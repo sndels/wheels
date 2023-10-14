@@ -12,7 +12,7 @@ namespace
 template <size_t N>
 SmallSet<uint32_t, N> init_test_small_set_u32(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     SmallSet<uint32_t, N> set;
     for (uint32_t i = 0; i < initial_size; ++i)
@@ -24,7 +24,7 @@ SmallSet<uint32_t, N> init_test_small_set_u32(size_t initial_size)
 template <size_t N>
 SmallSet<DtorObj, N> init_test_small_set_dtor(size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     SmallSet<DtorObj, N> set;
     for (uint32_t i = 0; i < initial_size; ++i)

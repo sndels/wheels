@@ -15,8 +15,8 @@ TEST_CASE("LinearAllocator")
         memset(alloc, 0, 2048);
         alloc[0] = 0x12;
         alloc[2047] = 0x23;
-        assert(alloc[0] == 0x12);
-        assert(alloc[2047] == 0x23);
+        REQUIRE(alloc[0] == 0x12);
+        REQUIRE(alloc[2047] == 0x23);
         REQUIRE(allocator.allocate(2048) != nullptr);
         REQUIRE(allocator.allocate(1) == nullptr);
     }

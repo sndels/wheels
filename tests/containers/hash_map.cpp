@@ -14,7 +14,7 @@ template <size_t N>
 HashMap<uint32_t, uint32_t> init_test_small_map_u32(
     Allocator &allocator, size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     HashMap<uint32_t, uint32_t> map{allocator};
     for (uint32_t i = 0; i < initial_size; ++i)
@@ -27,7 +27,7 @@ template <size_t N>
 HashMap<DtorObj, DtorObj, DtorHash> init_test_small_map_dtor(
     Allocator &allocator, size_t initial_size)
 {
-    assert(initial_size <= N);
+    REQUIRE(initial_size <= N);
 
     HashMap<DtorObj, DtorObj, DtorHash> map{allocator};
     for (uint32_t i = 0; i < initial_size; ++i)
