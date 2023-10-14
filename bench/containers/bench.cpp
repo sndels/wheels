@@ -24,7 +24,7 @@ using namespace wheels;
 namespace
 {
 
-uint32_t s_dtor_counter() = 0;
+uint32_t s_dtor_counter = 0;
 
 class DtorObj
 {
@@ -34,7 +34,7 @@ class DtorObj
     DtorObj(uint32_t data)
     : data{data} {};
 
-    ~DtorObj() { s_dtor_counter()++; };
+    ~DtorObj() { s_dtor_counter++; };
 
     DtorObj(DtorObj const &other)
     : data{other.data}
