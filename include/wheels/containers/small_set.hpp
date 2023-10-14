@@ -2,7 +2,7 @@
 #ifndef WHEELS_CONTAINERS_SMALL_SET_HPP
 #define WHEELS_CONTAINERS_SMALL_SET_HPP
 
-#include "../common/utils.hpp"
+#include "../utils.hpp"
 #include "static_array.hpp"
 
 namespace wheels

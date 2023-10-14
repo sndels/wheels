@@ -1,7 +1,7 @@
 #ifndef WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
 #define WHEELS_ALLOCATORS_SCOPED_SCRATCH_HPP
 
-#include "../common/utils.hpp"
+#include "../utils.hpp"
 #include "linear_allocator.hpp"
 
 #include <cassert>

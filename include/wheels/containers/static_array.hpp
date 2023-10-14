@@ -2,7 +2,7 @@
 #ifndef WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 #define WHEELS_CONTAINERS_STATIC_ARRAY_HPP
 
-#include "../common/utils.hpp"
+#include "../utils.hpp"
 #include "span.hpp"
 
 #include <cstring>

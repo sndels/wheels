@@ -3,7 +3,7 @@
 #define WHEELS_CONTAINERS_ARRAY_HPP
 
 #include "../allocators/allocator.hpp"
-#include "../common/utils.hpp"
+#include "../utils.hpp"
 #include "concepts.hpp"
 #include "span.hpp"
 
