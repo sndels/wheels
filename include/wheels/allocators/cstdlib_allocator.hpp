@@ -8,6 +8,7 @@
 namespace wheels
 {
 
+// No special debug allocator since this is already compatible with valgrind
 class CstdlibAllocator : public Allocator
 {
   public:

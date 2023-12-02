@@ -12,6 +12,8 @@
 #include <cstddef>
 #include <cstdlib>
 
+#ifndef WHEELS_ALLOCATION_DEBUG
+
 // Based on
 // Implementation of a constant-time dynamic storage allocator
 // By Masmano et al.
@@ -637,5 +639,103 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_next(FreeBlock *block)
 }
 
 } // namespace wheels
+
+#else // WHEELS_ALLOCATION_DEBUG
+
+#include <unordered_map>
+
+namespace wheels
+{
+
+class TlsfAllocator : public Allocator
+{
+  public:
+    struct Stats
+    {
+        size_t allocation_count{0};
+        size_t small_allocation_count{0};
+        size_t allocated_byte_count{0};
+        size_t allocated_byte_count_high_watermark{0};
+        size_t free_byte_count{0};
+    };
+
+    // Note that the allocator might not be able allocate a single block with
+    // size near or matching the capacity due to how available blocks are
+    // searched internally.
+    TlsfAllocator(size_t capacity);
+    ~TlsfAllocator();
+
+    TlsfAllocator(TlsfAllocator const &other) = delete;
+    TlsfAllocator(TlsfAllocator &&other) = delete;
+    TlsfAllocator &operator=(TlsfAllocator const &other) = delete;
+    TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
+
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
+    virtual void deallocate(void *ptr) override;
+
+    Stats const &stats() const;
+
+  private:
+    Stats m_stats;
+    std::unordered_map<void *, size_t> m_allocations;
+};
+
+inline TlsfAllocator::TlsfAllocator(size_t capacity)
+: m_stats{.free_byte_count = capacity}
+{
+}
+
+inline TlsfAllocator::~TlsfAllocator()
+{
+    WHEELS_ASSERT(m_stats.allocated_byte_count == 0);
+    WHEELS_ASSERT(m_allocations.empty());
+    for (auto &ptr_size : m_allocations)
+        std::free(ptr_size.first);
+}
+
+inline void *TlsfAllocator::allocate(size_t num_bytes)
+{
+    WHEELS_ASSERT(num_bytes <= m_stats.free_byte_count);
+
+    void *ptr = std::malloc(num_bytes);
+    WHEELS_ASSERT(ptr != nullptr);
+    m_stats.allocation_count++;
+    m_stats.allocated_byte_count += num_bytes;
+    m_stats.free_byte_count -= num_bytes;
+    m_stats.allocated_byte_count_high_watermark = std::max(
+        m_stats.allocated_byte_count,
+        m_stats.allocated_byte_count_high_watermark);
+
+    m_allocations.emplace(ptr, num_bytes);
+
+    return ptr;
+}
+
+inline void TlsfAllocator::deallocate(void *ptr)
+{
+    if (ptr == nullptr)
+        return;
+
+    std::free(ptr);
+
+    WHEELS_ASSERT(m_allocations.contains(ptr));
+    const size_t num_bytes = m_allocations.find(ptr)->second;
+    m_allocations.erase(ptr);
+
+    WHEELS_ASSERT(m_stats.allocation_count > 0);
+    m_stats.allocation_count--;
+    WHEELS_ASSERT(m_stats.allocated_byte_count >= num_bytes);
+    m_stats.allocated_byte_count -= num_bytes;
+    m_stats.free_byte_count += num_bytes;
+}
+
+inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
+{
+    return m_stats;
+}
+
+} // namespace wheels
+
+#endif // WHEELS_ALLOCATION_DEBUG
 
 #endif // WHEELS_ALLOCATORS_TLSF_ALLOCATOR_HPP
