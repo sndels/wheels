@@ -25,9 +25,6 @@ inline void report_assertion_failure(
 
 #ifdef _WIN32
 
-// for __debug_break()
-#include <intrin.h>
-
 // Assumes MSVC
 #define WHEELS_ASSERT(expr)                                                    \
     do                                                                         \
