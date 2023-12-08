@@ -5,7 +5,6 @@
 #include "../utils.hpp"
 #include "linear_allocator.hpp"
 
-#include <cassert>
 #include <climits>
 #include <cstdint>
 

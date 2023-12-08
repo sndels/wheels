@@ -7,7 +7,6 @@
 #include "allocator.hpp"
 #include "utils.hpp"
 
-#include <cassert>
 #include <climits>
 #include <cstddef>
 #include <cstdlib>

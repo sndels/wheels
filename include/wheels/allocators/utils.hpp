@@ -4,7 +4,6 @@
 #include "../assert.hpp"
 
 #include <bit>
-#include <cassert>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
