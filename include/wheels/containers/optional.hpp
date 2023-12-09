@@ -148,21 +148,25 @@ void Optional<T>::emplace(Args &&...args)
 
 template <typename T> T &Optional<T>::operator*() noexcept
 {
+    WHEELS_ASSERT(has_value());
     return *(T *)m_data;
 }
 
 template <typename T> T const &Optional<T>::operator*() const noexcept
 {
+    WHEELS_ASSERT(has_value());
     return *(T *)m_data;
 }
 
 template <typename T> T *Optional<T>::operator->() noexcept
 {
+    WHEELS_ASSERT(has_value());
     return (T *)m_data;
 }
 
 template <typename T> T const *Optional<T>::operator->() const noexcept
 {
+    WHEELS_ASSERT(has_value());
     return (T const *)m_data;
 }
 
