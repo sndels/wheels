@@ -11,7 +11,7 @@ template <typename T> class Optional
 {
     // TODO: Constrain stored type ctor, dtor to noexcept?
   public:
-    Optional() = default;
+    Optional();
     Optional(T const &value);
     Optional(T &&value);
     ~Optional();
@@ -33,17 +33,36 @@ template <typename T> class Optional
     [[nodiscard]] T const *operator->() const noexcept;
 
   private:
+#ifndef NDEBUG
+    const T *m_debug{nullptr};
+#endif // NDEBUG
     alignas(T) uint8_t m_data[sizeof(T)];
     bool m_has_value{false};
 };
 
-template <typename T> Optional<T>::Optional(T const &value)
+template <typename T>
+Optional<T>::Optional()
+#ifndef NDEBUG
+: m_debug{reinterpret_cast<const T *>(&m_data)}
+#endif // NDEBUG
+{
+}
+
+template <typename T>
+Optional<T>::Optional(T const &value)
+#ifndef NDEBUG
+: m_debug{reinterpret_cast<const T *>(&m_data)}
+#endif // NDEBUG
 {
     m_has_value = true;
     new (m_data) T{value};
 }
 
-template <typename T> Optional<T>::Optional(T &&value)
+template <typename T>
+Optional<T>::Optional(T &&value)
+#ifndef NDEBUG
+: m_debug{reinterpret_cast<const T *>(&m_data)}
+#endif // NDEBUG
 {
     m_has_value = true;
     new (m_data) T{WHEELS_MOV(value)};
