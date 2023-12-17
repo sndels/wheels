@@ -4,6 +4,7 @@
 #include "../assert.hpp"
 #include "../containers/array.hpp"
 #include "../containers/pair.hpp"
+#include "../unnecessary_lock.hpp"
 #include "allocator.hpp"
 #include "utils.hpp"
 
@@ -247,6 +248,7 @@ class TlsfAllocator : public Allocator
     // Each element is one first level bucket
     Span<BitMapT> m_second_level_bitmaps;
     Span<SecondLevelRangesLists> m_segregated_lists;
+    mutable UnnecessaryLock m_assert_lock;
 };
 
 inline TlsfAllocator::TlsfAllocator(size_t capacity)
@@ -336,6 +338,8 @@ inline TlsfAllocator::~TlsfAllocator()
 
 inline void *TlsfAllocator::allocate(size_t num_bytes)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     // Need alignment and space for the back boundary tag. Could skip alignment
     // if allocation alignment and size are nice, but let's not complicate
     // things for the 8 extra bytes.
@@ -398,6 +402,8 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
 
 inline void TlsfAllocator::deallocate(void *ptr)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     if (ptr == nullptr)
         return;
 
@@ -442,6 +448,8 @@ inline void TlsfAllocator::deallocate(void *ptr)
 
 inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     return m_stats;
 }
 
@@ -677,6 +685,7 @@ class TlsfAllocator : public Allocator
   private:
     Stats m_stats;
     std::unordered_map<void *, size_t> m_allocations;
+    mutable UnnecessaryLock m_assert_lock;
 };
 
 inline TlsfAllocator::TlsfAllocator(size_t capacity)
@@ -694,6 +703,7 @@ inline TlsfAllocator::~TlsfAllocator()
 
 inline void *TlsfAllocator::allocate(size_t num_bytes)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
     WHEELS_ASSERT(num_bytes <= m_stats.free_byte_count);
 
     void *ptr = std::malloc(num_bytes);
@@ -712,6 +722,8 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
 
 inline void TlsfAllocator::deallocate(void *ptr)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     if (ptr == nullptr)
         return;
 
@@ -730,6 +742,8 @@ inline void TlsfAllocator::deallocate(void *ptr)
 
 inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     return m_stats;
 }
 

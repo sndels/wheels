@@ -2,6 +2,7 @@
 #define WHEELS_ALLOCATORS_LINEAR_ALLOCATOR_HPP
 
 #include "../assert.hpp"
+#include "../unnecessary_lock.hpp"
 #include "allocator.hpp"
 #include "utils.hpp"
 
@@ -51,6 +52,7 @@ class LinearAllocator : public Allocator
     size_t m_offset{0};
     size_t m_capacity{0};
     size_t m_allocated_byte_count_high_watermark{0};
+    mutable UnnecessaryLock m_assert_lock;
 };
 
 inline LinearAllocator::LinearAllocator(size_t capacity)
@@ -62,6 +64,8 @@ inline LinearAllocator::~LinearAllocator() { delete[] m_memory; };
 
 inline void *LinearAllocator::allocate(size_t num_bytes)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     size_t const ret_offset =
         aligned_offset(m_offset, alignof(std::max_align_t));
     WHEELS_ASSERT(SIZE_MAX - num_bytes > ret_offset);
@@ -77,12 +81,22 @@ inline void *LinearAllocator::allocate(size_t num_bytes)
     return m_memory + ret_offset;
 }
 
-inline void LinearAllocator::deallocate(void * /*ptr*/) { }
+inline void LinearAllocator::deallocate(void * /*ptr*/)
+{
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+}
 
-inline void LinearAllocator::reset() { m_offset = 0; }
+inline void LinearAllocator::reset()
+{
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
+    m_offset = 0;
+}
 
 inline void LinearAllocator::rewind(void *ptr)
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     WHEELS_ASSERT(
         ptr >= m_memory && ptr < m_memory + m_capacity &&
         "Tried to rewind to a pointer that doesn't belong to this "
@@ -92,10 +106,17 @@ inline void LinearAllocator::rewind(void *ptr)
 
 inline size_t LinearAllocator::allocated_byte_count_high_watermark() const
 {
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
     return m_allocated_byte_count_high_watermark;
 }
 
-inline void *LinearAllocator::peek() const { return m_memory + m_offset; };
+inline void *LinearAllocator::peek() const
+{
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+
+    return m_memory + m_offset;
+};
 
 } // namespace wheels
 
