@@ -15,7 +15,7 @@ namespace wheels
 template <typename T, size_t N> class StaticArray
 {
   public:
-    StaticArray(){};
+    StaticArray();
     StaticArray(T const (&elems)[N]);
     // Takes in either a single default value for the entire array or a list of
     // values filling all slots
@@ -57,9 +57,20 @@ template <typename T, size_t N> class StaticArray
     operator Span<T const>() const;
 
   private:
+#ifndef NDEBUG
+    const T *m_debug{nullptr};
+#endif // NDEBUG
     alignas(T) uint8_t m_data[N * sizeof(T)];
     size_t m_size{0};
 };
+
+template <typename T, size_t N>
+StaticArray<T, N>::StaticArray()
+#ifndef NDEBUG
+: m_debug{reinterpret_cast<const T *>(&m_data)}
+#endif // NDEBUG
+{
+}
 
 // Deduction from raw arrays
 template <typename T, size_t N>
@@ -67,7 +78,12 @@ StaticArray(T const (&)[N]) -> StaticArray<T, N>;
 
 template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(T const (&elems)[N])
-: m_size{N}
+:
+#ifndef NDEBUG
+    m_debug{reinterpret_cast<const T *>(&m_data)}
+,
+#endif // NDEBUG
+m_size{N}
 {
     // TODO: memcpy for entire elems array if T is trivially copyable
     for (size_t i = 0; i < N; ++i)
@@ -80,7 +96,12 @@ StaticArray(T const &, Ts...) -> StaticArray<T, 1 + sizeof...(Ts)>;
 
 template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(std::initializer_list<T> elems)
-: m_size{elems.size()}
+:
+#ifndef NDEBUG
+    m_debug{reinterpret_cast<const T *>(&m_data)}
+,
+#endif // NDEBUG
+m_size{elems.size()}
 {
     WHEELS_ASSERT(elems.size() == 1 || elems.size() == N);
 
@@ -105,7 +126,12 @@ template <typename T, size_t N> StaticArray<T, N>::~StaticArray() { clear(); }
 
 template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(StaticArray<T, N> const &other)
-: m_size{other.m_size}
+:
+#ifndef NDEBUG
+    m_debug{reinterpret_cast<const T *>(&m_data)}
+,
+#endif // NDEBUG
+m_size{other.m_size}
 {
     for (size_t i = 0; i < other.m_size; ++i)
         new ((T *)m_data + i) T{((T *)other.m_data)[i]};
@@ -113,7 +139,12 @@ StaticArray<T, N>::StaticArray(StaticArray<T, N> const &other)
 
 template <typename T, size_t N>
 StaticArray<T, N>::StaticArray(StaticArray<T, N> &&other)
-: m_size{other.m_size}
+:
+#ifndef NDEBUG
+    m_debug{reinterpret_cast<const T *>(&m_data)}
+,
+#endif // NDEBUG
+m_size{other.m_size}
 {
     for (size_t i = 0; i < other.m_size; ++i)
         new ((T *)m_data + i) T{WHEELS_MOV(((T *)other.m_data)[i])};
