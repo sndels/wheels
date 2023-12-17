@@ -171,11 +171,15 @@ template <typename Key, typename Value, class Hasher>
 HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
     HashMap<Key, Value, Hasher> &&other)
 {
+    WHEELS_ASSERT(
+        &m_allocator == &other.m_allocator &&
+        "Move assigning a container with different allocators can lead to "
+        "nasty bugs. Use the same allocator or copy the content instead.");
+
     if (this != &other)
     {
         free();
 
-        m_allocator = other.m_allocator;
         m_keys = other.m_keys;
         m_values = other.m_values;
         m_metadata = other.m_metadata;

@@ -109,11 +109,15 @@ Array<T>::Array(Array<T> &&other)
 
 template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other)
 {
+    WHEELS_ASSERT(
+        &m_allocator == &other.m_allocator &&
+        "Move assigning a container with different allocators can lead to "
+        "nasty bugs. Use the same allocator or copy the content instead.");
+
     if (this != &other)
     {
         free();
 
-        m_allocator = other.m_allocator;
         m_data = other.m_data;
         m_capacity = other.m_capacity;
         m_size = other.m_size;

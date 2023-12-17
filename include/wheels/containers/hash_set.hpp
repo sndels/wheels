@@ -137,11 +137,15 @@ HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other)
 template <typename T, class Hasher>
 HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
 {
+    WHEELS_ASSERT(
+        &m_allocator == &other.m_allocator &&
+        "Move assigning a container with different allocators can lead to "
+        "nasty bugs. Use the same allocator or copy the content instead.");
+
     if (this != &other)
     {
         free();
 
-        m_allocator = other.m_allocator;
         m_data = other.m_data;
         m_metadata = other.m_metadata;
         m_size = other.m_size;
