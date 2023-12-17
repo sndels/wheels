@@ -117,14 +117,8 @@ TEST_CASE("SmallSet::clear")
     init_dtor_counters();
 
     SmallSet<DtorObj, 5> set = init_test_small_set_dtor<5>(5);
-// TODO: Why do these differ?
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 15);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 10);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 10);
     REQUIRE(DtorObj::s_move_ctor_counter() == 5);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -136,11 +130,7 @@ TEST_CASE("SmallSet::clear")
     REQUIRE(set.empty());
     REQUIRE(set.size() == 0);
     REQUIRE(set.capacity() == 5);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 15);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 10);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 5);
 }

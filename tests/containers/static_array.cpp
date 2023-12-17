@@ -140,13 +140,7 @@ TEST_CASE("StaticArray::clear")
 {
     init_dtor_counters();
     StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
-// TODO: Why do these differ?
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 10);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 5);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 5);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -157,11 +151,7 @@ TEST_CASE("StaticArray::clear")
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() == 5);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 10);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 5);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(
         DtorObj::s_dtor_counter() ==
@@ -236,13 +226,7 @@ TEST_CASE("StaticArray::resize")
     init_dtor_counters();
 
     StaticArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
-// TODO: Why do these differ?
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 10);
-    REQUIRE(DtorObj::s_move_ctor_counter() == 5);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 5);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -252,11 +236,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[4].data == 50);
 
     arr.resize(5);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 10);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 5);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
     REQUIRE(arr.size() == 5);
@@ -265,11 +245,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[4].data == 50);
 
     arr.resize(6);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 11);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 6);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_default_ctor_counter() == 1);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
@@ -280,11 +256,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[5].data == 0);
 
     arr.resize(1);
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 11);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 6);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 5);
     REQUIRE(arr.size() == 1);
@@ -292,11 +264,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[0].data == 10);
 
     arr.resize(4, DtorObj{11});
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 15);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 10);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 6);
     REQUIRE(DtorObj::s_copy_ctor_counter() == 3);
     REQUIRE(DtorObj::s_assign_counter() == 0);
@@ -307,11 +275,7 @@ TEST_CASE("StaticArray::resize")
         REQUIRE(arr[i].data == 11);
 
     arr.resize(2, DtorObj{15});
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 16);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 11);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_value_ctor_counter() == 7);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 9);
@@ -319,11 +283,7 @@ TEST_CASE("StaticArray::resize")
     REQUIRE(arr[1].data == 11);
 
     arr.clear();
-#if defined(_MSC_VER) && !defined(NDEBUG)
-    REQUIRE(DtorObj::s_ctor_counter() == 16);
-#else  // !(_MSC_VER && !NDEBUG)
     REQUIRE(DtorObj::s_ctor_counter() == 11);
-#endif // _MSC_VER && !NDEBUG
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(
         DtorObj::s_dtor_counter() ==

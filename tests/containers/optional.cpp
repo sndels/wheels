@@ -179,10 +179,11 @@ TEST_CASE("Optional::swap")
         REQUIRE(!prev.has_value());
     }
     {
+        REQUIRE(DtorObj::s_ctor_counter() == 2);
         const Optional<DtorObj> prev = opt.swap(DtorObj{3});
-        REQUIRE(DtorObj::s_ctor_counter() == 6);
+        REQUIRE(DtorObj::s_ctor_counter() == 5);
         REQUIRE(DtorObj::s_value_ctor_counter() == 2);
-        REQUIRE(DtorObj::s_move_ctor_counter() == 4);
+        REQUIRE(DtorObj::s_move_ctor_counter() == 3);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
         REQUIRE(opt.has_value());
