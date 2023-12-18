@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-    <Type Name="wheels::StaticArray&lt;*&gt;">
+    <Type Name="wheels::InlineArray&lt;*&gt;">
         <Expand>
             <Item Name="[size]" ExcludeView="simple">m_size</Item>
             <Item Name="[capacity]" ExcludeView="simple">$T2</Item>

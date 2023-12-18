@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <wheels/containers/static_array.hpp>
+#include <wheels/containers/inline_array.hpp>
 
 #include "common.hpp"
 
@@ -14,11 +14,11 @@ namespace
 {
 
 template <size_t N>
-StaticArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
+InlineArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
 {
     REQUIRE(initial_size <= N);
 
-    StaticArray<uint32_t, N> arr;
+    InlineArray<uint32_t, N> arr;
     for (uint32_t i = 0; i < initial_size; ++i)
         arr.push_back(10 * (i + 1));
 
@@ -26,11 +26,11 @@ StaticArray<uint32_t, N> init_test_static_arr_u32(size_t initial_size)
 }
 
 template <size_t N>
-StaticArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
+InlineArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
 {
     REQUIRE(initial_size <= N);
 
-    StaticArray<DtorObj, N> arr;
+    InlineArray<DtorObj, N> arr;
     for (uint32_t i = 0; i < initial_size; ++i)
         arr.emplace_back(10 * (i + 1));
 
@@ -39,9 +39,9 @@ StaticArray<DtorObj, N> init_test_static_arr_dtor(size_t initial_size)
 
 } // namespace
 
-TEST_CASE("StaticArray::allocate_copy")
+TEST_CASE("InlineArray::allocate_copy")
 {
-    StaticArray<uint32_t, 4> arr;
+    InlineArray<uint32_t, 4> arr;
     REQUIRE(arr.empty());
     REQUIRE(arr.size() == 0);
     REQUIRE(arr.capacity() == 4);
@@ -56,14 +56,14 @@ TEST_CASE("StaticArray::allocate_copy")
     REQUIRE(arr[1] == 20);
     REQUIRE(arr[2] == 30);
 
-    StaticArray<uint32_t, 4> arr_copy_constructed{arr};
+    InlineArray<uint32_t, 4> arr_copy_constructed{arr};
     REQUIRE(arr_copy_constructed[0] == 10);
     REQUIRE(arr_copy_constructed[1] == 20);
     REQUIRE(arr_copy_constructed[2] == 30);
     REQUIRE(arr_copy_constructed.size() == 3);
     REQUIRE(arr_copy_constructed.capacity() == 4);
 
-    StaticArray<uint32_t, 4> arr_copy_assigned;
+    InlineArray<uint32_t, 4> arr_copy_assigned;
     arr_copy_assigned = arr;
     arr_copy_assigned = WHEELS_MOV(arr_copy_assigned);
     REQUIRE(arr_copy_assigned[0] == 10);
@@ -72,14 +72,14 @@ TEST_CASE("StaticArray::allocate_copy")
     REQUIRE(arr_copy_assigned.size() == 3);
     REQUIRE(arr_copy_assigned.capacity() == 4);
 
-    StaticArray<uint32_t, 4> arr_move_constructed{WHEELS_MOV(arr)};
+    InlineArray<uint32_t, 4> arr_move_constructed{WHEELS_MOV(arr)};
     REQUIRE(arr_move_constructed[0] == 10);
     REQUIRE(arr_move_constructed[1] == 20);
     REQUIRE(arr_move_constructed[2] == 30);
     REQUIRE(arr_move_constructed.size() == 3);
     REQUIRE(arr_move_constructed.capacity() == 4);
 
-    StaticArray<uint32_t, 4> arr_move_assigned;
+    InlineArray<uint32_t, 4> arr_move_assigned;
     arr_move_assigned = WHEELS_MOV(arr_move_constructed);
     arr_move_assigned = WHEELS_MOV(arr_move_assigned);
     REQUIRE(arr_move_assigned[0] == 10);
@@ -88,7 +88,7 @@ TEST_CASE("StaticArray::allocate_copy")
     REQUIRE(arr_move_assigned.size() == 3);
     REQUIRE(arr_move_assigned.capacity() == 4);
 
-    StaticArray<uint32_t, 4> default_arr{0xDEADCAFE};
+    InlineArray<uint32_t, 4> default_arr{0xDEADCAFE};
     REQUIRE(!default_arr.empty());
     REQUIRE(default_arr.size() == 4);
     REQUIRE(default_arr.capacity() == 4);
@@ -96,11 +96,11 @@ TEST_CASE("StaticArray::allocate_copy")
         REQUIRE(e == 0xDEADCAFE);
 }
 
-TEST_CASE("StaticArray::push_lvalue")
+TEST_CASE("InlineArray::push_lvalue")
 {
     init_dtor_counters();
 
-    StaticArray<DtorObj, 5> arr;
+    InlineArray<DtorObj, 5> arr;
     DtorObj const lvalue = {99};
     arr.push_back(lvalue);
     REQUIRE(DtorObj::s_ctor_counter() == 2);
@@ -113,33 +113,33 @@ TEST_CASE("StaticArray::push_lvalue")
     arr[0].data = 11;
 }
 
-TEST_CASE("StaticArray::front_back")
+TEST_CASE("InlineArray::front_back")
 {
-    StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
+    InlineArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
     REQUIRE(arr.front() == 10);
     REQUIRE(arr.back() == 50);
 
-    StaticArray<uint32_t, 5> const &arr_const = arr;
+    InlineArray<uint32_t, 5> const &arr_const = arr;
     REQUIRE(arr_const.front() == 10);
     REQUIRE(arr_const.back() == 50);
 }
 
-TEST_CASE("StaticArray::begin_end")
+TEST_CASE("InlineArray::begin_end")
 {
-    StaticArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
+    InlineArray<uint32_t, 5> arr = init_test_static_arr_u32<5>(5);
     REQUIRE(arr.size() == 5);
     REQUIRE(arr.begin() == arr.data());
     REQUIRE(arr.end() == arr.data() + arr.size());
 
-    StaticArray<uint32_t, 5> const &arr_const = arr;
+    InlineArray<uint32_t, 5> const &arr_const = arr;
     REQUIRE(arr_const.begin() == arr_const.data());
     REQUIRE(arr_const.end() == arr_const.data() + arr_const.size());
 }
 
-TEST_CASE("StaticArray::clear")
+TEST_CASE("InlineArray::clear")
 {
     init_dtor_counters();
-    StaticArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
+    InlineArray<DtorObj, 5> arr = init_test_static_arr_dtor<5>(5);
     REQUIRE(DtorObj::s_ctor_counter() == 5);
     REQUIRE(DtorObj::s_value_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
@@ -158,7 +158,7 @@ TEST_CASE("StaticArray::clear")
         DtorObj::s_ctor_counter() - DtorObj::s_move_ctor_counter());
 }
 
-TEST_CASE("StaticArray::emplace")
+TEST_CASE("InlineArray::emplace")
 {
     class Obj
     {
@@ -177,7 +177,7 @@ TEST_CASE("StaticArray::emplace")
         uint32_t m_data{0};
     };
 
-    StaticArray<Obj, 3> arr;
+    InlineArray<Obj, 3> arr;
     arr.emplace_back(10u);
     arr.emplace_back(20u);
     arr.emplace_back(30u);
@@ -187,7 +187,7 @@ TEST_CASE("StaticArray::emplace")
     REQUIRE(arr.size() == 3);
 }
 
-TEST_CASE("StaticArray::pop_back")
+TEST_CASE("InlineArray::pop_back")
 {
     class Obj
     {
@@ -214,18 +214,18 @@ TEST_CASE("StaticArray::pop_back")
         uint32_t m_data{0};
     };
 
-    StaticArray<Obj, 1> arr;
+    InlineArray<Obj, 1> arr;
     arr.emplace_back(10u);
     REQUIRE(arr[0].m_data == 10);
     REQUIRE(arr.pop_back().m_data == 10);
     REQUIRE(arr.size() == 0);
 }
 
-TEST_CASE("StaticArray::resize")
+TEST_CASE("InlineArray::resize")
 {
     init_dtor_counters();
 
-    StaticArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
+    InlineArray<DtorObj, 6> arr = init_test_static_arr_dtor<6>(5);
     REQUIRE(DtorObj::s_ctor_counter() == 5);
     REQUIRE(DtorObj::s_value_ctor_counter() == 5);
     REQUIRE(DtorObj::s_assign_counter() == 0);
@@ -290,9 +290,9 @@ TEST_CASE("StaticArray::resize")
         DtorObj::s_ctor_counter() - DtorObj::s_move_ctor_counter());
 }
 
-TEST_CASE("StaticArray::range_for")
+TEST_CASE("InlineArray::range_for")
 {
-    StaticArray<uint32_t, 5> arr;
+    InlineArray<uint32_t, 5> arr;
     // Make sure this skips
     for (auto &v : arr)
         v++;
@@ -308,16 +308,16 @@ TEST_CASE("StaticArray::range_for")
     REQUIRE(arr[1] == 21);
     REQUIRE(arr[2] == 31);
 
-    StaticArray<uint32_t, 5> const &arr_const = arr;
+    InlineArray<uint32_t, 5> const &arr_const = arr;
     uint32_t sum = 0;
     for (auto const &v : arr_const)
         sum += v;
     REQUIRE(sum == 63);
 }
 
-TEST_CASE("StaticArray::aligned")
+TEST_CASE("InlineArray::aligned")
 {
-    StaticArray<AlignedObj, 2> arr;
+    InlineArray<AlignedObj, 2> arr;
 
     arr.push_back({10});
     arr.push_back({20});
@@ -328,10 +328,10 @@ TEST_CASE("StaticArray::aligned")
     REQUIRE(arr[1].value == 20);
 }
 
-TEST_CASE("StaticArray::span_conversions")
+TEST_CASE("InlineArray::span_conversions")
 {
     {
-        StaticArray<uint8_t, 32> arr;
+        InlineArray<uint8_t, 32> arr;
         for (uint8_t i = 0; i < 10; ++i)
             arr.push_back(i);
 
@@ -345,14 +345,14 @@ TEST_CASE("StaticArray::span_conversions")
             REQUIRE(const_span.size() == arr.size());
         }
         {
-            StaticArray<uint8_t, 32> const &const_arr = arr;
+            InlineArray<uint8_t, 32> const &const_arr = arr;
             Span<uint8_t const> const_span = const_arr;
             REQUIRE(const_span.data() == arr.data());
             REQUIRE(const_span.size() == arr.size());
         }
     }
     {
-        StaticArray<DtorObj, 32> arr;
+        InlineArray<DtorObj, 32> arr;
         for (uint8_t i = 0; i < 10; ++i)
             arr.emplace_back(i);
 
@@ -367,7 +367,7 @@ TEST_CASE("StaticArray::span_conversions")
         }
 
         {
-            StaticArray<DtorObj, 32> const &const_arr = arr;
+            InlineArray<DtorObj, 32> const &const_arr = arr;
             Span<DtorObj const> const_span = const_arr;
             REQUIRE(const_span.data() == arr.data());
             REQUIRE(const_span.size() == arr.size());
@@ -375,16 +375,16 @@ TEST_CASE("StaticArray::span_conversions")
     }
 }
 
-TEST_CASE("StaticArray::ctor_deduction")
+TEST_CASE("InlineArray::ctor_deduction")
 {
     {
-        StaticArray arr{1u, 2u, 3u};
+        InlineArray arr{1u, 2u, 3u};
         REQUIRE(arr.size() == 3);
         REQUIRE(arr.capacity() == 3);
     }
 
     {
-        StaticArray arr{{1u, 2u, 3u}};
+        InlineArray arr{{1u, 2u, 3u}};
         REQUIRE(arr.size() == 3);
         REQUIRE(arr.capacity() == 3);
     }

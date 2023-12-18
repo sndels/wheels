@@ -3,7 +3,7 @@
 #define WHEELS_CONTAINERS_SMALL_SET_HPP
 
 #include "../utils.hpp"
-#include "static_array.hpp"
+#include "inline_array.hpp"
 
 namespace wheels
 {
@@ -36,7 +36,7 @@ template <typename T, size_t N> class SmallSet
     void remove(T const &value);
 
   private:
-    StaticArray<T, N> m_data;
+    InlineArray<T, N> m_data;
 };
 
 template <typename T, size_t N> SmallSet<T, N>::~SmallSet() { clear(); }

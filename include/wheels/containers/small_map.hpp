@@ -4,8 +4,8 @@
 
 #include "../utils.hpp"
 #include "concepts.hpp"
+#include "inline_array.hpp"
 #include "pair.hpp"
-#include "static_array.hpp"
 
 namespace wheels
 {
@@ -42,7 +42,7 @@ template <typename K, typename V, size_t N> class SmallMap
     void remove(K const &key);
 
   private:
-    StaticArray<Pair<K, V>, N> m_data;
+    InlineArray<Pair<K, V>, N> m_data;
 };
 
 template <typename K, typename V, size_t N> SmallMap<K, V, N>::~SmallMap()
