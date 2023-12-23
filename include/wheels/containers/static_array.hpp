@@ -42,8 +42,8 @@ template <typename T, size_t N> class StaticArray
     [[nodiscard]] static constexpr size_t size() { return N; };
     [[nodiscard]] static constexpr size_t capacity() { return N; }
 
-    operator Span<T>();
-    operator Span<T const>() const;
+    constexpr operator Span<T>();
+    constexpr operator Span<T const>() const;
 
   private:
     // Default ctor zero initializes
@@ -172,13 +172,13 @@ constexpr T const *StaticArray<T, N>::end() const
     return m_data + N;
 }
 
-template <typename T, size_t N> StaticArray<T, N>::operator Span<T>()
+template <typename T, size_t N> constexpr StaticArray<T, N>::operator Span<T>()
 {
     return Span{m_data, N};
 }
 
 template <typename T, size_t N>
-StaticArray<T, N>::operator Span<T const>() const
+constexpr StaticArray<T, N>::operator Span<T const>() const
 {
     return Span{m_data, N};
 }

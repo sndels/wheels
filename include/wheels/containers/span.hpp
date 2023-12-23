@@ -14,24 +14,24 @@ namespace wheels
 template <typename T> class Span
 {
   public:
-    Span() = default;
-    Span(T *ptr, size_t size);
+    constexpr Span() = default;
+    constexpr Span(T *ptr, size_t size);
 
-    Span(Span<T> const &other) = default;
-    Span &operator=(Span<T> const &other) = default;
+    constexpr Span(Span<T> const &other) = default;
+    constexpr Span &operator=(Span<T> const &other) = default;
 
-    [[nodiscard]] T &operator[](size_t i);
-    [[nodiscard]] T const &operator[](size_t i) const;
-    [[nodiscard]] T *data();
-    [[nodiscard]] T const *data() const;
+    [[nodiscard]] constexpr T &operator[](size_t i);
+    [[nodiscard]] constexpr T const &operator[](size_t i) const;
+    [[nodiscard]] constexpr T *data();
+    [[nodiscard]] constexpr T const *data() const;
 
-    [[nodiscard]] T *begin();
-    [[nodiscard]] T const *begin() const;
-    [[nodiscard]] T *end();
-    [[nodiscard]] T const *end() const;
+    [[nodiscard]] constexpr T *begin();
+    [[nodiscard]] constexpr T const *begin() const;
+    [[nodiscard]] constexpr T *end();
+    [[nodiscard]] constexpr T const *end() const;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] constexpr bool empty() const;
+    [[nodiscard]] constexpr size_t size() const;
 
     // Converting from non-const inner type to const inner type should be really
     // cheap so let's just have it. Spans to non-const things should be
@@ -43,9 +43,9 @@ template <typename T> class Span
     //   b) mirroring explicit const and non-const versions of interfaces
     // Both other options seem unnecessarily complex unless this ends up being
     // expensive in some cases.
-    operator Span<T const>() const;
+    constexpr operator Span<T const>() const;
 
-  private:
+  protected:
     T *m_data{nullptr};
     size_t m_size{0};
 };
@@ -53,47 +53,59 @@ template <typename T> class Span
 class StrSpan : public Span<char const>
 {
   public:
-    StrSpan(char const *str);
-    StrSpan(char const *str, size_t size);
+    constexpr StrSpan(char const *str);
+    constexpr StrSpan(char const *str, size_t size);
 };
 
 template <typename T>
-Span<T>::Span(T *ptr, size_t size)
+constexpr Span<T>::Span(T *ptr, size_t size)
 : m_data{ptr}
 , m_size{size}
 {
     WHEELS_ASSERT(m_data != nullptr);
 }
 
-template <typename T> T &Span<T>::operator[](size_t i)
+template <typename T> constexpr T &Span<T>::operator[](size_t i)
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> T const &Span<T>::operator[](size_t i) const
+template <typename T> constexpr T const &Span<T>::operator[](size_t i) const
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> T *Span<T>::data() { return m_data; }
+template <typename T> constexpr T *Span<T>::data() { return m_data; }
 
-template <typename T> T const *Span<T>::data() const { return m_data; }
+template <typename T> constexpr T const *Span<T>::data() const
+{
+    return m_data;
+}
 
-template <typename T> T *Span<T>::begin() { return m_data; }
+template <typename T> constexpr T *Span<T>::begin() { return m_data; }
 
-template <typename T> T const *Span<T>::begin() const { return m_data; }
+template <typename T> constexpr T const *Span<T>::begin() const
+{
+    return m_data;
+}
 
-template <typename T> T *Span<T>::end() { return m_data + m_size; }
+template <typename T> constexpr T *Span<T>::end() { return m_data + m_size; }
 
-template <typename T> T const *Span<T>::end() const { return m_data + m_size; }
+template <typename T> constexpr T const *Span<T>::end() const
+{
+    return m_data + m_size;
+}
 
-template <typename T> bool Span<T>::empty() const { return m_size == 0; }
+template <typename T> constexpr bool Span<T>::empty() const
+{
+    return m_size == 0;
+}
 
-template <typename T> size_t Span<T>::size() const { return m_size; }
+template <typename T> constexpr size_t Span<T>::size() const { return m_size; }
 
-template <typename T> Span<T>::operator Span<T const>() const
+template <typename T> constexpr Span<T>::operator Span<T const>() const
 {
     return Span<T const>{m_data, m_size};
 }
@@ -134,12 +146,16 @@ operator!=(Span<T> lhs, Span<T> rhs)
     return !(lhs == rhs);
 }
 
-inline StrSpan::StrSpan(char const *str)
-: Span{str, strlen(str)}
+inline constexpr StrSpan::StrSpan(char const *str)
 {
+    m_data = str;
+    m_size = 0;
+    // strlen isn't constexpr
+    while (str[m_size] != '\0')
+        m_size++;
 }
 
-inline StrSpan::StrSpan(char const *str, size_t size)
+inline constexpr StrSpan::StrSpan(char const *str, size_t size)
 : Span{str, size}
 {
 }
