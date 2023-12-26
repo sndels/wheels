@@ -3,8 +3,6 @@
 - constexpr
 - noexcept
 - stack allocator
-- verify container allocators after copy, move ctor and copy, move assignment
-- document container allocator behavior on copy, move
 - natvis et al.
   - Debug views that actually work on linux, natvis seems to be VS only still
   - How to implement without making implementation messier and more bugprone?
