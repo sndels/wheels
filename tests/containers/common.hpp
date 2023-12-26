@@ -28,6 +28,52 @@ struct AlignedHash
     }
 };
 
+class CopyObj
+{
+  public:
+    CopyObj() = default;
+    CopyObj(uint32_t data)
+    : data{data}
+    {
+    }
+    CopyObj(CopyObj const &other)
+    : data{other.data}
+    {
+    }
+    CopyObj(CopyObj &&) = delete;
+    CopyObj &operator=(CopyObj const &other)
+    {
+        if (this != &other)
+            data = other.data;
+        return *this;
+    }
+    CopyObj &operator=(CopyObj &&) = delete;
+    uint32_t data{0};
+};
+
+class MoveObj
+{
+  public:
+    MoveObj() = default;
+    MoveObj(uint32_t data)
+    : data{data}
+    {
+    }
+    MoveObj(MoveObj const &) = delete;
+    MoveObj(MoveObj &&other)
+    : data{other.data}
+    {
+    }
+    MoveObj &operator=(MoveObj const &) = delete;
+    MoveObj &operator=(MoveObj &&other)
+    {
+        if (this != &other)
+            data = other.data;
+        return *this;
+    }
+    uint32_t data{0};
+};
+
 class DtorObj
 {
   public:

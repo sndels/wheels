@@ -118,6 +118,30 @@ TEST_CASE("StaticArray::allocate_copy")
     REQUIRE(default_arr.capacity() == 4);
     for (uint32_t e : default_arr)
         REQUIRE(e == 0xDEADCAFE);
+
+    StaticArray<CopyObj, 2> copy_arr{{{1u}, {2u}}};
+    REQUIRE(copy_arr[0].data == 1u);
+    REQUIRE(copy_arr[1].data == 2u);
+    StaticArray<CopyObj, 2> assigned_copy_arr;
+    assigned_copy_arr = copy_arr;
+    REQUIRE(assigned_copy_arr[0].data == 1u);
+    REQUIRE(assigned_copy_arr[1].data == 2u);
+    StaticArray<CopyObj, 2> ctor_copy_arr{copy_arr};
+    REQUIRE(ctor_copy_arr[0].data == 1u);
+    REQUIRE(ctor_copy_arr[1].data == 2u);
+
+    StaticArray<MoveObj, 2> move_arr;
+    move_arr[0] = {4u};
+    move_arr[1] = {5u};
+    REQUIRE(move_arr[0].data == 4u);
+    REQUIRE(move_arr[1].data == 5u);
+    StaticArray<MoveObj, 2> assigned_move_arr;
+    assigned_move_arr = WHEELS_MOV(move_arr);
+    REQUIRE(assigned_move_arr[0].data == 4u);
+    REQUIRE(assigned_move_arr[1].data == 5u);
+    StaticArray<MoveObj, 2> ctor_move_arr{WHEELS_MOV(assigned_move_arr)};
+    REQUIRE(ctor_move_arr[0].data == 4u);
+    REQUIRE(ctor_move_arr[1].data == 5u);
 }
 
 TEST_CASE("StaticArray::begin_end")
