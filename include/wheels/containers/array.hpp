@@ -65,7 +65,10 @@ template <typename T> class Array
     void extend(Span<const T> values);
 
     T pop_back();
+    // Preserves the order, takes O(n) for n elements after index
     void erase(size_t index);
+    // Doesn't preserve the order, runs in O(1)
+    void erase_swap_last(size_t index);
 
     void resize(size_t size);
     void resize(size_t size, T const &value);
@@ -274,6 +277,24 @@ template <typename T> void Array<T>::erase(size_t index)
     {
         for (size_t i = index + 1; i < m_size; ++i)
             new (m_data + i - 1) T{WHEELS_MOV(m_data[i])};
+    }
+    m_size--;
+}
+
+template <typename T> void Array<T>::erase_swap_last(size_t index)
+{
+    WHEELS_ASSERT(index < m_size);
+
+    m_data[index].~T();
+
+    if (m_size > 1 && index < m_size - 1)
+    {
+        if constexpr (std::is_trivially_copyable_v<T>)
+            memcpy(m_data + index, m_data + m_size - 1, sizeof(T));
+        else
+        {
+            new (m_data + index) T{WHEELS_MOV(m_data[m_size - 1])};
+        }
     }
     m_size--;
 }

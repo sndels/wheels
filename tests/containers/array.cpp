@@ -336,6 +336,57 @@ TEST_CASE("Array::erase")
     }
 }
 
+TEST_CASE("Array::erase_swap_last")
+{
+    {
+        CstdlibAllocator allocator;
+
+        Array<uint32_t> arr{allocator, 1};
+        arr.emplace_back(10u);
+        arr.emplace_back(20u);
+        arr.emplace_back(30u);
+        arr.emplace_back(40u);
+        REQUIRE(arr.size() == 4);
+        arr.erase_swap_last(1);
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr[0] == 10u);
+        REQUIRE(arr[1] == 40u);
+        REQUIRE(arr[2] == 30u);
+    }
+    {
+        class Obj
+        {
+          public:
+            Obj(uint32_t value)
+            : m_data{value}
+            {
+            }
+            ~Obj() = default;
+
+            Obj(Obj const &) = delete;
+            Obj(Obj &&other) = default;
+            Obj &operator=(Obj const &) = delete;
+            Obj &operator=(Obj &&other) = default;
+
+            uint32_t m_data{0};
+        };
+
+        CstdlibAllocator allocator;
+
+        Array<Obj> arr{allocator, 1};
+        arr.emplace_back(10u);
+        arr.emplace_back(20u);
+        arr.emplace_back(30u);
+        arr.emplace_back(40u);
+        REQUIRE(arr.size() == 4);
+        arr.erase_swap_last(1);
+        REQUIRE(arr.size() == 3);
+        REQUIRE(arr[0].m_data == 10u);
+        REQUIRE(arr[1].m_data == 40u);
+        REQUIRE(arr[2].m_data == 30u);
+    }
+}
+
 TEST_CASE("Array::resize")
 {
     CstdlibAllocator allocator;
