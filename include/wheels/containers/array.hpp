@@ -272,7 +272,8 @@ template <typename T> void Array<T>::erase(size_t index)
 
     if constexpr (std::is_trivially_copyable_v<T>)
         memcpy(
-            m_data + index, m_data + index + 1, (m_size - index) * sizeof(T));
+            m_data + index, m_data + index + 1,
+            (m_size - index - 1) * sizeof(T));
     else
     {
         for (size_t i = index + 1; i < m_size; ++i)
