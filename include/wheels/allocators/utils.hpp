@@ -36,9 +36,15 @@ template <typename T> [[nodiscard]] constexpr void *aligned_ptr(void *ptr)
     return (void *)uptr;
 }
 
-[[nodiscard]] constexpr size_t megabytes(size_t mb) { return mb * 1000 * 1000; }
+[[nodiscard]] constexpr size_t megabytes(size_t mb) noexcept
+{
+    return mb * 1000 * 1000;
+}
 
-[[nodiscard]] constexpr size_t kilobytes(size_t kb) { return kb * 1000; }
+[[nodiscard]] constexpr size_t kilobytes(size_t kb) noexcept
+{
+    return kb * 1000;
+}
 
 [[nodiscard]] constexpr size_t pow2(size_t c) { return (size_t)1 << c; }
 
