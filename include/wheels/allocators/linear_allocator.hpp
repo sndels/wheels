@@ -20,6 +20,8 @@ class LinearAllocator : public Allocator
 {
   public:
     LinearAllocator(size_t capacity);
+    // alloc has to live at least as long as this allocator
+    LinearAllocator(Allocator &allocactor, size_t capacity);
 
     virtual ~LinearAllocator();
 
@@ -48,6 +50,7 @@ class LinearAllocator : public Allocator
     [[nodiscard]] void *peek() const;
 
   private:
+    Allocator *m_allocator{nullptr};
     uint8_t *m_memory{nullptr};
     size_t m_offset{0};
     size_t m_capacity{0};
@@ -60,7 +63,21 @@ inline LinearAllocator::LinearAllocator(size_t capacity)
 {
     m_memory = new uint8_t[m_capacity];
 }
-inline LinearAllocator::~LinearAllocator() { delete[] m_memory; };
+
+inline LinearAllocator::LinearAllocator(Allocator &allocator, size_t capacity)
+: m_allocator{&allocator}
+, m_capacity{capacity}
+{
+    m_memory = reinterpret_cast<uint8_t *>(m_allocator->allocate(m_capacity));
+}
+
+inline LinearAllocator::~LinearAllocator()
+{
+    if (m_allocator != nullptr)
+        m_allocator->deallocate(m_memory);
+    else
+        delete[] m_memory;
+};
 
 inline void *LinearAllocator::allocate(size_t num_bytes)
 {
@@ -133,6 +150,7 @@ class LinearAllocator : public Allocator
 {
   public:
     LinearAllocator(size_t capacity);
+    LinearAllocator(Allocator &allocactor, size_t capacity);
 
     virtual ~LinearAllocator();
 
@@ -165,6 +183,11 @@ class LinearAllocator : public Allocator
 };
 
 inline LinearAllocator::LinearAllocator(size_t capacity)
+: m_capacity{capacity}
+{
+}
+
+inline LinearAllocator::LinearAllocator(Allocator & /*alloc*/, size_t capacity)
 : m_capacity{capacity}
 {
 }
