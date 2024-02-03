@@ -11,21 +11,21 @@ template <typename T> class Optional
 {
     // TODO: Constrain stored type ctor, dtor to noexcept?
   public:
-    Optional();
-    Optional(T const &value);
-    Optional(T &&value);
+    Optional() noexcept;
+    Optional(T const &value) noexcept;
+    Optional(T &&value) noexcept;
     ~Optional();
 
-    Optional(Optional<T> const &other);
-    Optional(Optional<T> &&other);
-    Optional<T> &operator=(Optional<T> const &other);
-    Optional<T> &operator=(Optional<T> &&other);
+    Optional(Optional<T> const &other) noexcept;
+    Optional(Optional<T> &&other) noexcept;
+    Optional<T> &operator=(Optional<T> const &other) noexcept;
+    Optional<T> &operator=(Optional<T> &&other) noexcept;
 
     [[nodiscard]] bool has_value() const noexcept;
-    void reset();
-    T &&take();
-    [[nodiscard]] Optional<T> swap(T &&value);
-    template <typename... Args> void emplace(Args &&...args);
+    void reset() noexcept;
+    T &&take() noexcept;
+    [[nodiscard]] Optional<T> swap(T &&value) noexcept;
+    template <typename... Args> void emplace(Args &&...args) noexcept;
 
     [[nodiscard]] T &operator*() noexcept;
     [[nodiscard]] T const &operator*() const noexcept;
@@ -41,7 +41,7 @@ template <typename T> class Optional
 };
 
 template <typename T>
-Optional<T>::Optional()
+Optional<T>::Optional() noexcept
 #ifndef NDEBUG
 : m_debug{reinterpret_cast<const T *>(&m_data)}
 #endif // NDEBUG
@@ -49,7 +49,7 @@ Optional<T>::Optional()
 }
 
 template <typename T>
-Optional<T>::Optional(T const &value)
+Optional<T>::Optional(T const &value) noexcept
 #ifndef NDEBUG
 : m_debug{reinterpret_cast<const T *>(&m_data)}
 #endif // NDEBUG
@@ -59,7 +59,7 @@ Optional<T>::Optional(T const &value)
 }
 
 template <typename T>
-Optional<T>::Optional(T &&value)
+Optional<T>::Optional(T &&value) noexcept
 #ifndef NDEBUG
 : m_debug{reinterpret_cast<const T *>(&m_data)}
 #endif // NDEBUG
@@ -71,7 +71,7 @@ Optional<T>::Optional(T &&value)
 template <typename T> Optional<T>::~Optional() { reset(); }
 
 template <typename T>
-Optional<T>::Optional(Optional<T> const &other)
+Optional<T>::Optional(Optional<T> const &other) noexcept
 : m_has_value{other.m_has_value}
 {
     if (m_has_value)
@@ -79,7 +79,7 @@ Optional<T>::Optional(Optional<T> const &other)
 }
 
 template <typename T>
-Optional<T>::Optional(Optional<T> &&other)
+Optional<T>::Optional(Optional<T> &&other) noexcept
 : m_has_value{other.m_has_value}
 {
     if (m_has_value)
@@ -88,7 +88,7 @@ Optional<T>::Optional(Optional<T> &&other)
 }
 
 template <typename T>
-Optional<T> &Optional<T>::operator=(Optional<T> const &other)
+Optional<T> &Optional<T>::operator=(Optional<T> const &other) noexcept
 {
     if (this != &other)
     {
@@ -101,7 +101,8 @@ Optional<T> &Optional<T>::operator=(Optional<T> const &other)
     return *this;
 }
 
-template <typename T> Optional<T> &Optional<T>::operator=(Optional<T> &&other)
+template <typename T>
+Optional<T> &Optional<T>::operator=(Optional<T> &&other) noexcept
 {
     if (this != &other)
     {
@@ -123,7 +124,7 @@ template <typename T> bool Optional<T>::has_value() const noexcept
     return m_has_value;
 }
 
-template <typename T> void Optional<T>::reset()
+template <typename T> void Optional<T>::reset() noexcept
 {
     if (m_has_value)
     {
@@ -132,7 +133,7 @@ template <typename T> void Optional<T>::reset()
     }
 }
 
-template <typename T> T &&Optional<T>::take()
+template <typename T> T &&Optional<T>::take() noexcept
 {
     WHEELS_ASSERT(has_value());
     m_has_value = false;
@@ -140,7 +141,7 @@ template <typename T> T &&Optional<T>::take()
     return WHEELS_MOV(*(T *)m_data);
 }
 
-template <typename T> Optional<T> Optional<T>::swap(T &&value)
+template <typename T> Optional<T> Optional<T>::swap(T &&value) noexcept
 {
     Optional<T> ret;
     if (has_value())
@@ -157,7 +158,7 @@ template <typename T> Optional<T> Optional<T>::swap(T &&value)
 
 template <typename T>
 template <typename... Args>
-void Optional<T>::emplace(Args &&...args)
+void Optional<T>::emplace(Args &&...args) noexcept
 {
     reset();
 

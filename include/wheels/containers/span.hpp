@@ -14,24 +14,24 @@ namespace wheels
 template <typename T> class Span
 {
   public:
-    constexpr Span() = default;
-    constexpr Span(T *ptr, size_t size);
+    constexpr Span() noexcept = default;
+    constexpr Span(T *ptr, size_t size) noexcept;
 
-    constexpr Span(Span<T> const &other) = default;
-    constexpr Span &operator=(Span<T> const &other) = default;
+    constexpr Span(Span<T> const &other) noexcept = default;
+    constexpr Span &operator=(Span<T> const &other) noexcept = default;
 
-    [[nodiscard]] constexpr T &operator[](size_t i);
-    [[nodiscard]] constexpr T const &operator[](size_t i) const;
-    [[nodiscard]] constexpr T *data();
-    [[nodiscard]] constexpr T const *data() const;
+    [[nodiscard]] constexpr T &operator[](size_t i) noexcept;
+    [[nodiscard]] constexpr T const &operator[](size_t i) const noexcept;
+    [[nodiscard]] constexpr T *data() noexcept;
+    [[nodiscard]] constexpr T const *data() const noexcept;
 
-    [[nodiscard]] constexpr T *begin();
-    [[nodiscard]] constexpr T const *begin() const;
-    [[nodiscard]] constexpr T *end();
-    [[nodiscard]] constexpr T const *end() const;
+    [[nodiscard]] constexpr T *begin() noexcept;
+    [[nodiscard]] constexpr T const *begin() const noexcept;
+    [[nodiscard]] constexpr T *end() noexcept;
+    [[nodiscard]] constexpr T const *end() const noexcept;
 
-    [[nodiscard]] constexpr bool empty() const;
-    [[nodiscard]] constexpr size_t size() const;
+    [[nodiscard]] constexpr bool empty() const noexcept;
+    [[nodiscard]] constexpr size_t size() const noexcept;
 
     // Converting from non-const inner type to const inner type should be really
     // cheap so let's just have it. Spans to non-const things should be
@@ -43,7 +43,7 @@ template <typename T> class Span
     //   b) mirroring explicit const and non-const versions of interfaces
     // Both other options seem unnecessarily complex unless this ends up being
     // expensive in some cases.
-    constexpr operator Span<T const>() const;
+    constexpr operator Span<T const>() const noexcept;
 
   protected:
     T *m_data{nullptr};
@@ -53,59 +53,66 @@ template <typename T> class Span
 class StrSpan : public Span<char const>
 {
   public:
-    constexpr StrSpan(char const *str);
-    constexpr StrSpan(char const *str, size_t size);
+    constexpr StrSpan(char const *str) noexcept;
+    constexpr StrSpan(char const *str, size_t size) noexcept;
 };
 
 template <typename T>
-constexpr Span<T>::Span(T *ptr, size_t size)
+constexpr Span<T>::Span(T *ptr, size_t size) noexcept
 : m_data{ptr}
 , m_size{size}
 {
     WHEELS_ASSERT(m_data != nullptr);
 }
 
-template <typename T> constexpr T &Span<T>::operator[](size_t i)
+template <typename T> constexpr T &Span<T>::operator[](size_t i) noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> constexpr T const &Span<T>::operator[](size_t i) const
+template <typename T>
+constexpr T const &Span<T>::operator[](size_t i) const noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> constexpr T *Span<T>::data() { return m_data; }
+template <typename T> constexpr T *Span<T>::data() noexcept { return m_data; }
 
-template <typename T> constexpr T const *Span<T>::data() const
+template <typename T> constexpr T const *Span<T>::data() const noexcept
 {
     return m_data;
 }
 
-template <typename T> constexpr T *Span<T>::begin() { return m_data; }
+template <typename T> constexpr T *Span<T>::begin() noexcept { return m_data; }
 
-template <typename T> constexpr T const *Span<T>::begin() const
+template <typename T> constexpr T const *Span<T>::begin() const noexcept
 {
     return m_data;
 }
 
-template <typename T> constexpr T *Span<T>::end() { return m_data + m_size; }
-
-template <typename T> constexpr T const *Span<T>::end() const
+template <typename T> constexpr T *Span<T>::end() noexcept
 {
     return m_data + m_size;
 }
 
-template <typename T> constexpr bool Span<T>::empty() const
+template <typename T> constexpr T const *Span<T>::end() const noexcept
+{
+    return m_data + m_size;
+}
+
+template <typename T> constexpr bool Span<T>::empty() const noexcept
 {
     return m_size == 0;
 }
 
-template <typename T> constexpr size_t Span<T>::size() const { return m_size; }
+template <typename T> constexpr size_t Span<T>::size() const noexcept
+{
+    return m_size;
+}
 
-template <typename T> constexpr Span<T>::operator Span<T const>() const
+template <typename T> constexpr Span<T>::operator Span<T const>() const noexcept
 {
     return Span<T const>{m_data, m_size};
 }
@@ -113,8 +120,8 @@ template <typename T> constexpr Span<T>::operator Span<T const>() const
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator==(Span<T> lhs, Span<V> rhs)
+    requires SameAs<T, V>
+bool operator==(Span<T> lhs, Span<V> rhs) noexcept
 {
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
@@ -140,13 +147,13 @@ operator==(Span<T> lhs, Span<V> rhs)
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator!=(Span<T> lhs, Span<T> rhs)
+    requires SameAs<T, V>
+bool operator!=(Span<T> lhs, Span<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-inline constexpr StrSpan::StrSpan(char const *str)
+inline constexpr StrSpan::StrSpan(char const *str) noexcept
 {
     m_data = str;
     m_size = 0;
@@ -155,7 +162,7 @@ inline constexpr StrSpan::StrSpan(char const *str)
         m_size++;
 }
 
-inline constexpr StrSpan::StrSpan(char const *str, size_t size)
+inline constexpr StrSpan::StrSpan(char const *str, size_t size) noexcept
 : Span{str, size}
 {
 }
@@ -165,7 +172,7 @@ inline constexpr StrSpan::StrSpan(char const *str, size_t size)
 // final null. This includes the assumption that the character at data()[size()]
 // is allocated and may or may not be \0, depending on the span being a full
 // view into the string or not.
-inline bool operator==(StrSpan lhs, StrSpan rhs)
+inline bool operator==(StrSpan lhs, StrSpan rhs) noexcept
 {
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
@@ -198,7 +205,10 @@ inline bool operator==(StrSpan lhs, StrSpan rhs)
     return first_len == second_len || second_ptr[first_len] == '\0';
 }
 
-inline bool operator!=(StrSpan lhs, StrSpan rhs) { return !(lhs == rhs); }
+inline bool operator!=(StrSpan lhs, StrSpan rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 } // namespace wheels
 

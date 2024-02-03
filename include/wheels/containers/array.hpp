@@ -23,62 +23,63 @@ template <typename T> class Array
         "constructible");
 
   public:
-    Array(Allocator &allocator, size_t initial_capacity = 0);
+    Array(Allocator &allocator, size_t initial_capacity = 0) noexcept;
     ~Array();
 
     Array(Array<T> const &) = delete;
-    Array(Array<T> &&other);
+    Array(Array<T> &&other) noexcept;
     Array<T> &operator=(Array<T> const &) = delete;
-    Array<T> &operator=(Array<T> &&other);
+    Array<T> &operator=(Array<T> &&other) noexcept;
 
-    [[nodiscard]] T &operator[](size_t i);
-    [[nodiscard]] T const &operator[](size_t i) const;
-    [[nodiscard]] T &front();
-    [[nodiscard]] T const &front() const;
-    [[nodiscard]] T &back();
-    [[nodiscard]] T const &back() const;
-    [[nodiscard]] T *data();
-    [[nodiscard]] T const *data() const;
+    [[nodiscard]] T &operator[](size_t i) noexcept;
+    [[nodiscard]] T const &operator[](size_t i) const noexcept;
+    [[nodiscard]] T &front() noexcept;
+    [[nodiscard]] T const &front() const noexcept;
+    [[nodiscard]] T &back() noexcept;
+    [[nodiscard]] T const &back() const noexcept;
+    [[nodiscard]] T *data() noexcept;
+    [[nodiscard]] T const *data() const noexcept;
 
-    [[nodiscard]] T *begin();
-    [[nodiscard]] T const *begin() const;
-    [[nodiscard]] T *end();
-    [[nodiscard]] T const *end() const;
+    [[nodiscard]] T *begin() noexcept;
+    [[nodiscard]] T const *begin() const noexcept;
+    [[nodiscard]] T *end() noexcept;
+    [[nodiscard]] T const *end() const noexcept;
 
-    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i);
-    [[nodiscard]] Span<T const> span(size_t begin_i, size_t end_i) const;
+    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
+    [[nodiscard]] Span<T const> span(
+        size_t begin_i, size_t end_i) const noexcept;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
-    void reserve(size_t capacity);
-    [[nodiscard]] size_t capacity() const;
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] size_t size() const noexcept;
+    void reserve(size_t capacity) noexcept;
+    [[nodiscard]] size_t capacity() const noexcept;
 
-    void clear();
+    void clear() noexcept;
 
     template <typename U>
     // Let's be pedantic and disallow implicit conversions
         requires SameAs<U, T>
-    void push_back(U &&value);
+    void push_back(U &&value) noexcept;
 
-    template <typename... Args> void emplace_back(Args &&...args);
+    template <typename... Args> void emplace_back(Args &&...args) noexcept;
 
-    void extend(Span<const T> values);
+    void extend(Span<const T> values) noexcept;
 
-    T pop_back();
+    T pop_back() noexcept;
     // Preserves the order, takes O(n) for n elements after index
-    void erase(size_t index);
+    void erase(size_t index) noexcept;
     // Doesn't preserve the order, runs in O(1)
-    void erase_swap_last(size_t index);
+    void erase_swap_last(size_t index) noexcept;
 
-    void resize(size_t size);
-    void resize(size_t size, T const &value);
+    void resize(size_t size) noexcept;
+    void resize(size_t size, T const &value) noexcept;
 
-    operator Span<T>();
-    operator Span<T const>() const;
+    operator Span<T>() noexcept;
+    operator Span<T const>() const noexcept;
 
   private:
-    void reallocate(size_t capacity);
-    void free();
+    void reallocate(size_t capacity) noexcept;
+    void free() noexcept;
 
     Allocator &m_allocator;
     T *m_data{nullptr};
@@ -87,7 +88,7 @@ template <typename T> class Array
 };
 
 template <typename T>
-Array<T>::Array(Allocator &allocator, size_t initial_capacity)
+Array<T>::Array(Allocator &allocator, size_t initial_capacity) noexcept
 : m_allocator{allocator}
 {
     static_assert(
@@ -101,7 +102,7 @@ Array<T>::Array(Allocator &allocator, size_t initial_capacity)
 template <typename T> Array<T>::~Array() { free(); }
 
 template <typename T>
-Array<T>::Array(Array<T> &&other)
+Array<T>::Array(Array<T> &&other) noexcept
 : m_allocator{other.m_allocator}
 , m_data{other.m_data}
 , m_capacity{other.m_capacity}
@@ -110,7 +111,7 @@ Array<T>::Array(Array<T> &&other)
     other.m_data = nullptr;
 }
 
-template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other)
+template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other) noexcept
 {
     WHEELS_ASSERT(
         &m_allocator == &other.m_allocator &&
@@ -130,55 +131,65 @@ template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other)
     return *this;
 }
 
-template <typename T> T &Array<T>::operator[](size_t i)
+template <typename T> T &Array<T>::operator[](size_t i) noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> T const &Array<T>::operator[](size_t i) const
+template <typename T> T const &Array<T>::operator[](size_t i) const noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-template <typename T> T &Array<T>::front()
+template <typename T> T &Array<T>::front() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return *m_data;
 }
 
-template <typename T> T const &Array<T>::front() const
+template <typename T> T const &Array<T>::front() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return *m_data;
 }
 
-template <typename T> T &Array<T>::back()
+template <typename T> T &Array<T>::back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 }
 
-template <typename T> T const &Array<T>::back() const
+template <typename T> T const &Array<T>::back() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 }
 
-template <typename T> T *Array<T>::data() { return m_data; }
+template <typename T> T *Array<T>::data() noexcept { return m_data; }
 
-template <typename T> T const *Array<T>::data() const { return m_data; }
+template <typename T> T const *Array<T>::data() const noexcept
+{
+    return m_data;
+}
 
-template <typename T> T *Array<T>::begin() { return m_data; }
+template <typename T> T *Array<T>::begin() noexcept { return m_data; }
 
-template <typename T> T const *Array<T>::begin() const { return m_data; }
+template <typename T> T const *Array<T>::begin() const noexcept
+{
+    return m_data;
+}
 
-template <typename T> T *Array<T>::end() { return m_data + m_size; }
+template <typename T> T *Array<T>::end() noexcept { return m_data + m_size; }
 
-template <typename T> T const *Array<T>::end() const { return m_data + m_size; }
+template <typename T> T const *Array<T>::end() const noexcept
+{
+    return m_data + m_size;
+}
 
-template <typename T> Span<T> Array<T>::span(size_t begin_i, size_t end_i)
+template <typename T>
+Span<T> Array<T>::span(size_t begin_i, size_t end_i) noexcept
 {
     WHEELS_ASSERT(begin_i < m_size);
     WHEELS_ASSERT(end_i <= m_size);
@@ -186,26 +197,32 @@ template <typename T> Span<T> Array<T>::span(size_t begin_i, size_t end_i)
 }
 
 template <typename T>
-Span<T const> Array<T>::span(size_t begin_i, size_t end_i) const
+Span<T const> Array<T>::span(size_t begin_i, size_t end_i) const noexcept
 {
     WHEELS_ASSERT(begin_i < m_size);
     WHEELS_ASSERT(end_i <= m_size);
     return Span{begin() + begin_i, end_i - begin_i};
 }
 
-template <typename T> bool Array<T>::empty() const { return m_size == 0; }
+template <typename T> bool Array<T>::empty() const noexcept
+{
+    return m_size == 0;
+}
 
-template <typename T> size_t Array<T>::size() const { return m_size; }
+template <typename T> size_t Array<T>::size() const noexcept { return m_size; }
 
-template <typename T> void Array<T>::reserve(size_t capacity)
+template <typename T> void Array<T>::reserve(size_t capacity) noexcept
 {
     if (capacity > m_capacity)
         reallocate(capacity);
 }
 
-template <typename T> size_t Array<T>::capacity() const { return m_capacity; }
+template <typename T> size_t Array<T>::capacity() const noexcept
+{
+    return m_capacity;
+}
 
-template <typename T> void Array<T>::clear()
+template <typename T> void Array<T>::clear() noexcept
 {
     if constexpr (!std::is_trivially_destructible_v<T>)
     {
@@ -218,7 +235,7 @@ template <typename T> void Array<T>::clear()
 template <typename T>
 template <typename U>
     requires SameAs<U, T>
-void Array<T>::push_back(U &&value)
+void Array<T>::push_back(U &&value) noexcept
 {
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
@@ -228,7 +245,7 @@ void Array<T>::push_back(U &&value)
 
 template <typename T>
 template <typename... Args>
-void Array<T>::emplace_back(Args &&...args)
+void Array<T>::emplace_back(Args &&...args) noexcept
 {
     if (m_size == m_capacity)
         reallocate(m_capacity * 2);
@@ -236,7 +253,7 @@ void Array<T>::emplace_back(Args &&...args)
     new (m_data + m_size++) T{WHEELS_FWD(args)...};
 }
 
-template <typename T> void Array<T>::extend(Span<const T> values)
+template <typename T> void Array<T>::extend(Span<const T> values) noexcept
 {
     const size_t required_size = m_size + values.size();
     if (required_size > m_capacity)
@@ -257,14 +274,14 @@ template <typename T> void Array<T>::extend(Span<const T> values)
     m_size += values.size();
 }
 
-template <typename T> T Array<T>::pop_back()
+template <typename T> T Array<T>::pop_back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     m_size--;
     return WHEELS_MOV(m_data[m_size]);
 }
 
-template <typename T> void Array<T>::erase(size_t index)
+template <typename T> void Array<T>::erase(size_t index) noexcept
 {
     WHEELS_ASSERT(index < m_size);
 
@@ -282,7 +299,7 @@ template <typename T> void Array<T>::erase(size_t index)
     m_size--;
 }
 
-template <typename T> void Array<T>::erase_swap_last(size_t index)
+template <typename T> void Array<T>::erase_swap_last(size_t index) noexcept
 {
     WHEELS_ASSERT(index < m_size);
 
@@ -300,7 +317,7 @@ template <typename T> void Array<T>::erase_swap_last(size_t index)
     m_size--;
 }
 
-template <typename T> void Array<T>::resize(size_t size)
+template <typename T> void Array<T>::resize(size_t size) noexcept
 {
     if (size < m_size)
     {
@@ -323,7 +340,8 @@ template <typename T> void Array<T>::resize(size_t size)
     }
 }
 
-template <typename T> void Array<T>::resize(size_t size, T const &value)
+template <typename T>
+void Array<T>::resize(size_t size, T const &value) noexcept
 {
     if (size < m_size)
     {
@@ -346,7 +364,7 @@ template <typename T> void Array<T>::resize(size_t size, T const &value)
     }
 }
 
-template <typename T> void Array<T>::reallocate(size_t capacity)
+template <typename T> void Array<T>::reallocate(size_t capacity) noexcept
 {
     if (capacity == 0)
         capacity = 4;
@@ -370,7 +388,7 @@ template <typename T> void Array<T>::reallocate(size_t capacity)
     m_capacity = capacity;
 }
 
-template <typename T> void Array<T>::free()
+template <typename T> void Array<T>::free() noexcept
 {
     if (m_data != nullptr)
     {
@@ -380,12 +398,12 @@ template <typename T> void Array<T>::free()
     }
 }
 
-template <typename T> Array<T>::operator Span<T>()
+template <typename T> Array<T>::operator Span<T>() noexcept
 {
     return Span{m_data, m_size};
 }
 
-template <typename T> Array<T>::operator Span<T const>() const
+template <typename T> Array<T>::operator Span<T const>() const noexcept
 {
     return Span<T const>{m_data, m_size};
 }

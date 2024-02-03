@@ -14,7 +14,10 @@
 namespace wheels
 {
 
-template <typename T> void scope_dtor_call(void *ptr) { ((T *)ptr)->~T(); }
+template <typename T> void scope_dtor_call(void *ptr) noexcept
+{
+    ((T *)ptr)->~T();
+}
 
 struct ScopeData
 {
@@ -29,30 +32,30 @@ struct ScopeData
 class ScopedScratch : public Allocator
 {
   public:
-    ScopedScratch(LinearAllocator &allocator);
+    ScopedScratch(LinearAllocator &allocator) noexcept;
 
     virtual ~ScopedScratch();
 
     ScopedScratch(ScopedScratch const &) = delete;
-    ScopedScratch(ScopedScratch &&other);
+    ScopedScratch(ScopedScratch &&other) noexcept;
     ScopedScratch &operator=(ScopedScratch const &) = delete;
     ScopedScratch &operator=(ScopedScratch &&) = delete;
 
-    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
-    virtual void deallocate(void *ptr) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
+    virtual void deallocate(void *ptr) noexcept override;
 
-    [[nodiscard]] ScopedScratch child_scope();
+    [[nodiscard]] ScopedScratch child_scope() noexcept;
 
-    template <typename T> [[nodiscard]] T *allocate_pod();
+    template <typename T> [[nodiscard]] T *allocate_pod() noexcept;
     template <typename T, typename... Args>
-    [[nodiscard]] T *allocate_object(Args &&...args);
+    [[nodiscard]] T *allocate_object(Args &&...args) noexcept;
 
 #ifdef WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
     void *peek() const;
 #endif // WHEELS_SCOPED_SCRATCH_TESTS_INTERNAL
 
   private:
-    template <typename T> static void dtor_call(void *ptr);
+    template <typename T> static void dtor_call(void *ptr) noexcept;
 
     LinearAllocator &m_allocator;
     void *m_alloc_start{nullptr};
@@ -62,7 +65,7 @@ class ScopedScratch : public Allocator
     ScopeData *m_objects{nullptr};
 };
 
-inline ScopedScratch::ScopedScratch(LinearAllocator &allocator)
+inline ScopedScratch::ScopedScratch(LinearAllocator &allocator) noexcept
 : m_allocator{allocator}
 , m_alloc_start{allocator.peek()}
 {
@@ -86,7 +89,7 @@ inline ScopedScratch::~ScopedScratch()
     }
 };
 
-inline ScopedScratch::ScopedScratch(ScopedScratch &&other)
+inline ScopedScratch::ScopedScratch(ScopedScratch &&other) noexcept
 : m_allocator{other.m_allocator}
 , m_alloc_start{other.m_alloc_start}
 , m_parent_scope{other.m_parent_scope}
@@ -96,17 +99,17 @@ inline ScopedScratch::ScopedScratch(ScopedScratch &&other)
     other.m_alloc_start = nullptr;
 };
 
-inline void *ScopedScratch::allocate(size_t num_bytes)
+inline void *ScopedScratch::allocate(size_t num_bytes) noexcept
 {
     return m_allocator.allocate(num_bytes);
 }
 
-inline void ScopedScratch::deallocate(void *ptr)
+inline void ScopedScratch::deallocate(void *ptr) noexcept
 {
     m_allocator.deallocate(ptr);
 }
 
-inline ScopedScratch ScopedScratch::child_scope()
+inline ScopedScratch ScopedScratch::child_scope() noexcept
 {
     WHEELS_ASSERT(
         !m_has_child_scope && "Tried to create a child scope from a "
@@ -120,7 +123,7 @@ inline ScopedScratch ScopedScratch::child_scope()
     return scope;
 }
 
-template <typename T> T *ScopedScratch::allocate_pod()
+template <typename T> T *ScopedScratch::allocate_pod() noexcept
 {
     static_assert(
         alignof(T) <= alignof(std::max_align_t) &&
@@ -133,7 +136,7 @@ template <typename T> T *ScopedScratch::allocate_pod()
 }
 
 template <typename T, typename... Args>
-T *ScopedScratch::allocate_object(Args &&...args)
+T *ScopedScratch::allocate_object(Args &&...args) noexcept
 {
     static_assert(
         alignof(T) <= alignof(std::max_align_t) &&

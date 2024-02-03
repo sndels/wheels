@@ -25,100 +25,104 @@ namespace wheels
 class String
 {
   public:
-    String(Allocator &allocator, size_t initial_capacity = 16);
-    String(Allocator &allocator, char const *str);
-    String(Allocator &allocator, StrSpan str);
+    String(Allocator &allocator, size_t initial_capacity = 16) noexcept;
+    String(Allocator &allocator, char const *str) noexcept;
+    String(Allocator &allocator, StrSpan str) noexcept;
     ~String();
 
     String(String const &) = delete;
-    String(String &&other);
+    String(String &&other) noexcept;
     String &operator=(String const &) = delete;
-    String &operator=(String &&other);
+    String &operator=(String &&other) noexcept;
 
-    [[nodiscard]] char &operator[](size_t i);
-    [[nodiscard]] char const &operator[](size_t i) const;
-    [[nodiscard]] char &front();
-    [[nodiscard]] char const &front() const;
-    [[nodiscard]] char &back();
-    [[nodiscard]] char const &back() const;
-    [[nodiscard]] char *data();
-    [[nodiscard]] char const *data() const;
-    [[nodiscard]] char *c_str();
-    [[nodiscard]] char const *c_str() const;
+    [[nodiscard]] char &operator[](size_t i) noexcept;
+    [[nodiscard]] char const &operator[](size_t i) const noexcept;
+    [[nodiscard]] char &front() noexcept;
+    [[nodiscard]] char const &front() const noexcept;
+    [[nodiscard]] char &back() noexcept;
+    [[nodiscard]] char const &back() const noexcept;
+    [[nodiscard]] char *data() noexcept;
+    [[nodiscard]] char const *data() const noexcept;
+    [[nodiscard]] char *c_str() noexcept;
+    [[nodiscard]] char const *c_str() const noexcept;
 
-    [[nodiscard]] char *begin();
-    [[nodiscard]] char const *begin() const;
-    [[nodiscard]] char *end();
-    [[nodiscard]] char const *end() const;
+    [[nodiscard]] char *begin() noexcept;
+    [[nodiscard]] char const *begin() const noexcept;
+    [[nodiscard]] char *end() noexcept;
+    [[nodiscard]] char const *end() const noexcept;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] size_t size() const noexcept;
     // Reserves capacity characters plus a final null
-    void reserve(size_t capacity);
+    void reserve(size_t capacity) noexcept;
     // Doesn't include the final null
-    [[nodiscard]] size_t capacity() const;
+    [[nodiscard]] size_t capacity() const noexcept;
 
-    void clear();
+    void clear() noexcept;
 
-    void push_back(char ch);
-    char pop_back();
+    void push_back(char ch) noexcept;
+    char pop_back() noexcept;
 
-    void resize(size_t size, char ch = '\0');
+    void resize(size_t size, char ch = '\0') noexcept;
 
     // No operator+ as it returns a new String and reusing the internal
     // allocator would make the lifetime of the new thing ambiguous. Use
     // concat() instead. Have extend() instead of operator+= to just not have
     // overloaded math operators.
 
-    friend String concat(Allocator &allocator, StrSpan first, StrSpan second);
     friend String concat(
-        Allocator &allocator, StrSpan first, char const *second);
+        Allocator &allocator, StrSpan first, StrSpan second) noexcept;
     friend String concat(
-        Allocator &allocator, char const *first, StrSpan second);
+        Allocator &allocator, StrSpan first, char const *second) noexcept;
+    friend String concat(
+        Allocator &allocator, char const *first, StrSpan second) noexcept;
 
-    String &extend(StrSpan str);
-    String &extend(char const *str);
+    String &extend(StrSpan str) noexcept;
+    String &extend(char const *str) noexcept;
 
-    [[nodiscard]] Optional<size_t> find_first(StrSpan substr) const;
-    [[nodiscard]] Optional<size_t> find_first(char const *substr) const;
-    [[nodiscard]] Optional<size_t> find_first(char ch) const;
+    [[nodiscard]] Optional<size_t> find_first(StrSpan substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_first(
+        char const *substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_first(char ch) const noexcept;
 
-    [[nodiscard]] Optional<size_t> find_last(StrSpan substr) const;
-    [[nodiscard]] Optional<size_t> find_last(char const *substr) const;
-    [[nodiscard]] Optional<size_t> find_last(char ch) const;
+    [[nodiscard]] Optional<size_t> find_last(StrSpan substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_last(char const *substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_last(char ch) const noexcept;
 
-    [[nodiscard]] bool contains(StrSpan substr) const;
-    [[nodiscard]] bool contains(char const *substr) const;
-    [[nodiscard]] bool contains(char ch) const;
+    [[nodiscard]] bool contains(StrSpan substr) const noexcept;
+    [[nodiscard]] bool contains(char const *substr) const noexcept;
+    [[nodiscard]] bool contains(char ch) const noexcept;
 
-    [[nodiscard]] bool starts_with(StrSpan substr) const;
-    [[nodiscard]] bool starts_with(char const *substr) const;
-    [[nodiscard]] bool starts_with(char ch) const;
+    [[nodiscard]] bool starts_with(StrSpan substr) const noexcept;
+    [[nodiscard]] bool starts_with(char const *substr) const noexcept;
+    [[nodiscard]] bool starts_with(char ch) const noexcept;
 
-    [[nodiscard]] bool ends_with(StrSpan substr) const;
-    [[nodiscard]] bool ends_with(char const *substr) const;
-    [[nodiscard]] bool ends_with(char ch) const;
+    [[nodiscard]] bool ends_with(StrSpan substr) const noexcept;
+    [[nodiscard]] bool ends_with(char const *substr) const noexcept;
+    [[nodiscard]] bool ends_with(char ch) const noexcept;
 
     // Require explicit allocator for split for the same reason as concat()
 
     [[nodiscard]] Array<StrSpan> split(
-        Allocator &allocator, StrSpan substr) const;
+        Allocator &allocator, StrSpan substr) const noexcept;
     [[nodiscard]] Array<StrSpan> split(
-        Allocator &allocator, char const *substr) const;
-    [[nodiscard]] Array<StrSpan> split(Allocator &allocator, char ch) const;
+        Allocator &allocator, char const *substr) const noexcept;
+    [[nodiscard]] Array<StrSpan> split(
+        Allocator &allocator, char ch) const noexcept;
 
-    operator StrSpan() const;
-    StrSpan span(size_t begin, size_t end) const;
+    operator StrSpan() const noexcept;
+    StrSpan span(size_t begin, size_t end) const noexcept;
 
   private:
-    void reallocate(size_t capacity);
-    void free();
+    void reallocate(size_t capacity) noexcept;
+    void free() noexcept;
 
-    [[nodiscard]] static StrSpan span(char const *str);
+    [[nodiscard]] static StrSpan span(char const *str) noexcept;
 
     [[nodiscard]] static Optional<size_t> find_first(
-        StrSpan from, StrSpan substr);
-    [[nodiscard]] static Optional<size_t> find_first(StrSpan from, char ch);
+        StrSpan from, StrSpan substr) noexcept;
+    [[nodiscard]] static Optional<size_t> find_first(
+        StrSpan from, char ch) noexcept;
 
     Allocator &m_allocator;
     char *m_data{nullptr};
@@ -126,7 +130,7 @@ class String
     size_t m_size{0};
 };
 
-inline String::String(Allocator &allocator, size_t initial_capacity)
+inline String::String(Allocator &allocator, size_t initial_capacity) noexcept
 : m_allocator{allocator}
 {
     if (initial_capacity == 0)
@@ -135,7 +139,7 @@ inline String::String(Allocator &allocator, size_t initial_capacity)
     m_data[0] = '\0';
 }
 
-inline String::String(Allocator &allocator, char const *str)
+inline String::String(Allocator &allocator, char const *str) noexcept
 : m_allocator{allocator}
 {
     size_t const len = strlen(str);
@@ -148,7 +152,7 @@ inline String::String(Allocator &allocator, char const *str)
     m_size = len;
 }
 
-inline String::String(Allocator &allocator, StrSpan str)
+inline String::String(Allocator &allocator, StrSpan str) noexcept
 : m_allocator{allocator}
 {
     reallocate(str.size() + 1);
@@ -161,7 +165,7 @@ inline String::String(Allocator &allocator, StrSpan str)
 
 inline String::~String() { free(); }
 
-inline String::String(String &&other)
+inline String::String(String &&other) noexcept
 : m_allocator{other.m_allocator}
 , m_data{other.m_data}
 , m_capacity{other.m_capacity}
@@ -170,7 +174,7 @@ inline String::String(String &&other)
     other.m_data = nullptr;
 }
 
-inline String &String::operator=(String &&other)
+inline String &String::operator=(String &&other) noexcept
 {
     WHEELS_ASSERT(
         &m_allocator == &other.m_allocator &&
@@ -190,81 +194,81 @@ inline String &String::operator=(String &&other)
     return *this;
 }
 
-inline char &String::operator[](size_t i)
+inline char &String::operator[](size_t i) noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-inline char const &String::operator[](size_t i) const
+inline char const &String::operator[](size_t i) const noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return m_data[i];
 }
 
-inline char &String::front()
+inline char &String::front() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[0];
 }
 
-inline char const &String::front() const
+inline char const &String::front() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[0];
 }
 
-inline char &String::back()
+inline char &String::back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 };
 
-inline char const &String::back() const
+inline char const &String::back() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return m_data[m_size - 1];
 };
 
-inline char *String::data() { return m_data; }
+inline char *String::data() noexcept { return m_data; }
 
-inline char const *String::data() const { return m_data; }
+inline char const *String::data() const noexcept { return m_data; }
 
-inline char *String::c_str() { return m_data; }
+inline char *String::c_str() noexcept { return m_data; }
 
-inline char const *String::c_str() const { return m_data; }
+inline char const *String::c_str() const noexcept { return m_data; }
 
-inline char *String::begin() { return m_data; }
+inline char *String::begin() noexcept { return m_data; }
 
-inline char const *String::begin() const { return m_data; }
+inline char const *String::begin() const noexcept { return m_data; }
 
-inline char *String::end() { return m_data + m_size; }
+inline char *String::end() noexcept { return m_data + m_size; }
 
-inline char const *String::end() const { return m_data + m_size; }
+inline char const *String::end() const noexcept { return m_data + m_size; }
 
-inline bool String::empty() const { return m_size == 0; }
+inline bool String::empty() const noexcept { return m_size == 0; }
 
-inline size_t String::size() const { return m_size; }
+inline size_t String::size() const noexcept { return m_size; }
 
-inline void String::reserve(size_t capacity)
+inline void String::reserve(size_t capacity) noexcept
 {
     if (capacity + 1 > m_capacity)
         reallocate(capacity + 1);
 }
 
-inline size_t String::capacity() const
+inline size_t String::capacity() const noexcept
 {
     // Don't count the extra null slot
     return m_capacity - 1;
 }
 
-inline void String::clear()
+inline void String::clear() noexcept
 {
     m_data[0] = '\0';
     m_size = 0;
 }
 
-inline void String::push_back(char ch)
+inline void String::push_back(char ch) noexcept
 {
     if (m_size == m_capacity - 1)
         reallocate(m_capacity * 2);
@@ -273,7 +277,7 @@ inline void String::push_back(char ch)
     m_data[m_size] = '\0';
 }
 
-inline char String::pop_back()
+inline char String::pop_back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     m_size--;
@@ -282,7 +286,7 @@ inline char String::pop_back()
     return ret;
 }
 
-inline void String::resize(size_t size, char ch)
+inline void String::resize(size_t size, char ch) noexcept
 {
     if (size <= m_size)
         m_size = size;
@@ -296,7 +300,7 @@ inline void String::resize(size_t size, char ch)
     m_data[m_size] = '\0';
 }
 
-inline String &String::extend(StrSpan str)
+inline String &String::extend(StrSpan str) noexcept
 {
     reserve(m_size + str.size());
 
@@ -307,24 +311,27 @@ inline String &String::extend(StrSpan str)
     return *this;
 }
 
-inline String &String::extend(char const *str) { return extend(span(str)); }
+inline String &String::extend(char const *str) noexcept
+{
+    return extend(span(str));
+}
 
-inline Optional<size_t> String::find_first(StrSpan substr) const
+inline Optional<size_t> String::find_first(StrSpan substr) const noexcept
 {
     return find_first(StrSpan(*this), substr);
 }
 
-inline Optional<size_t> String::find_first(char const *substr) const
+inline Optional<size_t> String::find_first(char const *substr) const noexcept
 {
     return find_first(span(substr));
 }
 
-inline Optional<size_t> String::find_first(char ch) const
+inline Optional<size_t> String::find_first(char ch) const noexcept
 {
     return find_first(StrSpan{*this}, ch);
 }
 
-inline Optional<size_t> String::find_last(StrSpan substr) const
+inline Optional<size_t> String::find_last(StrSpan substr) const noexcept
 {
     if (m_size < substr.size())
         return {};
@@ -344,12 +351,12 @@ inline Optional<size_t> String::find_last(StrSpan substr) const
     return {};
 }
 
-inline Optional<size_t> String::find_last(char const *substr) const
+inline Optional<size_t> String::find_last(char const *substr) const noexcept
 {
     return find_last(span(substr));
 }
 
-inline Optional<size_t> String::find_last(char ch) const
+inline Optional<size_t> String::find_last(char ch) const noexcept
 {
     for (size_t i = m_size; i > 0; --i)
     {
@@ -359,22 +366,22 @@ inline Optional<size_t> String::find_last(char ch) const
     return {};
 }
 
-inline bool String::contains(StrSpan substr) const
+inline bool String::contains(StrSpan substr) const noexcept
 {
     return find_first(substr).has_value();
 }
 
-inline bool String::contains(char const *substr) const
+inline bool String::contains(char const *substr) const noexcept
 {
     return find_first(substr).has_value();
 }
 
-inline bool String::contains(char ch) const
+inline bool String::contains(char ch) const noexcept
 {
     return find_first(ch).has_value();
 }
 
-inline bool String::starts_with(StrSpan substr) const
+inline bool String::starts_with(StrSpan substr) const noexcept
 {
     Optional<size_t> const found = find_first(substr);
     if (found.has_value())
@@ -383,12 +390,12 @@ inline bool String::starts_with(StrSpan substr) const
     return false;
 }
 
-inline bool String::starts_with(char const *substr) const
+inline bool String::starts_with(char const *substr) const noexcept
 {
     return starts_with(span(substr));
 }
 
-inline bool String::starts_with(char ch) const
+inline bool String::starts_with(char ch) const noexcept
 {
     Optional<size_t> const found = find_first(ch);
     if (found.has_value())
@@ -397,7 +404,7 @@ inline bool String::starts_with(char ch) const
     return false;
 }
 
-inline bool String::ends_with(StrSpan substr) const
+inline bool String::ends_with(StrSpan substr) const noexcept
 {
     Optional<size_t> const found = find_last(substr);
     if (found.has_value())
@@ -406,12 +413,12 @@ inline bool String::ends_with(StrSpan substr) const
     return false;
 }
 
-inline bool String::ends_with(char const *substr) const
+inline bool String::ends_with(char const *substr) const noexcept
 {
     return ends_with(span(substr));
 }
 
-inline bool String::ends_with(char ch) const
+inline bool String::ends_with(char ch) const noexcept
 {
     Optional<size_t> const found = find_last(ch);
     if (found.has_value())
@@ -420,7 +427,8 @@ inline bool String::ends_with(char ch) const
     return false;
 }
 
-inline Array<StrSpan> String::split(Allocator &allocator, StrSpan substr) const
+inline Array<StrSpan> String::split(
+    Allocator &allocator, StrSpan substr) const noexcept
 {
     Array<StrSpan> spans{allocator, 16};
 
@@ -445,12 +453,13 @@ inline Array<StrSpan> String::split(Allocator &allocator, StrSpan substr) const
 }
 
 inline Array<StrSpan> String::split(
-    Allocator &allocator, char const *substr) const
+    Allocator &allocator, char const *substr) const noexcept
 {
     return split(allocator, span(substr));
 }
 
-inline Array<StrSpan> String::split(Allocator &allocator, char ch) const
+inline Array<StrSpan> String::split(
+    Allocator &allocator, char ch) const noexcept
 {
     Array<StrSpan> spans{allocator, 16};
 
@@ -474,7 +483,7 @@ inline Array<StrSpan> String::split(Allocator &allocator, char ch) const
     return spans;
 }
 
-inline void String::reallocate(size_t capacity)
+inline void String::reallocate(size_t capacity) noexcept
 {
     char *data = (char *)m_allocator.allocate(capacity * sizeof(char));
     WHEELS_ASSERT(data != nullptr);
@@ -489,7 +498,7 @@ inline void String::reallocate(size_t capacity)
     m_capacity = capacity;
 }
 
-inline void String::free()
+inline void String::free() noexcept
 {
     if (m_data != nullptr)
     {
@@ -498,9 +507,10 @@ inline void String::free()
     }
 }
 
-inline StrSpan String::span(char const *str) { return StrSpan{str}; }
+inline StrSpan String::span(char const *str) noexcept { return StrSpan{str}; }
 
-inline Optional<size_t> String::find_first(StrSpan from, StrSpan substr)
+inline Optional<size_t> String::find_first(
+    StrSpan from, StrSpan substr) noexcept
 {
     if (from.size() < substr.size())
         return {};
@@ -521,7 +531,7 @@ inline Optional<size_t> String::find_first(StrSpan from, StrSpan substr)
     return {};
 }
 
-inline Optional<size_t> String::find_first(StrSpan from, char ch)
+inline Optional<size_t> String::find_first(StrSpan from, char ch) noexcept
 {
     size_t const size = from.size();
     for (size_t i = 0; i < size; ++i)
@@ -532,46 +542,50 @@ inline Optional<size_t> String::find_first(StrSpan from, char ch)
     return {};
 }
 
-inline String::operator StrSpan() const { return StrSpan{m_data, m_size}; }
+inline String::operator StrSpan() const noexcept
+{
+    return StrSpan{m_data, m_size};
+}
 
-inline StrSpan String::span(size_t begin, size_t end) const
+inline StrSpan String::span(size_t begin, size_t end) const noexcept
 {
     WHEELS_ASSERT(begin <= end);
     WHEELS_ASSERT(end <= m_size);
     return StrSpan{m_data + begin, end - begin};
 }
 
-static inline bool operator==(String const &lhs, String const &rhs)
+static inline bool operator==(String const &lhs, String const &rhs) noexcept
 {
     return StrSpan{lhs.c_str(), lhs.size()} == StrSpan{rhs.c_str(), rhs.size()};
 }
 
-static inline bool operator!=(String const &lhs, String const &rhs)
+static inline bool operator!=(String const &lhs, String const &rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-static inline bool operator==(String const &lhs, char const *rhs)
+static inline bool operator==(String const &lhs, char const *rhs) noexcept
 {
     return StrSpan{lhs.c_str(), lhs.size()} == StrSpan{rhs};
 }
 
-static inline bool operator!=(String const &lhs, char const *rhs)
+static inline bool operator!=(String const &lhs, char const *rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-static inline bool operator==(char const *lhs, String const &rhs)
+static inline bool operator==(char const *lhs, String const &rhs) noexcept
 {
     return StrSpan{lhs} == StrSpan{rhs.c_str(), rhs.size()};
 }
 
-static inline bool operator!=(char const *lhs, String const &rhs)
+static inline bool operator!=(char const *lhs, String const &rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-inline String concat(Allocator &allocator, StrSpan first, StrSpan second)
+inline String concat(
+    Allocator &allocator, StrSpan first, StrSpan second) noexcept
 {
     String ret{allocator, first.size() + second.size()};
 
@@ -584,12 +598,14 @@ inline String concat(Allocator &allocator, StrSpan first, StrSpan second)
     return ret;
 }
 
-inline String concat(Allocator &allocator, StrSpan first, char const *second)
+inline String concat(
+    Allocator &allocator, StrSpan first, char const *second) noexcept
 {
     return concat(allocator, first, String::span(second));
 }
 
-inline String concat(Allocator &allocator, char const *first, StrSpan second)
+inline String concat(
+    Allocator &allocator, char const *first, StrSpan second) noexcept
 {
     return concat(allocator, String::span(first), second);
 }

@@ -28,14 +28,14 @@ template <typename T, class Hasher = Hash<T>> class HashSet
   public:
     struct ConstIterator
     {
-        ConstIterator &operator++();
-        ConstIterator &operator++(int);
-        [[nodiscard]] T const &operator*() const;
-        [[nodiscard]] T const *operator->() const;
+        ConstIterator &operator++() noexcept;
+        ConstIterator &operator++(int) noexcept;
+        [[nodiscard]] T const &operator*() const noexcept;
+        [[nodiscard]] T const *operator->() const noexcept;
         [[nodiscard]] bool operator!=(
-            HashSet<T, Hasher>::ConstIterator const &other) const;
+            HashSet<T, Hasher>::ConstIterator const &other) const noexcept;
         [[nodiscard]] bool operator==(
-            HashSet<T, Hasher>::ConstIterator const &other) const;
+            HashSet<T, Hasher>::ConstIterator const &other) const noexcept;
 
         HashSet const &set;
         size_t pos{0};
@@ -44,38 +44,38 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     friend struct ConstIterator;
 
   public:
-    HashSet(Allocator &allocator, size_t initial_capacity = 0);
+    HashSet(Allocator &allocator, size_t initial_capacity = 0) noexcept;
     ~HashSet();
 
     HashSet(HashSet<T, Hasher> const &other) = delete;
-    HashSet(HashSet<T, Hasher> &&other);
+    HashSet(HashSet<T, Hasher> &&other) noexcept;
     HashSet<T, Hasher> &operator=(HashSet<T, Hasher> const &other) = delete;
-    HashSet<T, Hasher> &operator=(HashSet<T, Hasher> &&other);
+    HashSet<T, Hasher> &operator=(HashSet<T, Hasher> &&other) noexcept;
 
-    [[nodiscard]] ConstIterator begin() const;
-    [[nodiscard]] ConstIterator end() const;
+    [[nodiscard]] ConstIterator begin() const noexcept;
+    [[nodiscard]] ConstIterator end() const noexcept;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] size_t capacity() const;
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] size_t size() const noexcept;
+    [[nodiscard]] size_t capacity() const noexcept;
 
-    [[nodiscard]] bool contains(T const &value) const;
-    [[nodiscard]] ConstIterator find(T const &value) const;
+    [[nodiscard]] bool contains(T const &value) const noexcept;
+    [[nodiscard]] ConstIterator find(T const &value) const noexcept;
 
-    void clear();
+    void clear() noexcept;
 
     template <typename U>
     // Let's be pedantic and disallow implicit conversions
         requires SameAs<U, T>
-    void insert(U &&value);
+    void insert(U &&value) noexcept;
 
-    void remove(T const &value);
+    void remove(T const &value) noexcept;
 
   private:
-    [[nodiscard]] bool is_over_max_load() const;
+    [[nodiscard]] bool is_over_max_load() const noexcept;
 
-    void grow(size_t capacity);
-    void free();
+    void grow(size_t capacity) noexcept;
+    void free() noexcept;
 
     enum class Ctrl : uint8_t
     {
@@ -85,17 +85,17 @@ template <typename T, class Hasher = Hash<T>> class HashSet
         // Full = 0b0XXXXXXX, H2 hash
     };
     [[nodiscard]] static constexpr bool s_empty_pos(
-        uint8_t const *metadata, size_t pos)
+        uint8_t const *metadata, size_t pos) noexcept
     {
         return (metadata[pos] & (uint8_t)Ctrl::Empty) == (uint8_t)Ctrl::Empty;
     }
 
-    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash)
+    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash) noexcept
     {
         return hash >> 7;
     }
 
-    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash)
+    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash) noexcept
     {
         return (uint8_t)(hash & 0x7F);
     }
@@ -109,7 +109,8 @@ template <typename T, class Hasher = Hash<T>> class HashSet
 };
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::HashSet(Allocator &allocator, size_t initial_capacity)
+HashSet<T, Hasher>::HashSet(
+    Allocator &allocator, size_t initial_capacity) noexcept
 : m_allocator{allocator}
 {
     static_assert(
@@ -123,7 +124,7 @@ HashSet<T, Hasher>::HashSet(Allocator &allocator, size_t initial_capacity)
 template <typename T, class Hasher> HashSet<T, Hasher>::~HashSet() { free(); }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other)
+HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other) noexcept
 : m_allocator{other.m_allocator}
 , m_data{other.m_data}
 , m_metadata{other.m_metadata}
@@ -135,7 +136,8 @@ HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other)
 }
 
 template <typename T, class Hasher>
-HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
+HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(
+    HashSet<T, Hasher> &&other) noexcept
 {
     WHEELS_ASSERT(
         &m_allocator == &other.m_allocator &&
@@ -158,7 +160,8 @@ HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(HashSet<T, Hasher> &&other)
 }
 
 template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
+typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin()
+    const noexcept
 {
     ConstIterator iter{
         .set = *this,
@@ -176,7 +179,8 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::begin() const
 }
 
 template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end() const
+typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end()
+    const noexcept
 {
     return ConstIterator{
         .set = *this,
@@ -184,30 +188,33 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::end() const
     };
 }
 
-template <typename T, class Hasher> bool HashSet<T, Hasher>::empty() const
+template <typename T, class Hasher>
+bool HashSet<T, Hasher>::empty() const noexcept
 {
     return m_size == 0;
 }
 
-template <typename T, class Hasher> size_t HashSet<T, Hasher>::size() const
+template <typename T, class Hasher>
+size_t HashSet<T, Hasher>::size() const noexcept
 {
     return m_size;
 }
 
-template <typename T, class Hasher> size_t HashSet<T, Hasher>::capacity() const
+template <typename T, class Hasher>
+size_t HashSet<T, Hasher>::capacity() const noexcept
 {
     return m_capacity;
 }
 
 template <typename T, class Hasher>
-bool HashSet<T, Hasher>::contains(T const &value) const
+bool HashSet<T, Hasher>::contains(T const &value) const noexcept
 {
     return find(value) != end();
 }
 
 template <typename T, class Hasher>
 typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
-    T const &value) const
+    T const &value) const noexcept
 {
     if (m_size == 0)
         return end();
@@ -237,7 +244,7 @@ typename HashSet<T, Hasher>::ConstIterator HashSet<T, Hasher>::find(
     return end();
 }
 
-template <typename T, class Hasher> void HashSet<T, Hasher>::clear()
+template <typename T, class Hasher> void HashSet<T, Hasher>::clear() noexcept
 {
     if (m_size > 0)
     {
@@ -256,7 +263,7 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::clear()
 template <typename T, class Hasher>
 template <typename U>
     requires SameAs<U, T>
-void HashSet<T, Hasher>::insert(U &&value)
+void HashSet<T, Hasher>::insert(U &&value) noexcept
 {
     if (is_over_max_load())
         grow(m_capacity * 2);
@@ -283,7 +290,7 @@ void HashSet<T, Hasher>::insert(U &&value)
 }
 
 template <typename T, class Hasher>
-void HashSet<T, Hasher>::remove(T const &value)
+void HashSet<T, Hasher>::remove(T const &value) noexcept
 {
     if (m_size == 0)
         return;
@@ -320,7 +327,7 @@ void HashSet<T, Hasher>::remove(T const &value)
 }
 
 template <typename T, class Hasher>
-bool HashSet<T, Hasher>::is_over_max_load() const
+bool HashSet<T, Hasher>::is_over_max_load() const noexcept
 {
     // Magic factor from the talk, matching the arbitrary offset SSE version
     // as reading one metadata byte at a time is basically the same
@@ -329,7 +336,7 @@ bool HashSet<T, Hasher>::is_over_max_load() const
 }
 
 template <typename T, class Hasher>
-void HashSet<T, Hasher>::grow(size_t capacity)
+void HashSet<T, Hasher>::grow(size_t capacity) noexcept
 {
     // Our max load factor is 15/16 so we have to have 32 as the capacity to
     // ensure we always grow in time so that there always is at least 1 Empty
@@ -369,7 +376,7 @@ void HashSet<T, Hasher>::grow(size_t capacity)
     m_allocator.deallocate(old_metadata);
 }
 
-template <typename T, class Hasher> void HashSet<T, Hasher>::free()
+template <typename T, class Hasher> void HashSet<T, Hasher>::free() noexcept
 {
     if (m_data != nullptr)
     {
@@ -382,7 +389,7 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::free()
 
 template <typename T, class Hasher>
 typename HashSet<T, Hasher>::ConstIterator &HashSet<
-    T, Hasher>::ConstIterator::operator++()
+    T, Hasher>::ConstIterator::operator++() noexcept
 {
     WHEELS_ASSERT(pos < set.capacity());
     do
@@ -394,13 +401,13 @@ typename HashSet<T, Hasher>::ConstIterator &HashSet<
 
 template <typename T, class Hasher>
 typename HashSet<T, Hasher>::ConstIterator &HashSet<
-    T, Hasher>::ConstIterator::operator++(int)
+    T, Hasher>::ConstIterator::operator++(int) noexcept
 {
     return ++*this;
 }
 
 template <typename T, class Hasher>
-T const &HashSet<T, Hasher>::ConstIterator::operator*() const
+T const &HashSet<T, Hasher>::ConstIterator::operator*() const noexcept
 {
     WHEELS_ASSERT(pos < set.capacity());
     WHEELS_ASSERT(!set.s_empty_pos(set.m_metadata, pos));
@@ -409,21 +416,21 @@ T const &HashSet<T, Hasher>::ConstIterator::operator*() const
 };
 
 template <typename T, class Hasher>
-T const *HashSet<T, Hasher>::ConstIterator::operator->() const
+T const *HashSet<T, Hasher>::ConstIterator::operator->() const noexcept
 {
     return &**this;
 };
 
 template <typename T, class Hasher>
 bool HashSet<T, Hasher>::ConstIterator::operator!=(
-    HashSet<T, Hasher>::ConstIterator const &other) const
+    HashSet<T, Hasher>::ConstIterator const &other) const noexcept
 {
     return pos != other.pos;
 };
 
 template <typename T, class Hasher>
 bool HashSet<T, Hasher>::ConstIterator::operator==(
-    HashSet<T, Hasher>::ConstIterator const &other) const
+    HashSet<T, Hasher>::ConstIterator const &other) const noexcept
 {
     return pos == other.pos;
 };

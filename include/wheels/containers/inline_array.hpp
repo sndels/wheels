@@ -15,46 +15,46 @@ namespace wheels
 template <typename T, size_t N> class InlineArray
 {
   public:
-    InlineArray();
-    InlineArray(T const (&elems)[N]);
+    InlineArray() noexcept;
+    InlineArray(T const (&elems)[N]) noexcept;
     // Takes in either a single default value for the entire array or a list of
     // values filling all slots
-    InlineArray(std::initializer_list<T> elems);
+    InlineArray(std::initializer_list<T> elems) noexcept;
     ~InlineArray();
 
-    InlineArray(InlineArray<T, N> const &other);
-    InlineArray(InlineArray<T, N> &&other);
-    InlineArray<T, N> &operator=(InlineArray<T, N> const &other);
-    InlineArray<T, N> &operator=(InlineArray<T, N> &&other);
+    InlineArray(InlineArray<T, N> const &other) noexcept;
+    InlineArray(InlineArray<T, N> &&other) noexcept;
+    InlineArray<T, N> &operator=(InlineArray<T, N> const &other) noexcept;
+    InlineArray<T, N> &operator=(InlineArray<T, N> &&other) noexcept;
 
-    [[nodiscard]] T &operator[](size_t i);
-    [[nodiscard]] T const &operator[](size_t i) const;
-    [[nodiscard]] T &front();
-    [[nodiscard]] T const &front() const;
-    [[nodiscard]] T &back();
-    [[nodiscard]] T const &back() const;
-    [[nodiscard]] T *data();
-    [[nodiscard]] T const *data() const;
+    [[nodiscard]] T &operator[](size_t i) noexcept;
+    [[nodiscard]] T const &operator[](size_t i) const noexcept;
+    [[nodiscard]] T &front() noexcept;
+    [[nodiscard]] T const &front() const noexcept;
+    [[nodiscard]] T &back() noexcept;
+    [[nodiscard]] T const &back() const noexcept;
+    [[nodiscard]] T *data() noexcept;
+    [[nodiscard]] T const *data() const noexcept;
 
-    [[nodiscard]] T *begin();
-    [[nodiscard]] T const *begin() const;
-    [[nodiscard]] T *end();
-    [[nodiscard]] T const *end() const;
+    [[nodiscard]] T *begin() noexcept;
+    [[nodiscard]] T const *begin() const noexcept;
+    [[nodiscard]] T *end() noexcept;
+    [[nodiscard]] T const *end() const noexcept;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] static constexpr size_t capacity() { return N; }
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] size_t size() const noexcept;
+    [[nodiscard]] static constexpr size_t capacity() noexcept { return N; }
 
-    void clear();
-    void push_back(T const &value);
-    void push_back(T &&value);
-    template <typename... Args> void emplace_back(Args &&...args);
-    T pop_back();
-    void resize(size_t size);
-    void resize(size_t size, T const &value);
+    void clear() noexcept;
+    void push_back(T const &value) noexcept;
+    void push_back(T &&value) noexcept;
+    template <typename... Args> void emplace_back(Args &&...args) noexcept;
+    T pop_back() noexcept;
+    void resize(size_t size) noexcept;
+    void resize(size_t size, T const &value) noexcept;
 
-    operator Span<T>();
-    operator Span<T const>() const;
+    operator Span<T>() noexcept;
+    operator Span<T const>() const noexcept;
 
   private:
 #ifndef NDEBUG
@@ -65,7 +65,7 @@ template <typename T, size_t N> class InlineArray
 };
 
 template <typename T, size_t N>
-InlineArray<T, N>::InlineArray()
+InlineArray<T, N>::InlineArray() noexcept
 #ifndef NDEBUG
 : m_debug{reinterpret_cast<const T *>(&m_data)}
 #endif // NDEBUG
@@ -77,7 +77,7 @@ template <typename T, size_t N>
 InlineArray(T const (&)[N]) -> InlineArray<T, N>;
 
 template <typename T, size_t N>
-InlineArray<T, N>::InlineArray(T const (&elems)[N])
+InlineArray<T, N>::InlineArray(T const (&elems)[N]) noexcept
 :
 #ifndef NDEBUG
     m_debug{reinterpret_cast<const T *>(&m_data)}
@@ -95,7 +95,7 @@ template <typename T, typename... Ts>
 InlineArray(T const &, Ts...) -> InlineArray<T, 1 + sizeof...(Ts)>;
 
 template <typename T, size_t N>
-InlineArray<T, N>::InlineArray(std::initializer_list<T> elems)
+InlineArray<T, N>::InlineArray(std::initializer_list<T> elems) noexcept
 :
 #ifndef NDEBUG
     m_debug{reinterpret_cast<const T *>(&m_data)}
@@ -125,7 +125,7 @@ m_size{elems.size()}
 template <typename T, size_t N> InlineArray<T, N>::~InlineArray() { clear(); }
 
 template <typename T, size_t N>
-InlineArray<T, N>::InlineArray(InlineArray<T, N> const &other)
+InlineArray<T, N>::InlineArray(InlineArray<T, N> const &other) noexcept
 :
 #ifndef NDEBUG
     m_debug{reinterpret_cast<const T *>(&m_data)}
@@ -138,7 +138,7 @@ m_size{other.m_size}
 }
 
 template <typename T, size_t N>
-InlineArray<T, N>::InlineArray(InlineArray<T, N> &&other)
+InlineArray<T, N>::InlineArray(InlineArray<T, N> &&other) noexcept
 :
 #ifndef NDEBUG
     m_debug{reinterpret_cast<const T *>(&m_data)}
@@ -152,7 +152,8 @@ m_size{other.m_size}
 }
 
 template <typename T, size_t N>
-InlineArray<T, N> &InlineArray<T, N>::operator=(InlineArray<T, N> const &other)
+InlineArray<T, N> &InlineArray<T, N>::operator=(
+    InlineArray<T, N> const &other) noexcept
 {
     if (this != &other)
     {
@@ -166,7 +167,8 @@ InlineArray<T, N> &InlineArray<T, N>::operator=(InlineArray<T, N> const &other)
 }
 
 template <typename T, size_t N>
-InlineArray<T, N> &InlineArray<T, N>::operator=(InlineArray<T, N> &&other)
+InlineArray<T, N> &InlineArray<T, N>::operator=(
+    InlineArray<T, N> &&other) noexcept
 {
     if (this != &other)
     {
@@ -181,84 +183,89 @@ InlineArray<T, N> &InlineArray<T, N>::operator=(InlineArray<T, N> &&other)
     return *this;
 }
 
-template <typename T, size_t N> T &InlineArray<T, N>::operator[](size_t i)
+template <typename T, size_t N>
+T &InlineArray<T, N>::operator[](size_t i) noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return ((T *)m_data)[i];
 }
 
 template <typename T, size_t N>
-T const &InlineArray<T, N>::operator[](size_t i) const
+T const &InlineArray<T, N>::operator[](size_t i) const noexcept
 {
     WHEELS_ASSERT(i < m_size);
     return ((T *)m_data)[i];
 }
 
-template <typename T, size_t N> T &InlineArray<T, N>::front()
+template <typename T, size_t N> T &InlineArray<T, N>::front() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return *((T *)m_data);
 }
 
-template <typename T, size_t N> T const &InlineArray<T, N>::front() const
+template <typename T, size_t N>
+T const &InlineArray<T, N>::front() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return *((T *)m_data);
 }
 
-template <typename T, size_t N> T &InlineArray<T, N>::back()
+template <typename T, size_t N> T &InlineArray<T, N>::back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return ((T *)m_data)[m_size - 1];
 }
 
-template <typename T, size_t N> T const &InlineArray<T, N>::back() const
+template <typename T, size_t N>
+T const &InlineArray<T, N>::back() const noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     return ((T *)m_data)[m_size - 1];
 }
 
-template <typename T, size_t N> T *InlineArray<T, N>::data()
+template <typename T, size_t N> T *InlineArray<T, N>::data() noexcept
 {
     return ((T *)m_data);
 }
 
-template <typename T, size_t N> T const *InlineArray<T, N>::data() const
+template <typename T, size_t N>
+T const *InlineArray<T, N>::data() const noexcept
 {
     return ((T *)m_data);
 }
 
-template <typename T, size_t N> T *InlineArray<T, N>::begin()
+template <typename T, size_t N> T *InlineArray<T, N>::begin() noexcept
 {
     return ((T *)m_data);
 }
 
-template <typename T, size_t N> T const *InlineArray<T, N>::begin() const
+template <typename T, size_t N>
+T const *InlineArray<T, N>::begin() const noexcept
 {
     return ((T *)m_data);
 }
 
-template <typename T, size_t N> T *InlineArray<T, N>::end()
+template <typename T, size_t N> T *InlineArray<T, N>::end() noexcept
 {
     return ((T *)m_data) + m_size;
 }
 
-template <typename T, size_t N> T const *InlineArray<T, N>::end() const
+template <typename T, size_t N> T const *InlineArray<T, N>::end() const noexcept
 {
     return ((T *)m_data) + m_size;
 }
 
-template <typename T, size_t N> bool InlineArray<T, N>::empty() const
+template <typename T, size_t N> bool InlineArray<T, N>::empty() const noexcept
 {
     return m_size == 0;
 }
 
-template <typename T, size_t N> size_t InlineArray<T, N>::size() const
+template <typename T, size_t N> size_t InlineArray<T, N>::size() const noexcept
 {
     return m_size;
 }
 
-template <typename T, size_t N> void InlineArray<T, N>::clear()
+template <typename T, size_t N> void InlineArray<T, N>::clear() noexcept
 {
     if constexpr (!std::is_trivially_destructible_v<T>)
     {
@@ -269,13 +276,14 @@ template <typename T, size_t N> void InlineArray<T, N>::clear()
 }
 
 template <typename T, size_t N>
-void InlineArray<T, N>::push_back(T const &value)
+void InlineArray<T, N>::push_back(T const &value) noexcept
 {
     WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{value};
 }
 
-template <typename T, size_t N> void InlineArray<T, N>::push_back(T &&value)
+template <typename T, size_t N>
+void InlineArray<T, N>::push_back(T &&value) noexcept
 {
     WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{WHEELS_FWD(value)};
@@ -283,20 +291,21 @@ template <typename T, size_t N> void InlineArray<T, N>::push_back(T &&value)
 
 template <typename T, size_t N>
 template <typename... Args>
-void InlineArray<T, N>::emplace_back(Args &&...args)
+void InlineArray<T, N>::emplace_back(Args &&...args) noexcept
 {
     WHEELS_ASSERT(m_size < N);
     new (((T *)m_data) + m_size++) T{WHEELS_FWD(args)...};
 }
 
-template <typename T, size_t N> T InlineArray<T, N>::pop_back()
+template <typename T, size_t N> T InlineArray<T, N>::pop_back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     m_size--;
     return WHEELS_MOV(((T *)m_data)[m_size]);
 }
 
-template <typename T, size_t N> void InlineArray<T, N>::resize(size_t size)
+template <typename T, size_t N>
+void InlineArray<T, N>::resize(size_t size) noexcept
 {
     if (size < m_size)
     {
@@ -320,7 +329,7 @@ template <typename T, size_t N> void InlineArray<T, N>::resize(size_t size)
 }
 
 template <typename T, size_t N>
-void InlineArray<T, N>::resize(size_t size, T const &value)
+void InlineArray<T, N>::resize(size_t size, T const &value) noexcept
 {
     if (size < m_size)
     {
@@ -343,13 +352,13 @@ void InlineArray<T, N>::resize(size_t size, T const &value)
     }
 }
 
-template <typename T, size_t N> InlineArray<T, N>::operator Span<T>()
+template <typename T, size_t N> InlineArray<T, N>::operator Span<T>() noexcept
 {
     return Span{(T *)m_data, m_size};
 }
 
 template <typename T, size_t N>
-InlineArray<T, N>::operator Span<T const>() const
+InlineArray<T, N>::operator Span<T const>() const noexcept
 {
     return Span{(T const *)m_data, m_size};
 }

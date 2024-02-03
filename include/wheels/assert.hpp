@@ -16,7 +16,7 @@ namespace wheels
 {
 
 inline void report_assertion_failure(
-    const char *expr, const char *file, int line)
+    const char *expr, const char *file, int line) noexcept
 {
     fprintf(stderr, "Assert failed: %s\n%s:%d\n", expr, file, line);
 }

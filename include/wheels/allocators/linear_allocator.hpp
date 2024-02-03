@@ -19,9 +19,9 @@ class ScopedScratch;
 class LinearAllocator : public Allocator
 {
   public:
-    LinearAllocator(size_t capacity);
+    LinearAllocator(size_t capacity) noexcept;
     // alloc has to live at least as long as this allocator
-    LinearAllocator(Allocator &allocactor, size_t capacity);
+    LinearAllocator(Allocator &allocactor, size_t capacity) noexcept;
 
     virtual ~LinearAllocator();
 
@@ -32,22 +32,22 @@ class LinearAllocator : public Allocator
 
     // User should not depend on the addresses themselves being linear to
     // support the debug version of this allocator.
-    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
 
-    virtual void deallocate(void *ptr) override;
+    virtual void deallocate(void *ptr) noexcept override;
 
-    void reset();
+    void reset() noexcept;
 
-    void rewind(void *ptr);
+    void rewind(void *ptr) noexcept;
 
-    size_t allocated_byte_count_high_watermark() const;
+    size_t allocated_byte_count_high_watermark() const noexcept;
 
     friend class ScopedScratch;
 
   protected:
     // User should not depend on the allocated addresses themselves being linear
     // after this pointer to support the debug version of this allocator.
-    [[nodiscard]] void *peek() const;
+    [[nodiscard]] void *peek() const noexcept;
 
   private:
     Allocator *m_allocator{nullptr};
@@ -58,13 +58,14 @@ class LinearAllocator : public Allocator
     mutable UnnecessaryLock m_assert_lock;
 };
 
-inline LinearAllocator::LinearAllocator(size_t capacity)
+inline LinearAllocator::LinearAllocator(size_t capacity) noexcept
 : m_capacity{capacity}
 {
     m_memory = new uint8_t[m_capacity];
 }
 
-inline LinearAllocator::LinearAllocator(Allocator &allocator, size_t capacity)
+inline LinearAllocator::LinearAllocator(
+    Allocator &allocator, size_t capacity) noexcept
 : m_allocator{&allocator}
 , m_capacity{capacity}
 {
@@ -79,7 +80,7 @@ inline LinearAllocator::~LinearAllocator()
         delete[] m_memory;
 };
 
-inline void *LinearAllocator::allocate(size_t num_bytes)
+inline void *LinearAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -98,19 +99,19 @@ inline void *LinearAllocator::allocate(size_t num_bytes)
     return m_memory + ret_offset;
 }
 
-inline void LinearAllocator::deallocate(void * /*ptr*/)
+inline void LinearAllocator::deallocate(void * /*ptr*/) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 }
 
-inline void LinearAllocator::reset()
+inline void LinearAllocator::reset() noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
     m_offset = 0;
 }
 
-inline void LinearAllocator::rewind(void *ptr)
+inline void LinearAllocator::rewind(void *ptr) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -121,14 +122,15 @@ inline void LinearAllocator::rewind(void *ptr)
     m_offset = (uint8_t *)ptr - m_memory;
 }
 
-inline size_t LinearAllocator::allocated_byte_count_high_watermark() const
+inline size_t LinearAllocator::allocated_byte_count_high_watermark()
+    const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
     return m_allocated_byte_count_high_watermark;
 }
 
-inline void *LinearAllocator::peek() const
+inline void *LinearAllocator::peek() const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -149,8 +151,8 @@ class ScopedScratch;
 class LinearAllocator : public Allocator
 {
   public:
-    LinearAllocator(size_t capacity);
-    LinearAllocator(Allocator &allocactor, size_t capacity);
+    LinearAllocator(size_t capacity) noexcept;
+    LinearAllocator(Allocator &allocactor, size_t capacity) noexcept;
 
     virtual ~LinearAllocator();
 
@@ -159,20 +161,20 @@ class LinearAllocator : public Allocator
     LinearAllocator &operator=(LinearAllocator const &) = delete;
     LinearAllocator &operator=(LinearAllocator &&) = delete;
 
-    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
 
-    virtual void deallocate(void *ptr) override;
+    virtual void deallocate(void *ptr) noexcept override;
 
-    void reset();
+    void reset() noexcept;
 
-    void rewind(void *ptr);
+    void rewind(void *ptr) noexcept;
 
-    size_t allocated_byte_count_high_watermark() const;
+    size_t allocated_byte_count_high_watermark() const noexcept;
 
     friend class ScopedScratch;
 
   protected:
-    [[nodiscard]] void *peek() const;
+    [[nodiscard]] void *peek() const noexcept;
 
   private:
     mutable std::vector<void *> m_allocations;
@@ -182,12 +184,13 @@ class LinearAllocator : public Allocator
     size_t m_allocated_byte_count_high_watermark{0};
 };
 
-inline LinearAllocator::LinearAllocator(size_t capacity)
+inline LinearAllocator::LinearAllocator(size_t capacity) noexcept
 : m_capacity{capacity}
 {
 }
 
-inline LinearAllocator::LinearAllocator(Allocator & /*alloc*/, size_t capacity)
+inline LinearAllocator::LinearAllocator(
+    Allocator & /*alloc*/, size_t capacity) noexcept
 : m_capacity{capacity}
 {
 }
@@ -199,7 +202,7 @@ inline LinearAllocator::~LinearAllocator()
         std::free(ptr);
 };
 
-inline void *LinearAllocator::allocate(size_t num_bytes)
+inline void *LinearAllocator::allocate(size_t num_bytes) noexcept
 {
     if (m_capacity - num_bytes < m_allocated_byte_count)
         return nullptr;
@@ -216,11 +219,11 @@ inline void *LinearAllocator::allocate(size_t num_bytes)
     return ptr;
 }
 
-inline void LinearAllocator::deallocate(void * /*ptr*/)
+inline void LinearAllocator::deallocate(void * /*ptr*/) noexcept
 { // Match nop from actual implementation
 }
 
-inline void LinearAllocator::reset()
+inline void LinearAllocator::reset() noexcept
 {
     m_allocated_byte_count = 0;
     for (void *ptr : m_allocations)
@@ -229,7 +232,7 @@ inline void LinearAllocator::reset()
     m_allocation_byte_counts.clear();
 }
 
-inline void LinearAllocator::rewind(void *ptr)
+inline void LinearAllocator::rewind(void *ptr) noexcept
 {
     if (ptr == nullptr)
         return;
@@ -255,12 +258,13 @@ inline void LinearAllocator::rewind(void *ptr)
     m_allocation_byte_counts.resize(target_i);
 }
 
-inline size_t LinearAllocator::allocated_byte_count_high_watermark() const
+inline size_t LinearAllocator::allocated_byte_count_high_watermark()
+    const noexcept
 {
     return m_allocated_byte_count_high_watermark;
 }
 
-inline void *LinearAllocator::peek() const
+inline void *LinearAllocator::peek() const noexcept
 {
     // Push a marker into tracked allocations to mimic rewind behavior
     void *marker_ptr = std::malloc(1);

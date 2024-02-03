@@ -38,7 +38,7 @@ class TlsfAllocator : public Allocator
     // Note that the allocator might not be able allocate a single block with
     // size near or matching the capacity due to how available blocks are
     // searched internally.
-    TlsfAllocator(size_t capacity);
+    TlsfAllocator(size_t capacity) noexcept;
     ~TlsfAllocator();
 
     TlsfAllocator(TlsfAllocator const &other) = delete;
@@ -46,10 +46,10 @@ class TlsfAllocator : public Allocator
     TlsfAllocator &operator=(TlsfAllocator const &other) = delete;
     TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
 
-    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
-    virtual void deallocate(void *ptr) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
+    virtual void deallocate(void *ptr) noexcept override;
 
-    Stats const &stats() const;
+    Stats const &stats() const noexcept;
 
   private:
     using BitMapT = size_t;
@@ -196,7 +196,7 @@ class TlsfAllocator : public Allocator
         return mapping_insert(r);
     }
 
-    static void copy_front_tag_to_back(FreeBlock *block)
+    static void copy_front_tag_to_back(FreeBlock *block) noexcept
     {
         WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
 
@@ -208,7 +208,8 @@ class TlsfAllocator : public Allocator
         *tag = block->tag;
     }
 
-    [[nodiscard]] static bool front_and_back_tags_match(FreeBlock *block)
+    [[nodiscard]] static bool front_and_back_tags_match(
+        FreeBlock *block) noexcept
     {
         uintptr_t const tag_addr =
             (uintptr_t)block + block->tag.byte_count - sizeof(BoundaryTag);
@@ -222,20 +223,21 @@ class TlsfAllocator : public Allocator
     }
 
     // Returns a pointer to the head of a freelist whose head is suitable
-    [[nodiscard]] FreeListIndex find_suitable_block(FreeListIndex start_index);
+    [[nodiscard]] FreeListIndex find_suitable_block(
+        FreeListIndex start_index) noexcept;
 
     // Also updates the bitmaps if necessary
-    void insert_block(FreeBlock *block);
+    void insert_block(FreeBlock *block) noexcept;
     // Also updates the bitmaps if necessary
-    [[nodiscard]] FreeBlock *remove_head(FreeListIndex index);
+    [[nodiscard]] FreeBlock *remove_head(FreeListIndex index) noexcept;
     // Also updates the bitmaps if necessary
-    void remove_block(FreeBlock *block);
+    void remove_block(FreeBlock *block) noexcept;
 
     [[nodiscard]] FreeBlock *split_block(
-        FreeBlock *block, size_t first_byte_count);
+        FreeBlock *block, size_t first_byte_count) noexcept;
 
-    [[nodiscard]] FreeBlock *merge_previous(FreeBlock *block);
-    [[nodiscard]] FreeBlock *merge_next(FreeBlock *block);
+    [[nodiscard]] FreeBlock *merge_previous(FreeBlock *block) noexcept;
+    [[nodiscard]] FreeBlock *merge_next(FreeBlock *block) noexcept;
 
     using SecondLevelRangesLists = FreeBlock *[s_second_level_range_count];
 
@@ -251,7 +253,7 @@ class TlsfAllocator : public Allocator
     mutable UnnecessaryLock m_assert_lock;
 };
 
-inline TlsfAllocator::TlsfAllocator(size_t capacity)
+inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
 {
     // Let's assume we have a few first-level buckets, first one will be 128
     WHEELS_ASSERT(capacity >= kilobytes(1));
@@ -336,7 +338,7 @@ inline TlsfAllocator::~TlsfAllocator()
     std::free(m_data);
 }
 
-inline void *TlsfAllocator::allocate(size_t num_bytes)
+inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -400,7 +402,7 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
     return alloc_ptr;
 }
 
-inline void TlsfAllocator::deallocate(void *ptr)
+inline void TlsfAllocator::deallocate(void *ptr) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -446,7 +448,7 @@ inline void TlsfAllocator::deallocate(void *ptr)
     insert_block(block);
 }
 
-inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
+inline TlsfAllocator::Stats const &TlsfAllocator::stats() const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -454,7 +456,7 @@ inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
 }
 
 inline TlsfAllocator::FreeListIndex TlsfAllocator::find_suitable_block(
-    FreeListIndex start_index)
+    FreeListIndex start_index) noexcept
 {
     WHEELS_ASSERT(start_index.sl < 64);
     BitMapT bitmap_tmp =
@@ -480,7 +482,7 @@ inline TlsfAllocator::FreeListIndex TlsfAllocator::find_suitable_block(
     return FreeListIndex{(uint8_t)non_empty_fl, (uint8_t)non_empty_sl};
 }
 
-inline void TlsfAllocator::insert_block(FreeBlock *block)
+inline void TlsfAllocator::insert_block(FreeBlock *block) noexcept
 {
     WHEELS_ASSERT(block != nullptr);
     WHEELS_ASSERT(front_and_back_tags_match(block));
@@ -508,7 +510,8 @@ inline void TlsfAllocator::insert_block(FreeBlock *block)
     *list_ptr = block;
 }
 
-inline TlsfAllocator::FreeBlock *TlsfAllocator::remove_head(FreeListIndex index)
+inline TlsfAllocator::FreeBlock *TlsfAllocator::remove_head(
+    FreeListIndex index) noexcept
 {
     FreeBlock **list_ptr = &m_segregated_lists[index.fl][index.sl];
     WHEELS_ASSERT(*list_ptr != nullptr);
@@ -539,7 +542,7 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::remove_head(FreeListIndex index)
     return block;
 }
 
-inline void TlsfAllocator::remove_block(FreeBlock *block)
+inline void TlsfAllocator::remove_block(FreeBlock *block) noexcept
 {
     WHEELS_ASSERT(block != nullptr);
     WHEELS_ASSERT(front_and_back_tags_match(block));
@@ -564,7 +567,7 @@ inline void TlsfAllocator::remove_block(FreeBlock *block)
 }
 
 inline TlsfAllocator::FreeBlock *TlsfAllocator::split_block(
-    FreeBlock *block, size_t first_byte_count)
+    FreeBlock *block, size_t first_byte_count) noexcept
 {
     WHEELS_ASSERT(block != nullptr);
     WHEELS_ASSERT(front_and_back_tags_match(block));
@@ -587,7 +590,8 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::split_block(
     return remaining_block;
 }
 
-inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(FreeBlock *block)
+inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(
+    FreeBlock *block) noexcept
 {
     WHEELS_ASSERT(block != nullptr);
     WHEELS_ASSERT(front_and_back_tags_match(block));
@@ -618,7 +622,8 @@ inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_previous(FreeBlock *block)
     return prev_block;
 }
 
-inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_next(FreeBlock *block)
+inline TlsfAllocator::FreeBlock *TlsfAllocator::merge_next(
+    FreeBlock *block) noexcept
 {
     WHEELS_ASSERT(block != nullptr);
     WHEELS_ASSERT(front_and_back_tags_match(block));
@@ -669,7 +674,7 @@ class TlsfAllocator : public Allocator
     // Note that the allocator might not be able allocate a single block with
     // size near or matching the capacity due to how available blocks are
     // searched internally.
-    TlsfAllocator(size_t capacity);
+    TlsfAllocator(size_t capacity) noexcept;
     ~TlsfAllocator();
 
     TlsfAllocator(TlsfAllocator const &other) = delete;
@@ -677,10 +682,10 @@ class TlsfAllocator : public Allocator
     TlsfAllocator &operator=(TlsfAllocator const &other) = delete;
     TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
 
-    [[nodiscard]] virtual void *allocate(size_t num_bytes) override;
-    virtual void deallocate(void *ptr) override;
+    [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
+    virtual void deallocate(void *ptr) noexcept override;
 
-    Stats const &stats() const;
+    Stats const &stats() const noexcept;
 
   private:
     Stats m_stats;
@@ -688,7 +693,7 @@ class TlsfAllocator : public Allocator
     mutable UnnecessaryLock m_assert_lock;
 };
 
-inline TlsfAllocator::TlsfAllocator(size_t capacity)
+inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
 : m_stats{.free_byte_count = capacity}
 {
 }
@@ -701,7 +706,7 @@ inline TlsfAllocator::~TlsfAllocator()
         std::free(ptr_size.first);
 }
 
-inline void *TlsfAllocator::allocate(size_t num_bytes)
+inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
     WHEELS_ASSERT(num_bytes <= m_stats.free_byte_count);
@@ -720,7 +725,7 @@ inline void *TlsfAllocator::allocate(size_t num_bytes)
     return ptr;
 }
 
-inline void TlsfAllocator::deallocate(void *ptr)
+inline void TlsfAllocator::deallocate(void *ptr) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
@@ -740,7 +745,7 @@ inline void TlsfAllocator::deallocate(void *ptr)
     m_stats.free_byte_count += num_bytes;
 }
 
-inline TlsfAllocator::Stats const &TlsfAllocator::stats() const
+inline TlsfAllocator::Stats const &TlsfAllocator::stats() const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 

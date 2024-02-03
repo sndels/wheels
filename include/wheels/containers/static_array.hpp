@@ -13,19 +13,19 @@ namespace wheels
 {
 
 template <typename T>
-concept StaticArrayRequirements = std::is_default_constructible_v<T> &&
-                                  (std::is_copy_assignable_v<T> ||
-                                   std::is_move_assignable_v<T>);
+concept StaticArrayRequirements =
+    std::is_default_constructible_v<T> &&
+    (std::is_copy_assignable_v<T> || std::is_move_assignable_v<T>);
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 class StaticArray
 {
   public:
-    constexpr StaticArray() = default;
-    constexpr StaticArray(T const &default_value)
+    constexpr StaticArray() noexcept = default;
+    constexpr StaticArray(T const &default_value) noexcept
         requires std::is_copy_assignable_v<T>;
-    constexpr StaticArray(T const (&elems)[N])
+    constexpr StaticArray(T const (&elems)[N]) noexcept
         requires std::is_copy_assignable_v<T>;
     // No std::initializer_list ctor because constexpr can't validate
     // list.size() == N. Also no variadric template ctor because that will fail
@@ -33,33 +33,34 @@ class StaticArray
     // consistency and safety.
     constexpr ~StaticArray() = default;
 
-    constexpr StaticArray(StaticArray<T, N> const &other)
+    constexpr StaticArray(StaticArray<T, N> const &other) noexcept
         requires std::is_copy_assignable_v<T>;
-    constexpr StaticArray(StaticArray<T, N> &&other)
+    constexpr StaticArray(StaticArray<T, N> &&other) noexcept
         requires std::is_move_assignable_v<T>;
-    constexpr StaticArray<T, N> &operator=(StaticArray<T, N> const &other)
+    constexpr StaticArray<T, N> &operator=(
+        StaticArray<T, N> const &other) noexcept
         requires std::is_copy_assignable_v<T>;
-    constexpr StaticArray<T, N> &operator=(StaticArray<T, N> &&other)
+    constexpr StaticArray<T, N> &operator=(StaticArray<T, N> &&other) noexcept
         requires std::is_move_assignable_v<T>;
 
-    [[nodiscard]] constexpr T &operator[](size_t i);
-    [[nodiscard]] constexpr T const &operator[](size_t i) const;
-    [[nodiscard]] constexpr T *data();
-    [[nodiscard]] constexpr T const *data() const;
+    [[nodiscard]] constexpr T &operator[](size_t i) noexcept;
+    [[nodiscard]] constexpr T const &operator[](size_t i) const noexcept;
+    [[nodiscard]] constexpr T *data() noexcept;
+    [[nodiscard]] constexpr T const *data() const noexcept;
 
-    [[nodiscard]] constexpr T *begin();
-    [[nodiscard]] constexpr T const *begin() const;
-    [[nodiscard]] constexpr T *end();
-    [[nodiscard]] constexpr T const *end() const;
+    [[nodiscard]] constexpr T *begin() noexcept;
+    [[nodiscard]] constexpr T const *begin() const noexcept;
+    [[nodiscard]] constexpr T *end() noexcept;
+    [[nodiscard]] constexpr T const *end() const noexcept;
 
-    [[nodiscard]] static constexpr size_t size() { return N; };
-    [[nodiscard]] static constexpr size_t capacity() { return N; }
+    [[nodiscard]] static constexpr size_t size() noexcept { return N; };
+    [[nodiscard]] static constexpr size_t capacity() noexcept { return N; }
 
-    constexpr operator Span<T>();
-    constexpr operator Span<T const>() const;
+    constexpr operator Span<T>() noexcept;
+    constexpr operator Span<T const>() const noexcept;
 
   private:
-    constexpr void init(T const *source);
+    constexpr void init(T const *source) noexcept;
 
     // Default ctor zero initializes
     T m_data[N]{};
@@ -67,7 +68,7 @@ class StaticArray
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::StaticArray(T const &default_value)
+constexpr StaticArray<T, N>::StaticArray(T const &default_value) noexcept
     requires std::is_copy_assignable_v<T>
 {
     for (size_t i = 0; i < N; ++i)
@@ -82,7 +83,7 @@ template <typename T> StaticArray(T const &) -> StaticArray<T, 1>;
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::StaticArray(T const (&elems)[N])
+constexpr StaticArray<T, N>::StaticArray(T const (&elems)[N]) noexcept
     requires std::is_copy_assignable_v<T>
 {
     init(elems);
@@ -90,7 +91,8 @@ constexpr StaticArray<T, N>::StaticArray(T const (&elems)[N])
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::StaticArray(StaticArray<T, N> const &other)
+constexpr StaticArray<T, N>::StaticArray(
+    StaticArray<T, N> const &other) noexcept
     requires std::is_copy_assignable_v<T>
 {
     init(other.m_data);
@@ -98,7 +100,7 @@ constexpr StaticArray<T, N>::StaticArray(StaticArray<T, N> const &other)
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::StaticArray(StaticArray<T, N> &&other)
+constexpr StaticArray<T, N>::StaticArray(StaticArray<T, N> &&other) noexcept
     requires std::is_move_assignable_v<T>
 {
     // No constexpr since that forces const evaluated, but mark likely for
@@ -119,7 +121,7 @@ constexpr StaticArray<T, N>::StaticArray(StaticArray<T, N> &&other)
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 constexpr StaticArray<T, N> &StaticArray<T, N>::operator=(
-    StaticArray<T, N> const &other)
+    StaticArray<T, N> const &other) noexcept
     requires std::is_copy_assignable_v<T>
 {
     if (this != &other)
@@ -131,7 +133,7 @@ constexpr StaticArray<T, N> &StaticArray<T, N>::operator=(
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 constexpr StaticArray<T, N> &StaticArray<T, N>::operator=(
-    StaticArray<T, N> &&other)
+    StaticArray<T, N> &&other) noexcept
     requires std::is_move_assignable_v<T>
 {
     if (this != &other)
@@ -155,77 +157,77 @@ constexpr StaticArray<T, N> &StaticArray<T, N>::operator=(
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T &StaticArray<T, N>::operator[](size_t i)
+constexpr T &StaticArray<T, N>::operator[](size_t i) noexcept
 {
     return m_data[i];
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T const &StaticArray<T, N>::operator[](size_t i) const
+constexpr T const &StaticArray<T, N>::operator[](size_t i) const noexcept
 {
     return m_data[i];
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T *StaticArray<T, N>::data()
+constexpr T *StaticArray<T, N>::data() noexcept
 {
     return m_data;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T const *StaticArray<T, N>::data() const
+constexpr T const *StaticArray<T, N>::data() const noexcept
 {
     return m_data;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T *StaticArray<T, N>::begin()
+constexpr T *StaticArray<T, N>::begin() noexcept
 {
     return m_data;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T const *StaticArray<T, N>::begin() const
+constexpr T const *StaticArray<T, N>::begin() const noexcept
 {
     return m_data;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T *StaticArray<T, N>::end()
+constexpr T *StaticArray<T, N>::end() noexcept
 {
     return m_data + N;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr T const *StaticArray<T, N>::end() const
+constexpr T const *StaticArray<T, N>::end() const noexcept
 {
     return m_data + N;
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::operator Span<T>()
+constexpr StaticArray<T, N>::operator Span<T>() noexcept
 {
     return Span{m_data, N};
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::operator Span<T const>() const
+constexpr StaticArray<T, N>::operator Span<T const>() const noexcept
 {
     return Span{m_data, N};
 }
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr void StaticArray<T, N>::init(T const *src)
+constexpr void StaticArray<T, N>::init(T const *src) noexcept
 {
     // No constexpr since that forces const evaluated, but mark likely for
     // runtime that always takes this

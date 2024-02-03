@@ -6,7 +6,7 @@
 namespace wheels
 {
 
-[[nodiscard]] inline size_t round_up_power_of_two(size_t value)
+[[nodiscard]] inline size_t round_up_power_of_two(size_t value) noexcept
 {
     WHEELS_ASSERT(value < 0xFFFFFFFF);
     // https://graphics.stanford.edu/%7Eseander/bithacks.html#RoundUpPowerOf2

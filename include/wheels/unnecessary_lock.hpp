@@ -18,9 +18,9 @@
 class UnnecessaryLock
 {
   public:
-    UnnecessaryLock() = default;
+    UnnecessaryLock() noexcept = default;
 
-    void acquire()
+    void acquire() noexcept
     {
         WHEELS_ASSERT(
             !m_locked && "Non-thread safe code called from multiple threads");
@@ -28,7 +28,7 @@ class UnnecessaryLock
         m_locked = true;
     }
 
-    void release()
+    void release() noexcept
     {
         WHEELS_ASSERT(m_locked && "Acquire not called before release");
 
@@ -42,7 +42,7 @@ class UnnecessaryLock
 class UnnecessaryLockJanitor
 {
   public:
-    UnnecessaryLockJanitor(UnnecessaryLock &lock)
+    UnnecessaryLockJanitor(UnnecessaryLock &lock) noexcept
     : m_lock{lock}
     {
         m_lock.acquire();

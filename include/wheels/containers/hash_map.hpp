@@ -29,16 +29,17 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
   public:
     struct Iterator
     {
-        Iterator &operator++();
-        Iterator &operator++(int);
+        Iterator &operator++() noexcept;
+        Iterator &operator++(int) noexcept;
         // Only value is mutable because changing the key could require
         // rehashing
-        [[nodiscard]] Pair<Key const *, Value *> operator*();
-        [[nodiscard]] Pair<Key const *, Value const *> operator*() const;
+        [[nodiscard]] Pair<Key const *, Value *> operator*() noexcept;
+        [[nodiscard]] Pair<Key const *, Value const *> operator*()
+            const noexcept;
         [[nodiscard]] bool operator!=(
-            HashMap<Key, Value, Hasher>::Iterator const &other) const;
+            HashMap<Key, Value, Hasher>::Iterator const &other) const noexcept;
         [[nodiscard]] bool operator==(
-            HashMap<Key, Value, Hasher>::Iterator const &other) const;
+            HashMap<Key, Value, Hasher>::Iterator const &other) const noexcept;
 
         HashMap const &map;
         size_t pos{0};
@@ -46,13 +47,16 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
 
     struct ConstIterator
     {
-        ConstIterator &operator++();
-        ConstIterator &operator++(int);
-        [[nodiscard]] Pair<Key const *, Value const *> operator*() const;
+        ConstIterator &operator++() noexcept;
+        ConstIterator &operator++(int) noexcept;
+        [[nodiscard]] Pair<Key const *, Value const *> operator*()
+            const noexcept;
         [[nodiscard]] bool operator!=(
-            HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
+            HashMap<Key, Value, Hasher>::ConstIterator const &other)
+            const noexcept;
         [[nodiscard]] bool operator==(
-            HashMap<Key, Value, Hasher>::ConstIterator const &other) const;
+            HashMap<Key, Value, Hasher>::ConstIterator const &other)
+            const noexcept;
 
         HashMap const &map;
         size_t pos{0};
@@ -62,45 +66,46 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     friend struct ConstIterator;
 
   public:
-    HashMap(Allocator &allocator, size_t initial_capacity = 0);
+    HashMap(Allocator &allocator, size_t initial_capacity = 0) noexcept;
     ~HashMap();
 
     HashMap(HashMap<Key, Value, Hasher> const &other) = delete;
-    HashMap(HashMap<Key, Value, Hasher> &&other);
+    HashMap(HashMap<Key, Value, Hasher> &&other) noexcept;
     HashMap<Key, Value, Hasher> &operator=(
         HashMap<Key, Value, Hasher> const &other) = delete;
-    HashMap<Key, Value, Hasher> &operator=(HashMap<Key, Value, Hasher> &&other);
+    HashMap<Key, Value, Hasher> &operator=(
+        HashMap<Key, Value, Hasher> &&other) noexcept;
 
-    [[nodiscard]] Iterator begin();
-    [[nodiscard]] ConstIterator begin() const;
-    [[nodiscard]] Iterator end();
-    [[nodiscard]] ConstIterator end() const;
+    [[nodiscard]] Iterator begin() noexcept;
+    [[nodiscard]] ConstIterator begin() const noexcept;
+    [[nodiscard]] Iterator end() noexcept;
+    [[nodiscard]] ConstIterator end() const noexcept;
 
-    [[nodiscard]] bool empty() const;
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] size_t capacity() const;
+    [[nodiscard]] bool empty() const noexcept;
+    [[nodiscard]] size_t size() const noexcept;
+    [[nodiscard]] size_t capacity() const noexcept;
 
-    [[nodiscard]] bool contains(Key const &key) const;
-    [[nodiscard]] Value const *find(Key const &key) const;
-    [[nodiscard]] Value *find(Key const &key);
+    [[nodiscard]] bool contains(Key const &key) const noexcept;
+    [[nodiscard]] Value const *find(Key const &key) const noexcept;
+    [[nodiscard]] Value *find(Key const &key) noexcept;
 
-    void clear();
+    void clear() noexcept;
 
     template <typename K, typename V>
     // Let's be pedantic and disallow implicit conversions
         requires(SameAs<K, Key> && SameAs<V, Value>)
-    Value *insert_or_assign(K &&key, V &&value);
+    Value *insert_or_assign(K &&key, V &&value) noexcept;
     // Don't have a pair insert for now as it would have to either copy every
     // time or I'd have to write two versions: one for lvalue that copies and
     // one for rvalue that moves
 
-    void remove(Key const &key);
+    void remove(Key const &key) noexcept;
 
   private:
-    [[nodiscard]] bool is_over_max_load() const;
+    [[nodiscard]] bool is_over_max_load() const noexcept;
 
-    void grow(size_t capacity);
-    void free();
+    void grow(size_t capacity) noexcept;
+    void free() noexcept;
 
     enum class Ctrl : uint8_t
     {
@@ -110,17 +115,17 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         // Full = 0b0XXXXXXX, H2 hash
     };
     [[nodiscard]] static constexpr bool s_empty_pos(
-        uint8_t const *metadata, size_t pos)
+        uint8_t const *metadata, size_t pos) noexcept
     {
         return (metadata[pos] & (uint8_t)Ctrl::Empty) == (uint8_t)Ctrl::Empty;
     }
 
-    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash)
+    [[nodiscard]] static constexpr uint64_t s_h1(uint64_t hash) noexcept
     {
         return hash >> 7;
     }
 
-    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash)
+    [[nodiscard]] static constexpr uint8_t s_h2(uint64_t hash) noexcept
     {
         return (uint8_t)(hash & 0x7F);
     }
@@ -136,7 +141,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
 
 template <typename Key, typename Value, class Hasher>
 HashMap<Key, Value, Hasher>::HashMap(
-    Allocator &allocator, size_t initial_capacity)
+    Allocator &allocator, size_t initial_capacity) noexcept
 : m_allocator{allocator}
 {
     static_assert(
@@ -155,7 +160,8 @@ HashMap<Key, Value, Hasher>::~HashMap()
 }
 
 template <typename Key, typename Value, class Hasher>
-HashMap<Key, Value, Hasher>::HashMap(HashMap<Key, Value, Hasher> &&other)
+HashMap<Key, Value, Hasher>::HashMap(
+    HashMap<Key, Value, Hasher> &&other) noexcept
 : m_allocator{other.m_allocator}
 , m_keys{other.m_keys}
 , m_values{other.m_values}
@@ -169,7 +175,7 @@ HashMap<Key, Value, Hasher>::HashMap(HashMap<Key, Value, Hasher> &&other)
 
 template <typename Key, typename Value, class Hasher>
 HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
-    HashMap<Key, Value, Hasher> &&other)
+    HashMap<Key, Value, Hasher> &&other) noexcept
 {
     WHEELS_ASSERT(
         &m_allocator == &other.m_allocator &&
@@ -194,7 +200,7 @@ HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::Iterator HashMap<
-    Key, Value, Hasher>::begin()
+    Key, Value, Hasher>::begin() noexcept
 {
     Iterator iter{
         .map = *this,
@@ -213,7 +219,7 @@ typename HashMap<Key, Value, Hasher>::Iterator HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
-    Key, Value, Hasher>::begin() const
+    Key, Value, Hasher>::begin() const noexcept
 {
     ConstIterator iter{
         .map = *this,
@@ -232,7 +238,7 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::Iterator HashMap<
-    Key, Value, Hasher>::end()
+    Key, Value, Hasher>::end() noexcept
 {
     return Iterator{
         .map = *this,
@@ -242,7 +248,7 @@ typename HashMap<Key, Value, Hasher>::Iterator HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
-    Key, Value, Hasher>::end() const
+    Key, Value, Hasher>::end() const noexcept
 {
     return ConstIterator{
         .map = *this,
@@ -251,31 +257,31 @@ typename HashMap<Key, Value, Hasher>::ConstIterator HashMap<
 }
 
 template <typename Key, typename Value, class Hasher>
-bool HashMap<Key, Value, Hasher>::empty() const
+bool HashMap<Key, Value, Hasher>::empty() const noexcept
 {
     return m_size == 0;
 }
 
 template <typename Key, typename Value, class Hasher>
-size_t HashMap<Key, Value, Hasher>::size() const
+size_t HashMap<Key, Value, Hasher>::size() const noexcept
 {
     return m_size;
 }
 
 template <typename Key, typename Value, class Hasher>
-size_t HashMap<Key, Value, Hasher>::capacity() const
+size_t HashMap<Key, Value, Hasher>::capacity() const noexcept
 {
     return m_capacity;
 }
 
 template <typename Key, typename Value, class Hasher>
-bool HashMap<Key, Value, Hasher>::contains(Key const &key) const
+bool HashMap<Key, Value, Hasher>::contains(Key const &key) const noexcept
 {
     return find(key) != nullptr;
 }
 
 template <typename Key, typename Value, class Hasher>
-Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const
+Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const noexcept
 {
     if (m_size == 0)
         return nullptr;
@@ -303,7 +309,7 @@ Value const *HashMap<Key, Value, Hasher>::find(Key const &key) const
 }
 
 template <typename Key, typename Value, class Hasher>
-Value *HashMap<Key, Value, Hasher>::find(Key const &key)
+Value *HashMap<Key, Value, Hasher>::find(Key const &key) noexcept
 {
     if (m_size == 0)
         return nullptr;
@@ -331,7 +337,7 @@ Value *HashMap<Key, Value, Hasher>::find(Key const &key)
 }
 
 template <typename Key, typename Value, class Hasher>
-void HashMap<Key, Value, Hasher>::clear()
+void HashMap<Key, Value, Hasher>::clear() noexcept
 {
     if (m_size > 0)
     {
@@ -351,7 +357,8 @@ void HashMap<Key, Value, Hasher>::clear()
 template <typename Key, typename Value, class Hasher>
 template <typename K, typename V>
     requires(SameAs<K, Key> && SameAs<V, Value>)
-Value *HashMap<Key, Value, Hasher>::insert_or_assign(K &&key, V &&value)
+Value *HashMap<Key, Value, Hasher>::insert_or_assign(
+    K &&key, V &&value) noexcept
 {
     if (is_over_max_load())
         grow(m_capacity * 2);
@@ -383,7 +390,7 @@ Value *HashMap<Key, Value, Hasher>::insert_or_assign(K &&key, V &&value)
 }
 
 template <typename Key, typename Value, class Hasher>
-void HashMap<Key, Value, Hasher>::remove(Key const &key)
+void HashMap<Key, Value, Hasher>::remove(Key const &key) noexcept
 {
     if (m_size == 0)
         return;
@@ -421,7 +428,7 @@ void HashMap<Key, Value, Hasher>::remove(Key const &key)
 }
 
 template <typename Key, typename Value, class Hasher>
-bool HashMap<Key, Value, Hasher>::is_over_max_load() const
+bool HashMap<Key, Value, Hasher>::is_over_max_load() const noexcept
 {
     // Magic factor from the talk, matching the arbitrary offmap SSE version
     // as reading one metadata byte at a time is basically the same
@@ -430,7 +437,7 @@ bool HashMap<Key, Value, Hasher>::is_over_max_load() const
 }
 
 template <typename Key, typename Value, class Hasher>
-void HashMap<Key, Value, Hasher>::grow(size_t capacity)
+void HashMap<Key, Value, Hasher>::grow(size_t capacity) noexcept
 {
     // Our max load factor is 15/16 so we have to have 32 as the capacity to
     // ensure we always grow in time so that there always is at least 1 Empty
@@ -477,7 +484,7 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity)
 }
 
 template <typename Key, typename Value, class Hasher>
-void HashMap<Key, Value, Hasher>::free()
+void HashMap<Key, Value, Hasher>::free() noexcept
 {
     if (m_keys != nullptr)
     {
@@ -491,7 +498,7 @@ void HashMap<Key, Value, Hasher>::free()
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
-    Key, Value, Hasher>::Iterator::operator++()
+    Key, Value, Hasher>::Iterator::operator++() noexcept
 {
     WHEELS_ASSERT(pos < map.capacity());
     do
@@ -503,13 +510,14 @@ typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::Iterator &HashMap<
-    Key, Value, Hasher>::Iterator::operator++(int)
+    Key, Value, Hasher>::Iterator::operator++(int) noexcept
 {
     return ++*this;
 }
 
 template <typename Key, typename Value, class Hasher>
-Pair<Key const *, Value *> HashMap<Key, Value, Hasher>::Iterator::operator*()
+Pair<Key const *, Value *> HashMap<
+    Key, Value, Hasher>::Iterator::operator*() noexcept
 {
     WHEELS_ASSERT(pos < map.capacity());
     WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
@@ -521,7 +529,7 @@ Pair<Key const *, Value *> HashMap<Key, Value, Hasher>::Iterator::operator*()
 
 template <typename Key, typename Value, class Hasher>
 Pair<Key const *, Value const *> HashMap<
-    Key, Value, Hasher>::Iterator::operator*() const
+    Key, Value, Hasher>::Iterator::operator*() const noexcept
 {
     WHEELS_ASSERT(pos < map.capacity());
     WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
@@ -533,21 +541,21 @@ Pair<Key const *, Value const *> HashMap<
 
 template <typename Key, typename Value, class Hasher>
 bool HashMap<Key, Value, Hasher>::Iterator::operator!=(
-    HashMap<Key, Value, Hasher>::Iterator const &other) const
+    HashMap<Key, Value, Hasher>::Iterator const &other) const noexcept
 {
     return pos != other.pos;
 };
 
 template <typename Key, typename Value, class Hasher>
 bool HashMap<Key, Value, Hasher>::Iterator::operator==(
-    HashMap<Key, Value, Hasher>::Iterator const &other) const
+    HashMap<Key, Value, Hasher>::Iterator const &other) const noexcept
 {
     return pos == other.pos;
 };
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
-    Key, Value, Hasher>::ConstIterator::operator++()
+    Key, Value, Hasher>::ConstIterator::operator++() noexcept
 {
     WHEELS_ASSERT(pos < map.capacity());
     do
@@ -559,14 +567,14 @@ typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
 
 template <typename Key, typename Value, class Hasher>
 typename HashMap<Key, Value, Hasher>::ConstIterator &HashMap<
-    Key, Value, Hasher>::ConstIterator::operator++(int)
+    Key, Value, Hasher>::ConstIterator::operator++(int) noexcept
 {
     return ++*this;
 }
 
 template <typename Key, typename Value, class Hasher>
 Pair<Key const *, Value const *> HashMap<
-    Key, Value, Hasher>::ConstIterator::operator*() const
+    Key, Value, Hasher>::ConstIterator::operator*() const noexcept
 {
     WHEELS_ASSERT(pos < map.capacity());
     WHEELS_ASSERT(!map.s_empty_pos(map.m_metadata, pos));
@@ -578,14 +586,14 @@ Pair<Key const *, Value const *> HashMap<
 
 template <typename Key, typename Value, class Hasher>
 bool HashMap<Key, Value, Hasher>::ConstIterator::operator!=(
-    HashMap<Key, Value, Hasher>::ConstIterator const &other) const
+    HashMap<Key, Value, Hasher>::ConstIterator const &other) const noexcept
 {
     return pos != other.pos;
 };
 
 template <typename Key, typename Value, class Hasher>
 bool HashMap<Key, Value, Hasher>::ConstIterator::operator==(
-    HashMap<Key, Value, Hasher>::ConstIterator const &other) const
+    HashMap<Key, Value, Hasher>::ConstIterator const &other) const noexcept
 {
     return pos == other.pos;
 };
