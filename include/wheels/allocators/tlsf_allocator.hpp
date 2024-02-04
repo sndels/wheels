@@ -256,7 +256,7 @@ class TlsfAllocator : public Allocator
 inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
 {
     // Let's assume we have a few first-level buckets, first one will be 128
-    WHEELS_ASSERT(capacity >= kilobytes(1));
+    WHEELS_ASSERT(capacity >= kilobytes(2));
 
     // Boundary tags will be written after the main block
     capacity = aligned_offset(capacity, alignof(BoundaryTag));
