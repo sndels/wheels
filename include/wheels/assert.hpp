@@ -12,11 +12,27 @@
 
 #include <cstdio>
 
+// Annotate the report function to have clang-tidy treat the assert macros like
+// proper asserts for null checks etc.
+// From https://clang-analyzer.llvm.org/annotations.html#custom_assertions
+#ifndef CLANG_ANALYZER_NORETURN
+#if defined(__clang__)
+#if __has_feature(attribute_analyzer_noreturn)
+#define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
+#else // !__has_feature(attribute_analyzer_noreturn)
+#define CLANG_ANALYZER_NORETURN
+#endif // __has_feature(attribute_analyzer_noreturn)
+#else  // !__clang__
+#define CLANG_ANALYZER_NORETURN
+#endif // __clang__
+#endif // CLANG_ANALYZER_NORETURN
+
 namespace wheels
 {
 
 inline void report_assertion_failure(
-    const char *expr, const char *file, int line) noexcept
+    const char *expr, const char *file,
+    int line) noexcept CLANG_ANALYZER_NORETURN
 {
     fprintf(stderr, "Assert failed: %s\n%s:%d\n", expr, file, line);
 }
