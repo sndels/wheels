@@ -178,6 +178,10 @@ inline bool operator==(StrSpan lhs, StrSpan rhs) noexcept
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
 
+    // empty == empty was matched above
+    if (lhs.data() == nullptr || rhs.data() == nullptr)
+        return false;
+
     size_t first_len = 0;
     size_t second_len = 0;
     char const *first_ptr = nullptr;
