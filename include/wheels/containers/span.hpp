@@ -53,6 +53,7 @@ template <typename T> class Span
 class StrSpan : public Span<char const>
 {
   public:
+    constexpr StrSpan() noexcept = default;
     constexpr StrSpan(char const *str) noexcept;
     constexpr StrSpan(char const *str, size_t size) noexcept;
 };
@@ -120,8 +121,8 @@ template <typename T> constexpr Span<T>::operator Span<T const>() const noexcept
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V>
-bool operator==(Span<T> lhs, Span<V> rhs) noexcept
+    requires SameAs<T, V> bool
+operator==(Span<T> lhs, Span<V> rhs) noexcept
 {
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
@@ -147,8 +148,8 @@ bool operator==(Span<T> lhs, Span<V> rhs) noexcept
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V>
-bool operator!=(Span<T> lhs, Span<T> rhs) noexcept
+    requires SameAs<T, V> bool
+operator!=(Span<T> lhs, Span<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
