@@ -130,7 +130,9 @@ template <typename T> T *ScopedScratch::allocate_pod() noexcept
         "Aligned allocations beyond std::max_align_t aren't supported");
     WHEELS_ASSERT(
         !m_has_child_scope &&
-        "Tried to allocate from a ScopedScratch that has a child scope");
+        "Tried to allocate from a ScopedScratch that has a child scope. "
+        "Pre-allocate in the parent scope or pass the parent as a generic "
+        "Allocator instead of a child scope.");
 
     return (T *)m_allocator.allocate(sizeof(T));
 }
@@ -143,7 +145,9 @@ T *ScopedScratch::allocate_object(Args &&...args) noexcept
         "Aligned allocations beyond std::max_align_t aren't supported");
     WHEELS_ASSERT(
         !m_has_child_scope &&
-        "Tried to allocate from a ScopedScratch that has a child scope");
+        "Tried to allocate from a ScopedScratch that has a child scope. "
+        "Pre-allocate in the parent scope or pass the parent as a generic "
+        "Allocator instead of a child scope.");
 
     ScopeData *scope = (ScopeData *)m_allocator.allocate(sizeof(ScopeData));
     if (scope == nullptr)
