@@ -101,6 +101,11 @@ inline ScopedScratch::ScopedScratch(ScopedScratch &&other) noexcept
 
 inline void *ScopedScratch::allocate(size_t num_bytes) noexcept
 {
+    WHEELS_ASSERT(
+        !m_has_child_scope &&
+        "Tried to allocate from a ScopedScratch that has a child scope. "
+        "Pre-allocate in the parent scope or pass the parent as a generic "
+        "Allocator instead of a child scope.");
     return m_allocator.allocate(num_bytes);
 }
 
