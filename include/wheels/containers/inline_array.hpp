@@ -53,7 +53,6 @@ template <typename T, size_t N> class InlineArray
     void resize(size_t size) noexcept;
     void resize(size_t size, T const &value) noexcept;
 
-    operator Span<T>() noexcept;
     operator Span<T const>() const noexcept;
 
   private:
@@ -350,11 +349,6 @@ void InlineArray<T, N>::resize(size_t size, T const &value) noexcept
             new (((T *)m_data) + i) T{value};
         m_size = size;
     }
-}
-
-template <typename T, size_t N> InlineArray<T, N>::operator Span<T>() noexcept
-{
-    return Span{(T *)m_data, m_size};
 }
 
 template <typename T, size_t N>

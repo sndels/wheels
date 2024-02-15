@@ -56,7 +56,6 @@ class StaticArray
     [[nodiscard]] static constexpr size_t size() noexcept { return N; };
     [[nodiscard]] static constexpr size_t capacity() noexcept { return N; }
 
-    constexpr operator Span<T>() noexcept;
     constexpr operator Span<T const>() const noexcept;
 
   private:
@@ -209,13 +208,6 @@ template <typename T, size_t N>
 constexpr T const *StaticArray<T, N>::end() const noexcept
 {
     return m_data + N;
-}
-
-template <typename T, size_t N>
-    requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::operator Span<T>() noexcept
-{
-    return Span{m_data, N};
 }
 
 template <typename T, size_t N>

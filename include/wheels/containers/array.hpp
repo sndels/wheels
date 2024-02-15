@@ -74,7 +74,6 @@ template <typename T> class Array
     void resize(size_t size) noexcept;
     void resize(size_t size, T const &value) noexcept;
 
-    operator Span<T>() noexcept;
     operator Span<T const>() const noexcept;
 
   private:
@@ -396,11 +395,6 @@ template <typename T> void Array<T>::free() noexcept
         m_allocator.deallocate(m_data);
         m_data = nullptr;
     }
-}
-
-template <typename T> Array<T>::operator Span<T>() noexcept
-{
-    return Span{m_data, m_size};
 }
 
 template <typename T> Array<T>::operator Span<T const>() const noexcept
