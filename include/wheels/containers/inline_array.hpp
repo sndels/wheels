@@ -41,6 +41,12 @@ template <typename T, size_t N> class InlineArray
     [[nodiscard]] T *end() noexcept;
     [[nodiscard]] T const *end() const noexcept;
 
+    [[nodiscard]] Span<T> span() noexcept;
+    [[nodiscard]] Span<T const> span() const noexcept;
+    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
+    [[nodiscard]] Span<T const> span(
+        size_t begin_i, size_t end_i) const noexcept;
+
     [[nodiscard]] bool empty() const noexcept;
     [[nodiscard]] size_t size() const noexcept;
     [[nodiscard]] static constexpr size_t capacity() noexcept { return N; }
@@ -252,6 +258,34 @@ template <typename T, size_t N> T *InlineArray<T, N>::end() noexcept
 template <typename T, size_t N> T const *InlineArray<T, N>::end() const noexcept
 {
     return ((T *)m_data) + m_size;
+}
+
+template <typename T, size_t N> Span<T> InlineArray<T, N>::span() noexcept
+{
+    return Span{begin(), m_size};
+}
+
+template <typename T, size_t N>
+Span<T const> InlineArray<T, N>::span() const noexcept
+{
+    return Span<T const>{begin(), m_size};
+}
+
+template <typename T, size_t N>
+Span<T> InlineArray<T, N>::span(size_t begin_i, size_t end_i) noexcept
+{
+    WHEELS_ASSERT(begin_i < m_size);
+    WHEELS_ASSERT(end_i <= m_size);
+    return Span{begin() + begin_i, end_i - begin_i};
+}
+
+template <typename T, size_t N>
+Span<T const> InlineArray<T, N>::span(
+    size_t begin_i, size_t end_i) const noexcept
+{
+    WHEELS_ASSERT(begin_i < m_size);
+    WHEELS_ASSERT(end_i <= m_size);
+    return Span<T const>{begin() + begin_i, end_i - begin_i};
 }
 
 template <typename T, size_t N> bool InlineArray<T, N>::empty() const noexcept

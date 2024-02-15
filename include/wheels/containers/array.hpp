@@ -45,6 +45,8 @@ template <typename T> class Array
     [[nodiscard]] T *end() noexcept;
     [[nodiscard]] T const *end() const noexcept;
 
+    [[nodiscard]] Span<T> span() noexcept;
+    [[nodiscard]] Span<T const> span() const noexcept;
     [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
     [[nodiscard]] Span<T const> span(
         size_t begin_i, size_t end_i) const noexcept;
@@ -185,6 +187,16 @@ template <typename T> T *Array<T>::end() noexcept { return m_data + m_size; }
 template <typename T> T const *Array<T>::end() const noexcept
 {
     return m_data + m_size;
+}
+
+template <typename T> Span<T> Array<T>::span() noexcept
+{
+    return Span{begin(), m_size};
+}
+
+template <typename T> Span<T const> Array<T>::span() const noexcept
+{
+    return Span<T const>{begin(), m_size};
 }
 
 template <typename T>

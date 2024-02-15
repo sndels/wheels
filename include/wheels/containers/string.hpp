@@ -111,6 +111,7 @@ class String
         Allocator &allocator, char ch) const noexcept;
 
     operator StrSpan() const noexcept;
+    StrSpan span() const noexcept;
     StrSpan span(size_t begin, size_t end) const noexcept;
 
   private:
@@ -546,6 +547,8 @@ inline String::operator StrSpan() const noexcept
 {
     return StrSpan{m_data, m_size};
 }
+
+inline StrSpan String::span() const noexcept { return StrSpan{m_data, m_size}; }
 
 inline StrSpan String::span(size_t begin, size_t end) const noexcept
 {

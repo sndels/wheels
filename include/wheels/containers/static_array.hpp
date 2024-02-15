@@ -13,9 +13,9 @@ namespace wheels
 {
 
 template <typename T>
-concept StaticArrayRequirements =
-    std::is_default_constructible_v<T> &&
-    (std::is_copy_assignable_v<T> || std::is_move_assignable_v<T>);
+concept StaticArrayRequirements = std::is_default_constructible_v<T> &&
+                                  (std::is_copy_assignable_v<T> ||
+                                   std::is_move_assignable_v<T>);
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
@@ -52,6 +52,12 @@ class StaticArray
     [[nodiscard]] constexpr T const *begin() const noexcept;
     [[nodiscard]] constexpr T *end() noexcept;
     [[nodiscard]] constexpr T const *end() const noexcept;
+
+    [[nodiscard]] Span<T> span() noexcept;
+    [[nodiscard]] Span<T const> span() const noexcept;
+    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
+    [[nodiscard]] Span<T const> span(
+        size_t begin_i, size_t end_i) const noexcept;
 
     [[nodiscard]] static constexpr size_t size() noexcept { return N; };
     [[nodiscard]] static constexpr size_t capacity() noexcept { return N; }
@@ -208,6 +214,39 @@ template <typename T, size_t N>
 constexpr T const *StaticArray<T, N>::end() const noexcept
 {
     return m_data + N;
+}
+
+template <typename T, size_t N>
+    requires StaticArrayRequirements<T>
+Span<T> StaticArray<T, N>::span() noexcept
+{
+    return Span{begin(), N};
+}
+
+template <typename T, size_t N>
+    requires StaticArrayRequirements<T>
+Span<T const> StaticArray<T, N>::span() const noexcept
+{
+    return Span<T const>{begin(), N};
+}
+
+template <typename T, size_t N>
+    requires StaticArrayRequirements<T>
+Span<T> StaticArray<T, N>::span(size_t begin_i, size_t end_i) noexcept
+{
+    WHEELS_ASSERT(begin_i < N);
+    WHEELS_ASSERT(end_i <= N);
+    return Span{begin() + begin_i, end_i - begin_i};
+}
+
+template <typename T, size_t N>
+    requires StaticArrayRequirements<T>
+Span<T const> StaticArray<T, N>::span(
+    size_t begin_i, size_t end_i) const noexcept
+{
+    WHEELS_ASSERT(begin_i < N);
+    WHEELS_ASSERT(end_i <= N);
+    return Span<T const>{begin() + begin_i, end_i - begin_i};
 }
 
 template <typename T, size_t N>

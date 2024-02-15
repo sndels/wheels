@@ -330,48 +330,42 @@ TEST_CASE("InlineArray::aligned")
 
 TEST_CASE("InlineArray::span_conversions")
 {
+    InlineArray<uint8_t, 32> arr;
+    for (uint8_t i = 0; i < 10; ++i)
+        arr.push_back(i);
+
     {
-        InlineArray<uint8_t, 32> arr;
-        for (uint8_t i = 0; i < 10; ++i)
-            arr.push_back(i);
-
-        {
-            Span<uint8_t> span = arr;
-            REQUIRE(span.data() == arr.data());
-            REQUIRE(span.size() == arr.size());
-
-            Span<uint8_t const> const_span = span;
-            REQUIRE(const_span.data() == arr.data());
-            REQUIRE(const_span.size() == arr.size());
-        }
-        {
-            InlineArray<uint8_t, 32> const &const_arr = arr;
-            Span<uint8_t const> const_span = const_arr;
-            REQUIRE(const_span.data() == arr.data());
-            REQUIRE(const_span.size() == arr.size());
-        }
+        Span<uint8_t> span = arr.span();
+        REQUIRE(span.data() == arr.data());
+        REQUIRE(span.size() == arr.size());
     }
     {
-        InlineArray<DtorObj, 32> arr;
-        for (uint8_t i = 0; i < 10; ++i)
-            arr.emplace_back(i);
-
-        {
-            Span<DtorObj> span = arr;
-            REQUIRE(span.data() == arr.data());
-            REQUIRE(span.size() == arr.size());
-
-            Span<DtorObj const> const_span = span;
-            REQUIRE(const_span.data() == arr.data());
-            REQUIRE(const_span.size() == arr.size());
-        }
-
-        {
-            InlineArray<DtorObj, 32> const &const_arr = arr;
-            Span<DtorObj const> const_span = const_arr;
-            REQUIRE(const_span.data() == arr.data());
-            REQUIRE(const_span.size() == arr.size());
-        }
+        Span<uint8_t> span = arr.span(1, 4);
+        REQUIRE(span.data() == arr.data() + 1);
+        REQUIRE(span.size() == 3);
+    }
+    {
+        Span<uint8_t const> const_span = arr;
+        REQUIRE(const_span.data() == arr.data());
+        REQUIRE(const_span.size() == arr.size());
+    }
+    {
+        InlineArray<uint8_t, 32> const &const_arr = arr;
+        Span<uint8_t const> const_span = const_arr.span();
+        REQUIRE(const_span.data() == arr.data());
+        REQUIRE(const_span.size() == arr.size());
+    }
+    {
+        InlineArray<uint8_t, 32> const &const_arr = arr;
+        Span<uint8_t const> const_span = const_arr;
+        REQUIRE(const_span.data() == arr.data());
+        REQUIRE(const_span.size() == arr.size());
+    }
+    {
+        InlineArray<uint8_t, 32> const &const_arr = arr;
+        Span<uint8_t const> const_span = const_arr.span(1, 4);
+        REQUIRE(const_span.data() == const_arr.data() + 1);
+        REQUIRE(const_span.size() == 3);
     }
 }
 

@@ -154,6 +154,9 @@ TEST_CASE("Span", "[String]")
         StrSpan span = str.span(1, 3);
         REQUIRE(span.data() == str.c_str() + 1);
         REQUIRE(span.size() == 2);
+        StrSpan full_span = str.span();
+        REQUIRE(full_span.data() == str.c_str());
+        REQUIRE(full_span.size() == str.size());
     }
 }
 

@@ -157,11 +157,17 @@ TEST_CASE("Array::span")
     Span<uint8_t> span = arr.span(3, 6);
     REQUIRE(span.data() == arr.data() + 3);
     REQUIRE(span.size() == 3);
+    Span<uint8_t> full_span = arr.span();
+    REQUIRE(full_span.data() == arr.data());
+    REQUIRE(full_span.size() == arr.size());
 
     Array<uint8_t> const &const_arr = arr;
     Span<uint8_t const> const_span = const_arr.span(3, 6);
     REQUIRE(const_span.data() == arr.data() + 3);
     REQUIRE(const_span.size() == 3);
+    Span<uint8_t const> const_full_span = const_arr.span();
+    REQUIRE(const_full_span.data() == const_arr.data());
+    REQUIRE(const_full_span.size() == const_arr.size());
 }
 
 TEST_CASE("Array::clear")
@@ -509,12 +515,7 @@ TEST_CASE("Array::span_conversion")
     for (uint8_t i = 0; i < 10; ++i)
         arr.push_back(i);
 
-    Span<uint8_t> span = arr;
-    REQUIRE(span.data() == arr.data());
-    REQUIRE(span.size() == arr.size());
-
-    Array<uint8_t> const &const_arr = arr;
-    Span<uint8_t const> const_span = const_arr;
+    Span<uint8_t const> const_span = arr;
     REQUIRE(const_span.data() == arr.data());
     REQUIRE(const_span.size() == arr.size());
 }
