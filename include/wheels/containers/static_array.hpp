@@ -53,9 +53,12 @@ class StaticArray
     [[nodiscard]] constexpr T *end() noexcept;
     [[nodiscard]] constexpr T const *end() const noexcept;
 
-    [[nodiscard]] Span<T> span() noexcept;
+    // Template type inference can't seem to follow T with the inner const so
+    // let's have explicit methods for const and mutable spans
+
+    [[nodiscard]] Span<T> mut_span() noexcept;
     [[nodiscard]] Span<T const> span() const noexcept;
-    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
+    [[nodiscard]] Span<T> mut_span(size_t begin_i, size_t end_i) noexcept;
     [[nodiscard]] Span<T const> span(
         size_t begin_i, size_t end_i) const noexcept;
 
@@ -218,7 +221,7 @@ constexpr T const *StaticArray<T, N>::end() const noexcept
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-Span<T> StaticArray<T, N>::span() noexcept
+Span<T> StaticArray<T, N>::mut_span() noexcept
 {
     return Span{begin(), N};
 }
@@ -232,7 +235,7 @@ Span<T const> StaticArray<T, N>::span() const noexcept
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-Span<T> StaticArray<T, N>::span(size_t begin_i, size_t end_i) noexcept
+Span<T> StaticArray<T, N>::mut_span(size_t begin_i, size_t end_i) noexcept
 {
     WHEELS_ASSERT(begin_i < N);
     WHEELS_ASSERT(end_i <= N);

@@ -198,12 +198,12 @@ TEST_CASE("StaticArray::span_conversions")
 {
     StaticArray<uint8_t, 32> arr;
     {
-        Span<uint8_t> span = arr.span();
+        Span<uint8_t> span = arr.mut_span();
         REQUIRE(span.data() == arr.data());
         REQUIRE(span.size() == arr.size());
     }
     {
-        Span<uint8_t> span = arr.span(1, 4);
+        Span<uint8_t> span = arr.mut_span(1, 4);
         REQUIRE(span.data() == arr.data() + 1);
         REQUIRE(span.size() == 3);
     }

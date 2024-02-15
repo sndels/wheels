@@ -41,9 +41,12 @@ template <typename T, size_t N> class InlineArray
     [[nodiscard]] T *end() noexcept;
     [[nodiscard]] T const *end() const noexcept;
 
-    [[nodiscard]] Span<T> span() noexcept;
+    // Template type inference can't seem to follow T with the inner const so
+    // let's have explicit methods for const and mutable spans
+
+    [[nodiscard]] Span<T> mut_span() noexcept;
     [[nodiscard]] Span<T const> span() const noexcept;
-    [[nodiscard]] Span<T> span(size_t begin_i, size_t end_i) noexcept;
+    [[nodiscard]] Span<T> mut_span(size_t begin_i, size_t end_i) noexcept;
     [[nodiscard]] Span<T const> span(
         size_t begin_i, size_t end_i) const noexcept;
 
@@ -260,7 +263,7 @@ template <typename T, size_t N> T const *InlineArray<T, N>::end() const noexcept
     return ((T *)m_data) + m_size;
 }
 
-template <typename T, size_t N> Span<T> InlineArray<T, N>::span() noexcept
+template <typename T, size_t N> Span<T> InlineArray<T, N>::mut_span() noexcept
 {
     return Span{begin(), m_size};
 }
@@ -272,7 +275,7 @@ Span<T const> InlineArray<T, N>::span() const noexcept
 }
 
 template <typename T, size_t N>
-Span<T> InlineArray<T, N>::span(size_t begin_i, size_t end_i) noexcept
+Span<T> InlineArray<T, N>::mut_span(size_t begin_i, size_t end_i) noexcept
 {
     WHEELS_ASSERT(begin_i < m_size);
     WHEELS_ASSERT(end_i <= m_size);

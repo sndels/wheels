@@ -154,10 +154,10 @@ TEST_CASE("Array::span")
     for (uint8_t i = 0; i < 10; ++i)
         arr.push_back(i);
 
-    Span<uint8_t> span = arr.span(3, 6);
+    Span<uint8_t> span = arr.mut_span(3, 6);
     REQUIRE(span.data() == arr.data() + 3);
     REQUIRE(span.size() == 3);
-    Span<uint8_t> full_span = arr.span();
+    Span<uint8_t> full_span = arr.mut_span();
     REQUIRE(full_span.data() == arr.data());
     REQUIRE(full_span.size() == arr.size());
 
