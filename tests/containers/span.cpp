@@ -277,6 +277,9 @@ TEST_CASE("StrSpan::constexpr")
     REQUIRE(ret == 6);
 }
 
+// Tests for find_first, find_last, contains, starts_with and ends_with in
+// String tests as those use StrSpan methods internally
+
 TEST_CASE("StrSpan::comparisons")
 {
     // Behavior should be equal to c-string comparisons with the added flavor

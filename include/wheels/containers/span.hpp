@@ -4,6 +4,7 @@
 
 #include "../assert.hpp"
 #include "concepts.hpp"
+#include "optional.hpp"
 
 #include <cstddef>
 #include <cstring>
@@ -56,6 +57,27 @@ class StrSpan : public Span<char const>
     constexpr StrSpan() noexcept = default;
     constexpr StrSpan(char const *str) noexcept;
     constexpr StrSpan(char const *str, size_t size) noexcept;
+
+    [[nodiscard]] Optional<size_t> find_first(StrSpan substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_first(
+        char const *substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_first(char ch) const noexcept;
+
+    [[nodiscard]] Optional<size_t> find_last(StrSpan substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_last(char const *substr) const noexcept;
+    [[nodiscard]] Optional<size_t> find_last(char ch) const noexcept;
+
+    [[nodiscard]] bool contains(StrSpan substr) const noexcept;
+    [[nodiscard]] bool contains(char const *substr) const noexcept;
+    [[nodiscard]] bool contains(char ch) const noexcept;
+
+    [[nodiscard]] bool starts_with(StrSpan substr) const noexcept;
+    [[nodiscard]] bool starts_with(char const *substr) const noexcept;
+    [[nodiscard]] bool starts_with(char ch) const noexcept;
+
+    [[nodiscard]] bool ends_with(StrSpan substr) const noexcept;
+    [[nodiscard]] bool ends_with(char const *substr) const noexcept;
+    [[nodiscard]] bool ends_with(char ch) const noexcept;
 };
 
 template <typename T>
@@ -121,8 +143,8 @@ template <typename T> constexpr Span<T>::operator Span<T const>() const noexcept
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator==(Span<T> lhs, Span<V> rhs) noexcept
+    requires SameAs<T, V>
+bool operator==(Span<T> lhs, Span<V> rhs) noexcept
 {
     if (lhs.data() == rhs.data() && lhs.size() == rhs.size())
         return true;
@@ -148,8 +170,8 @@ operator==(Span<T> lhs, Span<V> rhs) noexcept
 // Compires the entire spans, no special handling for e.g. trailing nulls in
 // Span<char>. Agnostic to inner const.
 template <typename T, typename V>
-    requires SameAs<T, V> bool
-operator!=(Span<T> lhs, Span<T> rhs) noexcept
+    requires SameAs<T, V>
+bool operator!=(Span<T> lhs, Span<T> rhs) noexcept
 {
     return !(lhs == rhs);
 }
@@ -166,6 +188,137 @@ inline constexpr StrSpan::StrSpan(char const *str) noexcept
 inline constexpr StrSpan::StrSpan(char const *str, size_t size) noexcept
 : Span{str, size}
 {
+}
+
+inline Optional<size_t> StrSpan::find_first(StrSpan substr) const noexcept
+{
+    if (m_size < substr.m_size)
+        return {};
+
+    size_t subs_i = 0;
+    for (size_t i = 0; i < m_size; ++i)
+    {
+        if (m_data[i] == substr.m_data[subs_i])
+        {
+            if (subs_i == substr.m_size - 1)
+                return {i + 1 - substr.m_size};
+            subs_i++;
+        }
+        else
+            subs_i = 0;
+    }
+    return {};
+}
+
+inline Optional<size_t> StrSpan::find_first(char const *substr) const noexcept
+{
+    return find_first(StrSpan{substr});
+}
+
+inline Optional<size_t> StrSpan::find_first(char ch) const noexcept
+{
+    for (size_t i = 0; i < m_size; ++i)
+    {
+        if (m_data[i] == ch)
+            return {i};
+    }
+    return {};
+}
+
+inline Optional<size_t> StrSpan::find_last(StrSpan substr) const noexcept
+{
+    if (m_size < substr.m_size)
+        return {};
+
+    size_t subs_i = substr.m_size;
+    for (size_t i = m_size; i > 0; --i)
+    {
+        if (m_data[i - 1] == substr.m_data[subs_i - 1])
+        {
+            if (subs_i == 1)
+                return Optional{i - 1};
+            subs_i--;
+        }
+        else
+            subs_i = substr.m_size;
+    }
+    return {};
+}
+
+inline Optional<size_t> StrSpan::find_last(char const *substr) const noexcept
+{
+    return find_last(StrSpan{substr});
+}
+
+inline Optional<size_t> StrSpan::find_last(char ch) const noexcept
+{
+    for (size_t i = m_size; i > 0; --i)
+    {
+        if (m_data[i - 1] == ch)
+            return Optional{i - 1};
+    }
+    return {};
+}
+
+inline bool StrSpan::contains(StrSpan substr) const noexcept
+{
+    return find_first(substr).has_value();
+}
+
+inline bool StrSpan::contains(char const *substr) const noexcept
+{
+    return find_first(substr).has_value();
+}
+
+inline bool StrSpan::contains(char ch) const noexcept
+{
+    return find_first(ch).has_value();
+}
+
+inline bool StrSpan::starts_with(StrSpan substr) const noexcept
+{
+    Optional<size_t> const found = find_first(substr);
+    if (found.has_value())
+        return *found == 0;
+
+    return false;
+}
+
+inline bool StrSpan::starts_with(char const *substr) const noexcept
+{
+    return starts_with(StrSpan{substr});
+}
+
+inline bool StrSpan::starts_with(char ch) const noexcept
+{
+    Optional<size_t> const found = find_first(ch);
+    if (found.has_value())
+        return *found == 0;
+
+    return false;
+}
+
+inline bool StrSpan::ends_with(StrSpan substr) const noexcept
+{
+    Optional<size_t> const found = find_last(substr);
+    if (found.has_value())
+        return *found == m_size - substr.m_size;
+
+    return false;
+}
+
+inline bool StrSpan::ends_with(char const *substr) const noexcept
+{
+    return ends_with(StrSpan{substr});
+}
+
+inline bool StrSpan::ends_with(char ch) const noexcept
+{
+    Optional<size_t> const found = find_last(ch);
+    if (found.has_value())
+        return *found == m_size - 1;
+
+    return false;
 }
 
 // Returns true if the spans are equal as c-strings, treating data()[size()] as

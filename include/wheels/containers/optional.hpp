@@ -3,6 +3,7 @@
 
 #include "../assert.hpp"
 #include "../utils.hpp"
+#include <new>
 
 namespace wheels
 {

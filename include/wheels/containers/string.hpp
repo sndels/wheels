@@ -118,13 +118,6 @@ class String
     void reallocate(size_t capacity) noexcept;
     void free() noexcept;
 
-    [[nodiscard]] static StrSpan span(char const *str) noexcept;
-
-    [[nodiscard]] static Optional<size_t> find_first(
-        StrSpan from, StrSpan substr) noexcept;
-    [[nodiscard]] static Optional<size_t> find_first(
-        StrSpan from, char ch) noexcept;
-
     Allocator &m_allocator;
     char *m_data{nullptr};
     size_t m_capacity{0};
@@ -314,118 +307,82 @@ inline String &String::extend(StrSpan str) noexcept
 
 inline String &String::extend(char const *str) noexcept
 {
-    return extend(span(str));
+    return extend(StrSpan{str});
 }
 
 inline Optional<size_t> String::find_first(StrSpan substr) const noexcept
 {
-    return find_first(StrSpan(*this), substr);
+    return span().find_first(substr);
 }
 
 inline Optional<size_t> String::find_first(char const *substr) const noexcept
 {
-    return find_first(span(substr));
+    return span().find_first(substr);
 }
 
 inline Optional<size_t> String::find_first(char ch) const noexcept
 {
-    return find_first(StrSpan{*this}, ch);
+    return span().find_first(ch);
 }
 
 inline Optional<size_t> String::find_last(StrSpan substr) const noexcept
 {
-    if (m_size < substr.size())
-        return {};
-
-    size_t subs_i = substr.size();
-    for (size_t i = m_size; i > 0; --i)
-    {
-        if (m_data[i - 1] == substr.data()[subs_i - 1])
-        {
-            if (subs_i == 1)
-                return Optional{i - 1};
-            subs_i--;
-        }
-        else
-            subs_i = substr.size();
-    }
-    return {};
+    return span().find_last(substr);
 }
 
 inline Optional<size_t> String::find_last(char const *substr) const noexcept
 {
-    return find_last(span(substr));
+    return span().find_last(substr);
 }
 
 inline Optional<size_t> String::find_last(char ch) const noexcept
 {
-    for (size_t i = m_size; i > 0; --i)
-    {
-        if (m_data[i - 1] == ch)
-            return Optional{i - 1};
-    }
-    return {};
+    return span().find_last(ch);
 }
 
 inline bool String::contains(StrSpan substr) const noexcept
 {
-    return find_first(substr).has_value();
+    return span().contains(substr);
 }
 
 inline bool String::contains(char const *substr) const noexcept
 {
-    return find_first(substr).has_value();
+    return span().contains(substr);
 }
 
 inline bool String::contains(char ch) const noexcept
 {
-    return find_first(ch).has_value();
+    return span().contains(ch);
 }
 
 inline bool String::starts_with(StrSpan substr) const noexcept
 {
-    Optional<size_t> const found = find_first(substr);
-    if (found.has_value())
-        return *found == 0;
-
-    return false;
+    return span().starts_with(substr);
 }
 
 inline bool String::starts_with(char const *substr) const noexcept
 {
-    return starts_with(span(substr));
+    return span().starts_with(substr);
 }
 
 inline bool String::starts_with(char ch) const noexcept
 {
-    Optional<size_t> const found = find_first(ch);
-    if (found.has_value())
-        return *found == 0;
-
-    return false;
+    return span().starts_with(ch);
 }
 
 inline bool String::ends_with(StrSpan substr) const noexcept
 {
-    Optional<size_t> const found = find_last(substr);
-    if (found.has_value())
-        return *found == m_size - substr.size();
-
-    return false;
+    return span().ends_with(substr);
 }
 
 inline bool String::ends_with(char const *substr) const noexcept
 {
-    return ends_with(span(substr));
+    return span().ends_with(substr);
 }
 
 inline bool String::ends_with(char ch) const noexcept
 {
-    Optional<size_t> const found = find_last(ch);
-    if (found.has_value())
-        return *found == m_size - 1;
-
-    return false;
+    return span().ends_with(ch);
 }
 
 inline Array<StrSpan> String::split(
@@ -434,7 +391,7 @@ inline Array<StrSpan> String::split(
     Array<StrSpan> spans{allocator, 16};
 
     StrSpan remaining{m_data, m_size};
-    Optional<size_t> found = find_first(remaining, substr);
+    Optional<size_t> found = remaining.find_first(substr);
     while (found.has_value())
     {
         // Don't add empty spans
@@ -444,7 +401,7 @@ inline Array<StrSpan> String::split(
         size_t const offset = *found + substr.size();
         remaining =
             StrSpan{remaining.data() + offset, remaining.size() - offset};
-        found = find_first(remaining, substr);
+        found = remaining.find_first(substr);
     }
 
     if (remaining.size() > 0)
@@ -456,7 +413,7 @@ inline Array<StrSpan> String::split(
 inline Array<StrSpan> String::split(
     Allocator &allocator, char const *substr) const noexcept
 {
-    return split(allocator, span(substr));
+    return split(allocator, StrSpan{substr});
 }
 
 inline Array<StrSpan> String::split(
@@ -465,7 +422,7 @@ inline Array<StrSpan> String::split(
     Array<StrSpan> spans{allocator, 16};
 
     StrSpan remaining{m_data, m_size};
-    Optional<size_t> found = find_first(remaining, ch);
+    Optional<size_t> found = remaining.find_first(ch);
     while (found.has_value())
     {
         // Don't add empty spans
@@ -475,7 +432,7 @@ inline Array<StrSpan> String::split(
         size_t const offset = *found + 1;
         remaining =
             StrSpan{remaining.data() + offset, remaining.size() - offset};
-        found = find_first(remaining, ch);
+        found = remaining.find_first(ch);
     }
 
     if (remaining.size() > 0)
@@ -506,41 +463,6 @@ inline void String::free() noexcept
         m_allocator.deallocate(m_data);
         m_data = nullptr;
     }
-}
-
-inline StrSpan String::span(char const *str) noexcept { return StrSpan{str}; }
-
-inline Optional<size_t> String::find_first(
-    StrSpan from, StrSpan substr) noexcept
-{
-    if (from.size() < substr.size())
-        return {};
-
-    size_t subs_i = 0;
-    size_t const size = from.size();
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (from.data()[i] == substr.data()[subs_i])
-        {
-            if (subs_i == substr.size() - 1)
-                return {i + 1 - substr.size()};
-            subs_i++;
-        }
-        else
-            subs_i = 0;
-    }
-    return {};
-}
-
-inline Optional<size_t> String::find_first(StrSpan from, char ch) noexcept
-{
-    size_t const size = from.size();
-    for (size_t i = 0; i < size; ++i)
-    {
-        if (from.data()[i] == ch)
-            return {i};
-    }
-    return {};
 }
 
 inline String::operator StrSpan() const noexcept
@@ -604,13 +526,13 @@ inline String concat(
 inline String concat(
     Allocator &allocator, StrSpan first, char const *second) noexcept
 {
-    return concat(allocator, first, String::span(second));
+    return concat(allocator, first, StrSpan{second});
 }
 
 inline String concat(
     Allocator &allocator, char const *first, StrSpan second) noexcept
 {
-    return concat(allocator, String::span(first), second);
+    return concat(allocator, StrSpan{first}, second);
 }
 
 template <> struct Hash<String>
