@@ -277,11 +277,13 @@ inline bool StrSpan::contains(char ch) const noexcept
 
 inline bool StrSpan::starts_with(StrSpan substr) const noexcept
 {
-    Optional<size_t> const found = find_first(substr);
-    if (found.has_value())
-        return *found == 0;
+    if (substr.m_size == 0)
+        return false;
 
-    return false;
+    if (m_size < substr.m_size)
+        return false;
+
+    return memcmp(substr.m_data, m_data, substr.m_size) == 0;
 }
 
 inline bool StrSpan::starts_with(char const *substr) const noexcept
@@ -291,20 +293,23 @@ inline bool StrSpan::starts_with(char const *substr) const noexcept
 
 inline bool StrSpan::starts_with(char ch) const noexcept
 {
-    Optional<size_t> const found = find_first(ch);
-    if (found.has_value())
-        return *found == 0;
+    if (m_size == 0)
+        return false;
 
-    return false;
+    return m_data[0] == ch;
 }
 
 inline bool StrSpan::ends_with(StrSpan substr) const noexcept
 {
-    Optional<size_t> const found = find_last(substr);
-    if (found.has_value())
-        return *found == m_size - substr.m_size;
+    if (substr.m_size == 0)
+        return false;
 
-    return false;
+    if (m_size < substr.m_size)
+        return false;
+
+    return memcmp(
+               substr.m_data, m_data + m_size - substr.m_size, substr.m_size) ==
+           0;
 }
 
 inline bool StrSpan::ends_with(char const *substr) const noexcept
@@ -314,11 +319,10 @@ inline bool StrSpan::ends_with(char const *substr) const noexcept
 
 inline bool StrSpan::ends_with(char ch) const noexcept
 {
-    Optional<size_t> const found = find_last(ch);
-    if (found.has_value())
-        return *found == m_size - 1;
+    if (m_size == 0)
+        return false;
 
-    return false;
+    return m_data[m_size - 1] == ch;
 }
 
 // Returns true if the spans are equal as c-strings, treating data()[size()] as
