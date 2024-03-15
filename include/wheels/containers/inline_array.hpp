@@ -95,7 +95,12 @@ m_size{N}
 {
     // TODO: memcpy for entire elems array if T is trivially copyable
     for (size_t i = 0; i < N; ++i)
+    {
         new (((T *)m_data) + i) T{WHEELS_MOV(elems[i])};
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            // Moved from value might still require dtor
+            elems[i].~T();
+    }
 }
 
 // Deduction from intializer list
@@ -126,7 +131,12 @@ m_size{elems.size()}
         size_t i = 0;
         auto const end = elems.end();
         for (auto iter = elems.begin(); iter != end; ++iter, ++i)
+        {
             new (((T *)m_data) + i) T{WHEELS_MOV(*iter)};
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                // Moved from value might still require dtor
+                iter->~T();
+        }
     }
 }
 
@@ -155,7 +165,12 @@ InlineArray<T, N>::InlineArray(InlineArray<T, N> &&other) noexcept
 m_size{other.m_size}
 {
     for (size_t i = 0; i < other.m_size; ++i)
+    {
         new ((T *)m_data + i) T{WHEELS_MOV(((T *)other.m_data)[i])};
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            // Moved from value might still require dtor
+            ((T *)other.m_data)[i].~T();
+    }
     other.m_size = 0;
 }
 
@@ -183,7 +198,12 @@ InlineArray<T, N> &InlineArray<T, N>::operator=(
         clear();
 
         for (size_t i = 0; i < other.m_size; ++i)
+        {
             new ((T *)m_data + i) T{WHEELS_MOV(((T *)other.m_data)[i])};
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                // Moved from value might still require dtor
+                ((T *)other.m_data)[i].~T();
+        }
         m_size = other.m_size;
 
         other.m_size = 0;
@@ -337,7 +357,13 @@ template <typename T, size_t N> T InlineArray<T, N>::pop_back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     m_size--;
-    return WHEELS_MOV(((T *)m_data)[m_size]);
+
+    T ret{WHEELS_MOV(((T *)m_data)[m_size])};
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        // Moved from value might still require dtor
+        ((T *)m_data)[m_size].~T();
+
+    return ret;
 }
 
 template <typename T, size_t N>

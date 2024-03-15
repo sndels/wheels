@@ -217,7 +217,8 @@ TEST_CASE("InlineArray::pop_back")
     InlineArray<Obj, 1> arr;
     arr.emplace_back(10u);
     REQUIRE(arr[0].m_data == 10);
-    REQUIRE(arr.pop_back().m_data == 10);
+    Obj back{WHEELS_FWD(arr.pop_back())};
+    REQUIRE(back.m_data == 10);
     REQUIRE(arr.size() == 0);
 }
 

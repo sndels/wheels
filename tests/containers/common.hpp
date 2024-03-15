@@ -117,6 +117,11 @@ class DtorObj
         static uint64_t counter = 0;
         return counter;
     }
+    static uint64_t &s_moved_from_dtor_counter()
+    {
+        static uint64_t counter = 0;
+        return counter;
+    }
 
     DtorObj()
     {
@@ -138,6 +143,12 @@ class DtorObj
             s_dtor_counter()++;
             data = s_null_value;
         }
+        else if (m_moved_from)
+        {
+            s_moved_from_dtor_counter()++;
+            // Only count once
+            m_moved_from = false;
+        }
     };
 
     DtorObj(DtorObj const &other)
@@ -153,6 +164,7 @@ class DtorObj
         s_ctor_counter()++;
         s_move_ctor_counter()++;
         other.data = s_null_value;
+        other.m_moved_from = true;
     }
 
     DtorObj &operator=(DtorObj const &other)
@@ -171,6 +183,7 @@ class DtorObj
         {
             data = other.data;
             other.data = s_null_value;
+            other.m_moved_from = true;
             s_assign_counter()++;
         }
         return *this;
@@ -179,6 +192,7 @@ class DtorObj
     // -1 means the value has been moved or destroyed, which skips
     // dtor_counter
     uint64_t data{0};
+    bool m_moved_from{false};
     // std::string seems to always require dtor in msvc crt
     std::string m_leak_check{};
 };
@@ -186,6 +200,7 @@ class DtorObj
 inline void init_dtor_counters()
 {
     DtorObj::s_dtor_counter() = 0;
+    DtorObj::s_moved_from_dtor_counter() = 0;
     DtorObj::s_ctor_counter() = 0;
     DtorObj::s_default_ctor_counter() = 0;
     DtorObj::s_value_ctor_counter() = 0;

@@ -372,6 +372,9 @@ void HashSet<T, Hasher>::grow(size_t capacity) noexcept
             continue;
 
         insert(WHEELS_MOV(old_data[pos]));
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            // Moved from value might still require dtor
+            old_data[pos].~T();
     }
 
     // No need to call dtors as we moved the values

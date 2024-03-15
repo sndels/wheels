@@ -24,7 +24,7 @@ template <typename T> class Optional
 
     [[nodiscard]] bool has_value() const noexcept;
     void reset() noexcept;
-    T &&take() noexcept;
+    T take() noexcept;
     [[nodiscard]] Optional<T> swap(T &&value) noexcept;
     template <typename... Args> void emplace(Args &&...args) noexcept;
 
@@ -66,7 +66,7 @@ Optional<T>::Optional(T &&value) noexcept
 #endif // NDEBUG
 {
     m_has_value = true;
-    new (m_data) T{WHEELS_MOV(value)};
+    new (m_data) T{WHEELS_FWD(value)};
 }
 
 template <typename T> Optional<T>::~Optional() { reset(); }
@@ -84,8 +84,15 @@ Optional<T>::Optional(Optional<T> &&other) noexcept
 : m_has_value{other.m_has_value}
 {
     if (m_has_value)
+    {
         new (m_data) T{WHEELS_MOV(*(T *)other.m_data)};
-    other.m_has_value = false;
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            // Moved-from value might still require dtor and the compiler
+            // won't help us here as other's dtor runs when m_has_value is
+            // false
+            ((T *)other.m_data)->~T();
+        other.m_has_value = false;
+    }
 }
 
 template <typename T>
@@ -110,9 +117,16 @@ Optional<T> &Optional<T>::operator=(Optional<T> &&other) noexcept
         reset();
 
         if (other.m_has_value)
+        {
             new (m_data) T{WHEELS_MOV(*(T *)other.m_data)};
-        m_has_value = other.m_has_value;
-        other.m_has_value = false;
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                // Moved-from value might still require dtor and the compiler
+                // won't help us here as other's dtor runs when m_has_value is
+                // false
+                ((T *)other.m_data)->~T();
+            other.m_has_value = false;
+            m_has_value = true;
+        }
     }
     return *this;
 }
@@ -129,17 +143,24 @@ template <typename T> void Optional<T>::reset() noexcept
 {
     if (m_has_value)
     {
-        (*(T *)m_data).~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            ((T *)m_data)->~T();
         m_has_value = false;
     }
 }
 
-template <typename T> T &&Optional<T>::take() noexcept
+template <typename T> T Optional<T>::take() noexcept
 {
     WHEELS_ASSERT(has_value());
     m_has_value = false;
 
-    return WHEELS_MOV(*(T *)m_data);
+    T ret = WHEELS_MOV(*(T *)m_data);
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        // Moved-from value might still require dtor and the compiler won't help
+        // us here
+        ((T *)m_data)->~T();
+
+    return ret;
 }
 
 template <typename T> Optional<T> Optional<T>::swap(T &&value) noexcept
@@ -148,6 +169,10 @@ template <typename T> Optional<T> Optional<T>::swap(T &&value) noexcept
     if (has_value())
     {
         new (ret.m_data) T{WHEELS_MOV(*(T *)m_data)};
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            // Moved-from value might still require dtor and the compiler won't
+            // help us here
+            ((T *)m_data)->~T();
         ret.m_has_value = true;
     }
 

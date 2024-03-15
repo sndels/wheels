@@ -22,11 +22,13 @@ TEST_CASE("Optional::ctors")
         REQUIRE(DtorObj::s_copy_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
         REQUIRE(opt.has_value());
         REQUIRE((*opt).data == 2);
         REQUIRE(opt->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 2);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
 
     {
         init_dtor_counters();
@@ -37,11 +39,13 @@ TEST_CASE("Optional::ctors")
         REQUIRE(DtorObj::s_move_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
         REQUIRE(opt.has_value());
         REQUIRE((*opt).data == 2);
         REQUIRE(opt->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
 
     {
         init_dtor_counters();
@@ -53,11 +57,14 @@ TEST_CASE("Optional::ctors")
         REQUIRE(DtorObj::s_copy_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt2.has_value());
         REQUIRE((*opt2).data == 2);
         REQUIRE(opt2->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 2);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
 
     {
         init_dtor_counters();
@@ -68,11 +75,15 @@ TEST_CASE("Optional::ctors")
         REQUIRE(DtorObj::s_move_ctor_counter() == 2);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary and moved from
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
         REQUIRE(opt2.has_value());
         REQUIRE((*opt2).data == 2);
         REQUIRE(opt2->data == 2);
+        // TODO: Why isn't opt's dtor called here with msvc, but only opt2's?
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
 }
 
 TEST_CASE("Optional::assignments")
@@ -84,6 +95,7 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_ctor_counter() == 0);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
         REQUIRE(!opt.has_value());
         REQUIRE(!opt2.has_value());
 
@@ -91,6 +103,7 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_ctor_counter() == 0);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
         REQUIRE(!opt.has_value());
         REQUIRE(!opt2.has_value());
 
@@ -98,9 +111,11 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_ctor_counter() == 0);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
         REQUIRE(!opt2.has_value());
     }
     REQUIRE(DtorObj::s_dtor_counter() == 0);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
 
     {
         init_dtor_counters();
@@ -111,6 +126,8 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_move_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt.has_value());
         REQUIRE((*opt).data == 2);
         REQUIRE(opt->data == 2);
@@ -122,6 +139,7 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_copy_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt.has_value());
         REQUIRE((*opt).data == 2);
         REQUIRE(opt->data == 2);
@@ -129,6 +147,7 @@ TEST_CASE("Optional::assignments")
         REQUIRE(opt2->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 2);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
 
     {
         init_dtor_counters();
@@ -139,6 +158,8 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_move_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt.has_value());
         REQUIRE(opt->data == 2);
         REQUIRE(!opt2.has_value());
@@ -148,10 +169,43 @@ TEST_CASE("Optional::assignments")
         REQUIRE(DtorObj::s_ctor_counter() == 3);
         REQUIRE(DtorObj::s_move_ctor_counter() == 2);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Moved from
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
         REQUIRE(opt2.has_value());
         REQUIRE(opt2->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
+
+    {
+        init_dtor_counters();
+        Optional<DtorObj> opt{DtorObj{2}};
+        Optional<DtorObj> opt2{DtorObj{3}};
+        REQUIRE(DtorObj::s_ctor_counter() == 4);
+        REQUIRE(DtorObj::s_value_ctor_counter() == 2);
+        REQUIRE(DtorObj::s_move_ctor_counter() == 2);
+        REQUIRE(DtorObj::s_assign_counter() == 0);
+        REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporaries
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
+        REQUIRE(opt.has_value());
+        REQUIRE(opt->data == 2);
+        REQUIRE(opt2.has_value());
+        REQUIRE(opt2->data == 3);
+
+        opt2 = WHEELS_MOV(opt);
+
+        REQUIRE(DtorObj::s_ctor_counter() == 5);
+        REQUIRE(DtorObj::s_move_ctor_counter() == 3);
+        // Previous opt2
+        REQUIRE(DtorObj::s_dtor_counter() == 1);
+        // Moved from
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 3);
+        REQUIRE(opt2.has_value());
+        REQUIRE(opt2->data == 2);
+    }
+    REQUIRE(DtorObj::s_dtor_counter() == 2);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 3);
 }
 
 TEST_CASE("Optional::aligned")
@@ -174,6 +228,8 @@ TEST_CASE("Optional::swap")
         REQUIRE(DtorObj::s_move_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt.has_value());
         REQUIRE(opt->data == 2);
         REQUIRE(!prev.has_value());
@@ -186,12 +242,15 @@ TEST_CASE("Optional::swap")
         REQUIRE(DtorObj::s_move_ctor_counter() == 3);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary and moved from opt
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 3);
         REQUIRE(opt.has_value());
         REQUIRE(opt->data == 3);
         REQUIRE(prev.has_value());
         REQUIRE(prev->data == 2);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 3);
 }
 
 TEST_CASE("Optional::take")
@@ -203,12 +262,16 @@ TEST_CASE("Optional::take")
     REQUIRE(DtorObj::s_move_ctor_counter() == 1);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
+    // Temporary
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
     DtorObj obj{opt.take()};
     REQUIRE(DtorObj::s_ctor_counter() == 3);
     REQUIRE(DtorObj::s_value_ctor_counter() == 1);
     REQUIRE(DtorObj::s_move_ctor_counter() == 2);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
+    // Moved from opt
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 2);
     REQUIRE(!opt.has_value());
     REQUIRE(obj.data == 2);
 }
@@ -222,6 +285,7 @@ TEST_CASE("Optional::emplace")
     REQUIRE(DtorObj::s_value_ctor_counter() == 1);
     REQUIRE(DtorObj::s_assign_counter() == 0);
     REQUIRE(DtorObj::s_dtor_counter() == 0);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 0);
     REQUIRE(opt.has_value());
     REQUIRE(opt->data == 2);
 }
@@ -236,19 +300,24 @@ TEST_CASE("Optional::reset")
         REQUIRE(DtorObj::s_move_ctor_counter() == 1);
         REQUIRE(DtorObj::s_assign_counter() == 0);
         REQUIRE(DtorObj::s_dtor_counter() == 0);
+        // Temporary
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
         REQUIRE(opt.has_value());
 
         opt.reset();
         REQUIRE(!opt.has_value());
         REQUIRE(DtorObj::s_ctor_counter() == 2);
         REQUIRE(DtorObj::s_dtor_counter() == 1);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
 
         opt.reset();
         REQUIRE(!opt.has_value());
         REQUIRE(DtorObj::s_ctor_counter() == 2);
         REQUIRE(DtorObj::s_dtor_counter() == 1);
+        REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
     }
     REQUIRE(DtorObj::s_dtor_counter() == 1);
+    REQUIRE(DtorObj::s_moved_from_dtor_counter() == 1);
 }
 
 TEST_CASE("Optional::comparisons")

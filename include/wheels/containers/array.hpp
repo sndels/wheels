@@ -283,7 +283,7 @@ template <typename T> void Array<T>::extend(Span<const T> values) noexcept
     else
     {
         for (size_t i = 0; i < values.size(); ++i)
-            new (m_data + m_size + i) T{WHEELS_MOV(values[i])};
+            new (m_data + m_size + i) T{values[i]};
     }
     m_size += values.size();
 }
@@ -292,7 +292,13 @@ template <typename T> T Array<T>::pop_back() noexcept
 {
     WHEELS_ASSERT(m_size > 0);
     m_size--;
-    return WHEELS_MOV(m_data[m_size]);
+
+    T ret = WHEELS_MOV(m_data[m_size]);
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        // Moved from value might still require dtor
+        m_data[m_size].~T();
+
+    return ret;
 }
 
 template <typename T> void Array<T>::erase(size_t index) noexcept
@@ -302,13 +308,23 @@ template <typename T> void Array<T>::erase(size_t index) noexcept
     m_data[index].~T();
 
     if constexpr (std::is_trivially_copyable_v<T>)
+    {
+        static_assert(
+            std::is_trivially_destructible_v<T>,
+            "No dtors are called in this path");
         memcpy(
             m_data + index, m_data + index + 1,
             (m_size - index - 1) * sizeof(T));
+    }
     else
     {
         for (size_t i = index + 1; i < m_size; ++i)
+        {
             new (m_data + i - 1) T{WHEELS_MOV(m_data[i])};
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                // Moved from value might still require dtor
+                m_data[i].~T();
+        }
     }
     m_size--;
 }
@@ -322,10 +338,18 @@ template <typename T> void Array<T>::erase_swap_last(size_t index) noexcept
     if (m_size > 1 && index < m_size - 1)
     {
         if constexpr (std::is_trivially_copyable_v<T>)
+        {
+            static_assert(
+                std::is_trivially_destructible_v<T>,
+                "No dtors are called in this path");
             memcpy(m_data + index, m_data + m_size - 1, sizeof(T));
+        }
         else
         {
             new (m_data + index) T{WHEELS_MOV(m_data[m_size - 1])};
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                // Moved from value might still require dtor
+                m_data[m_size - 1].~T();
         }
     }
     m_size--;
@@ -389,11 +413,21 @@ template <typename T> void Array<T>::reallocate(size_t capacity) noexcept
     if (m_data != nullptr)
     {
         if constexpr (std::is_trivially_copyable_v<T>)
+        {
+            static_assert(
+                std::is_trivially_destructible_v<T>,
+                "No dtors are called in this path");
             memcpy(data, m_data, m_size * sizeof(T));
+        }
         else
         {
             for (size_t i = 0; i < m_size; ++i)
+            {
                 new (data + i) T{WHEELS_MOV(m_data[i])};
+                if constexpr (!std::is_trivially_destructible_v<T>)
+                    // Moved from value might still require dtor
+                    m_data[i].~T();
+            }
         }
         m_allocator.deallocate(m_data);
     }

@@ -475,6 +475,12 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity) noexcept
         // TODO: We know these are unique, could skip find and just assign
         insert_or_assign(
             WHEELS_MOV(old_keys[pos]), WHEELS_MOV(old_values[pos]));
+        if constexpr (!std::is_trivially_destructible_v<Key>)
+            // Moved from value might still require dtor
+            old_keys[pos].~Key();
+        if constexpr (!std::is_trivially_destructible_v<Value>)
+            // Moved from value might still require dtor
+            old_values[pos].~Value();
     }
 
     // No need to call dtors as we moved the values
