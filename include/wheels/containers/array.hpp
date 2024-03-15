@@ -83,7 +83,7 @@ template <typename T> class Array
 
   private:
     void reallocate(size_t capacity) noexcept;
-    void free() noexcept;
+    void destroy() noexcept;
 
     Allocator &m_allocator;
     T *m_data{nullptr};
@@ -103,7 +103,7 @@ Array<T>::Array(Allocator &allocator, size_t initial_capacity) noexcept
         reallocate(initial_capacity);
 }
 
-template <typename T> Array<T>::~Array() { free(); }
+template <typename T> Array<T>::~Array() { destroy(); }
 
 template <typename T>
 Array<T>::Array(Array<T> &&other) noexcept
@@ -124,7 +124,7 @@ template <typename T> Array<T> &Array<T>::operator=(Array<T> &&other) noexcept
 
     if (this != &other)
     {
-        free();
+        destroy();
 
         m_data = other.m_data;
         m_capacity = other.m_capacity;
@@ -402,7 +402,7 @@ template <typename T> void Array<T>::reallocate(size_t capacity) noexcept
     m_capacity = capacity;
 }
 
-template <typename T> void Array<T>::free() noexcept
+template <typename T> void Array<T>::destroy() noexcept
 {
     if (m_data != nullptr)
     {

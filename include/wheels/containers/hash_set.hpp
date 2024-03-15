@@ -75,7 +75,7 @@ template <typename T, class Hasher = Hash<T>> class HashSet
     [[nodiscard]] bool is_over_max_load() const noexcept;
 
     void grow(size_t capacity) noexcept;
-    void free() noexcept;
+    void destroy() noexcept;
 
     enum class Ctrl : uint8_t
     {
@@ -121,7 +121,10 @@ HashSet<T, Hasher>::HashSet(
         grow(initial_capacity);
 }
 
-template <typename T, class Hasher> HashSet<T, Hasher>::~HashSet() { free(); }
+template <typename T, class Hasher> HashSet<T, Hasher>::~HashSet()
+{
+    destroy();
+}
 
 template <typename T, class Hasher>
 HashSet<T, Hasher>::HashSet(HashSet<T, Hasher> &&other) noexcept
@@ -146,7 +149,7 @@ HashSet<T, Hasher> &HashSet<T, Hasher>::operator=(
 
     if (this != &other)
     {
-        free();
+        destroy();
 
         m_data = other.m_data;
         m_metadata = other.m_metadata;
@@ -376,7 +379,7 @@ void HashSet<T, Hasher>::grow(size_t capacity) noexcept
     m_allocator.deallocate(old_metadata);
 }
 
-template <typename T, class Hasher> void HashSet<T, Hasher>::free() noexcept
+template <typename T, class Hasher> void HashSet<T, Hasher>::destroy() noexcept
 {
     if (m_data != nullptr)
     {

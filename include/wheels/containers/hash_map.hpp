@@ -105,7 +105,7 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
     [[nodiscard]] bool is_over_max_load() const noexcept;
 
     void grow(size_t capacity) noexcept;
-    void free() noexcept;
+    void destroy() noexcept;
 
     enum class Ctrl : uint8_t
     {
@@ -156,7 +156,7 @@ HashMap<Key, Value, Hasher>::HashMap(
 template <typename Key, typename Value, class Hasher>
 HashMap<Key, Value, Hasher>::~HashMap()
 {
-    free();
+    destroy();
 }
 
 template <typename Key, typename Value, class Hasher>
@@ -184,7 +184,7 @@ HashMap<Key, Value, Hasher> &HashMap<Key, Value, Hasher>::operator=(
 
     if (this != &other)
     {
-        free();
+        destroy();
 
         m_keys = other.m_keys;
         m_values = other.m_values;
@@ -484,7 +484,7 @@ void HashMap<Key, Value, Hasher>::grow(size_t capacity) noexcept
 }
 
 template <typename Key, typename Value, class Hasher>
-void HashMap<Key, Value, Hasher>::free() noexcept
+void HashMap<Key, Value, Hasher>::destroy() noexcept
 {
     if (m_keys != nullptr)
     {

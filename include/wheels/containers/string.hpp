@@ -116,7 +116,7 @@ class String
 
   private:
     void reallocate(size_t capacity) noexcept;
-    void free() noexcept;
+    void destroy() noexcept;
 
     Allocator &m_allocator;
     char *m_data{nullptr};
@@ -157,7 +157,7 @@ inline String::String(Allocator &allocator, StrSpan str) noexcept
     m_size = str.size();
 }
 
-inline String::~String() { free(); }
+inline String::~String() { destroy(); }
 
 inline String::String(String &&other) noexcept
 : m_allocator{other.m_allocator}
@@ -177,7 +177,7 @@ inline String &String::operator=(String &&other) noexcept
 
     if (this != &other)
     {
-        free();
+        destroy();
 
         m_data = other.m_data;
         m_capacity = other.m_capacity;
@@ -456,7 +456,7 @@ inline void String::reallocate(size_t capacity) noexcept
     m_capacity = capacity;
 }
 
-inline void String::free() noexcept
+inline void String::destroy() noexcept
 {
     if (m_data != nullptr)
     {
