@@ -59,6 +59,7 @@ if(WHEELS_BUILD_TESTS)
             /w14906
             /w14928
         )
+        target_compile_definitions(wheels_test PRIVATE "_CRTDBG_MAP_ALLOC")
     else()
         target_compile_options(wheels_test
             PRIVATE

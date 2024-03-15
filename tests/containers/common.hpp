@@ -49,6 +49,8 @@ class CopyObj
     }
     CopyObj &operator=(CopyObj &&) = delete;
     uint32_t data{0};
+    // std::string seems to always require dtor in msvc crt
+    std::string m_leak_check{};
 };
 
 class MoveObj
@@ -72,6 +74,8 @@ class MoveObj
         return *this;
     }
     uint32_t data{0};
+    // std::string seems to always require dtor in msvc crt
+    std::string m_leak_check{};
 };
 
 class DtorObj
@@ -175,6 +179,8 @@ class DtorObj
     // -1 means the value has been moved or destroyed, which skips
     // dtor_counter
     uint64_t data{0};
+    // std::string seems to always require dtor in msvc crt
+    std::string m_leak_check{};
 };
 
 inline void init_dtor_counters()
