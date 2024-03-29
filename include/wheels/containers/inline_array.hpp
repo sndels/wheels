@@ -19,7 +19,7 @@ template <typename T, size_t N> class InlineArray
     InlineArray(T const (&elems)[N]) noexcept;
     // Takes in either a single default value for the entire array or a list of
     // values filling all slots
-    InlineArray(std::initializer_list<T> elems) noexcept;
+    explicit InlineArray(std::initializer_list<T> elems) noexcept;
     ~InlineArray();
 
     InlineArray(InlineArray<T, N> const &other) noexcept;

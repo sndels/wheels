@@ -23,7 +23,7 @@ class StaticArray
 {
   public:
     constexpr StaticArray() noexcept = default;
-    constexpr StaticArray(T const &default_value) noexcept
+    constexpr explicit StaticArray(T const &default_value) noexcept
         requires std::is_copy_assignable_v<T>;
     constexpr StaticArray(T const (&elems)[N]) noexcept
         requires std::is_copy_assignable_v<T>;
