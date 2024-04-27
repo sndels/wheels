@@ -85,7 +85,8 @@ constexpr Span<T>::Span(T *ptr, size_t size) noexcept
 : m_data{ptr}
 , m_size{size}
 {
-    WHEELS_ASSERT(m_data != nullptr);
+    // Let's catch weird input values, but allow explicitly empty spans
+    WHEELS_ASSERT(m_data != nullptr || m_size == 0);
 }
 
 template <typename T> constexpr T &Span<T>::operator[](size_t i) noexcept
