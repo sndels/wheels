@@ -251,11 +251,14 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::clear() noexcept
 {
     if (m_size > 0)
     {
-        for (size_t i = 0; i < m_capacity; ++i)
+        if constexpr (!std::is_trivially_destructible_v<T>)
         {
-            if (!s_empty_pos(m_metadata, i))
+            for (size_t i = 0; i < m_capacity; ++i)
             {
-                m_data[i].~T();
+                if (!s_empty_pos(m_metadata, i))
+                {
+                    m_data[i].~T();
+                }
             }
         }
         m_size = 0;
@@ -310,7 +313,8 @@ void HashSet<T, Hasher>::remove(T const &value) noexcept
         uint8_t const meta = m_metadata[pos];
         if (h2 == meta && value == m_data[pos])
         {
-            m_data[pos].~T();
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                m_data[pos].~T();
             m_metadata[pos] = (uint8_t)Ctrl::Deleted;
             m_size--;
 

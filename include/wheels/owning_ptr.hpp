@@ -123,7 +123,8 @@ template <typename T> void OwningPtr<T>::reset() noexcept
     {
         if (_data != nullptr)
         {
-            _data->~T();
+            if constexpr (!std::is_trivially_destructible_v<T>)
+                _data->~T();
             _alloc->deallocate(_data);
             _data = nullptr;
         }

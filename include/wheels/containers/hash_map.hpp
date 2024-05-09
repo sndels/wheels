@@ -341,12 +341,19 @@ void HashMap<Key, Value, Hasher>::clear() noexcept
 {
     if (m_size > 0)
     {
-        for (size_t i = 0; i < m_capacity; ++i)
+        if constexpr (
+            !std::is_trivially_destructible_v<Key> ||
+            !std::is_trivially_destructible_v<Value>)
         {
-            if (!s_empty_pos(m_metadata, i))
+            for (size_t i = 0; i < m_capacity; ++i)
             {
-                m_keys[i].~Key();
-                m_values[i].~Value();
+                if (!s_empty_pos(m_metadata, i))
+                {
+                    if constexpr (!std::is_trivially_destructible_v<Key>)
+                        m_keys[i].~Key();
+                    if constexpr (!std::is_trivially_destructible_v<Value>)
+                        m_values[i].~Value();
+                }
             }
         }
         m_size = 0;
@@ -407,8 +414,10 @@ void HashMap<Key, Value, Hasher>::remove(Key const &key) noexcept
         uint8_t const meta = m_metadata[pos];
         if (h2 == meta && key == m_keys[pos])
         {
-            m_keys[pos].~Key();
-            m_values[pos].~Value();
+            if constexpr (!std::is_trivially_destructible_v<Key>)
+                m_keys[pos].~Key();
+            if constexpr (!std::is_trivially_destructible_v<Value>)
+                m_values[pos].~Value();
             m_metadata[pos] = (uint8_t)Ctrl::Deleted;
             m_size--;
 

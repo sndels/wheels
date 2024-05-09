@@ -305,7 +305,8 @@ template <typename T> void Array<T>::erase(size_t index) noexcept
 {
     WHEELS_ASSERT(index < m_size);
 
-    m_data[index].~T();
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_data[index].~T();
 
     if constexpr (std::is_trivially_copyable_v<T>)
     {
@@ -333,7 +334,8 @@ template <typename T> void Array<T>::erase_swap_last(size_t index) noexcept
 {
     WHEELS_ASSERT(index < m_size);
 
-    m_data[index].~T();
+    if constexpr (!std::is_trivially_destructible_v<T>)
+        m_data[index].~T();
 
     if (m_size > 1 && index < m_size - 1)
     {
