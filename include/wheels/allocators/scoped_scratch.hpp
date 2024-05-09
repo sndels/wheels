@@ -25,7 +25,7 @@ struct ScopeData
     // let's just have the extra 8 bytes for now as it should be safe
     // everywhere.
     void *data{nullptr};
-    void (*dtor)(void *ptr);
+    void (*dtor)(void *ptr){nullptr};
     ScopeData *previous{nullptr};
 };
 
@@ -78,6 +78,8 @@ inline ScopedScratch::~ScopedScratch()
         ScopeData *scope = m_objects;
         while (scope != nullptr)
         {
+            WHEELS_ASSERT(scope->dtor != nullptr);
+            WHEELS_ASSERT(scope->previous != nullptr);
             scope->dtor(scope->data);
             scope = scope->previous;
         }
@@ -165,6 +167,9 @@ T *ScopedScratch::allocate_object(Args &&...args) noexcept
         return nullptr;
     }
 
+    // TODO:
+    // Just skip the scope if T has a trivial destructor?
+    // static_assert that is has a non-trivial destructor for clearer use?
     scope->dtor = &scope_dtor_call<T>;
     scope->previous = m_objects;
 
