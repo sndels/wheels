@@ -47,6 +47,9 @@ class TlsfAllocator : public Allocator
     TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
 
     [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
+    // Input ptr is invalidated if reallocation succeeds. The user needs to free
+    // it after a failure.
+    [[nodiscard]] void *reallocate(void *ptr, size_t num_bytes) noexcept;
     virtual void deallocate(void *ptr) noexcept override;
 
     Stats const &stats() const noexcept;
@@ -262,6 +265,11 @@ class TlsfAllocator : public Allocator
     [[nodiscard]] FreeBlock *merge_previous(FreeBlock *block) noexcept;
     [[nodiscard]] FreeBlock *merge_next(FreeBlock *block) noexcept;
 
+    // Separate methods that don't assert thread safety so that they can be
+    // called within reallocate()
+    [[nodiscard]] void *allocate_internal(size_t num_bytes) noexcept;
+    void deallocate_internal(void *ptr) noexcept;
+
     using SecondLevelRangesLists = FreeBlock *[s_second_level_range_count];
 
     void *m_data{nullptr};
@@ -365,6 +373,11 @@ inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
+    return allocate_internal(num_bytes);
+}
+
+inline void *TlsfAllocator::allocate_internal(size_t num_bytes) noexcept
+{
     num_bytes = padded_num_bytes(num_bytes);
 
     // First list that could have blocks we can use
@@ -418,10 +431,71 @@ inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
     return alloc_ptr;
 }
 
-inline void TlsfAllocator::deallocate(void *ptr) noexcept
+inline void *TlsfAllocator::reallocate(void *ptr, size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
+    WHEELS_ASSERT(num_bytes > 0);
+    if (ptr == nullptr)
+        return allocate_internal(num_bytes);
+
+    WHEELS_ASSERT(
+        (uintptr_t)ptr > (uintptr_t)m_data &&
+        (uintptr_t)ptr - (uintptr_t)m_data < m_full_size);
+
+    // We stored a pointer to the front of the block just before the allocation
+    // pointer
+    uintptr_t const ptr_to_front_addr = (uintptr_t)ptr - sizeof(void *);
+    WHEELS_ASSERT(ptr_to_front_addr % alignof(void *) == 0);
+    void *ptr_to_front = *(void **)ptr_to_front_addr;
+
+    WHEELS_ASSERT((uintptr_t)ptr_to_front % alignof(FreeBlock) == 0);
+    // This aliases the front tag that's already there
+    FreeBlock *block = (FreeBlock *)ptr_to_front;
+    WHEELS_ASSERT(block->tag.allocated == s_flag_allocated);
+    WHEELS_ASSERT(block->tag.byte_count >= s_min_block_size);
+
+    // Just return the same allocation if the requested size would get the same
+    // size allocation
+    size_t const padded_byte_count = padded_num_bytes(num_bytes);
+    if (padded_byte_count == block->tag.byte_count)
+        return ptr;
+
+    // TODO:
+    // Shrink the block when num_bytes is less than byte_count.
+
+    // TODO:
+    // Grow the block the if the one after it is free and the two are big enough
+    // when combined.
+
+    void *new_ptr = allocate_internal(num_bytes);
+    if (new_ptr == nullptr)
+        return nullptr;
+
+    // Copy over existing data, using the smaller of the sizes.
+    // Block size includes padding and tags so let's remove them to avoid
+    // copying needless bytes and stomping over the end tag / next allocation's
+    // front tag. This won't get us the exact data size but it's at least closer
+    // than the full block size.
+    size_t const smaller_size =
+        std::min(block->tag.byte_count, padded_byte_count);
+    size_t const padding = block_padding_num_bytes(smaller_size);
+    WHEELS_ASSERT(smaller_size > padding);
+    std::memcpy(new_ptr, ptr, smaller_size - padding);
+
+    deallocate_internal(ptr);
+
+    return new_ptr;
+}
+
+inline void TlsfAllocator::deallocate(void *ptr) noexcept
+{
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    deallocate_internal(ptr);
+}
+
+inline void TlsfAllocator::deallocate_internal(void *ptr) noexcept
+{
     if (ptr == nullptr)
         return;
 
@@ -699,6 +773,9 @@ class TlsfAllocator : public Allocator
     TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
 
     [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
+    // Input ptr is invalidated if reallocation succeeds. The user needs to free
+    // it after a failure.
+    [[nodiscard]] void *reallocate(void *ptr, size_t num_bytes) noexcept;
     virtual void deallocate(void *ptr) noexcept override;
 
     Stats const &stats() const noexcept;
@@ -739,6 +816,41 @@ inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
     m_allocations.emplace(ptr, num_bytes);
 
     return ptr;
+}
+
+inline void *TlsfAllocator::reallocate(void *ptr, size_t num_bytes) noexcept
+{
+    WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(num_bytes <= m_stats.free_byte_count);
+
+    void *new_ptr = std::realloc(ptr, num_bytes);
+    WHEELS_ASSERT(new_ptr != nullptr);
+    if (new_ptr != ptr)
+    {
+        if (ptr != nullptr)
+        {
+            WHEELS_ASSERT(m_allocations.contains(ptr));
+
+            const size_t prev_num_bytes = m_allocations.find(ptr)->second;
+            m_stats.allocated_byte_count -= prev_num_bytes;
+            m_stats.free_byte_count += prev_num_bytes;
+
+            m_allocations.erase(ptr);
+            // realloc already freed the original pointer
+        }
+        else
+            m_stats.allocation_count++;
+
+        m_stats.allocated_byte_count += num_bytes;
+        m_stats.free_byte_count -= num_bytes;
+        m_stats.allocated_byte_count_high_watermark = std::max(
+            m_stats.allocated_byte_count,
+            m_stats.allocated_byte_count_high_watermark);
+
+        m_allocations.emplace(new_ptr, num_bytes);
+    }
+
+    return new_ptr;
 }
 
 inline void TlsfAllocator::deallocate(void *ptr) noexcept

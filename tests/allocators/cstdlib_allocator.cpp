@@ -10,27 +10,60 @@ TEST_CASE("CstdlibAllocator")
 {
     CstdlibAllocator allocator;
 
-    uint8_t *alloc = (uint8_t *)allocator.allocate(2048);
-    REQUIRE(alloc != nullptr);
-    memset(alloc, 0, 2048);
-    alloc[0] = 0x12;
-    alloc[2047] = 0x23;
-    REQUIRE(alloc[0] == 0x12);
-    REQUIRE(alloc[2047] == 0x23);
-    allocator.deallocate(alloc);
+    {
+        uint8_t *alloc = (uint8_t *)allocator.allocate(2048);
+        REQUIRE(alloc != nullptr);
+        memset(alloc, 0, 2048);
+        alloc[0] = 0x12;
+        alloc[2047] = 0x23;
+        REQUIRE(alloc[0] == 0x12);
+        REQUIRE(alloc[2047] == 0x23);
+        // Same size
+        {
+            uint8_t *new_alloc = (uint8_t *)allocator.reallocate(alloc, 2048);
+            REQUIRE(new_alloc != nullptr);
+            alloc = new_alloc;
+        }
+        REQUIRE(alloc[0] == 0x12);
+        REQUIRE(alloc[2047] == 0x23);
+        // Bigger size
+        {
+            uint8_t *new_alloc = (uint8_t *)allocator.reallocate(alloc, 4096);
+            REQUIRE(new_alloc != nullptr);
+            alloc = new_alloc;
+        }
+        REQUIRE(alloc[0] == 0x12);
+        REQUIRE(alloc[2047] == 0x23);
+        // Smaller size
+        {
+            uint8_t *new_alloc = (uint8_t *)allocator.reallocate(alloc, 2048);
+            REQUIRE(new_alloc != nullptr);
+            alloc = new_alloc;
+        }
+        REQUIRE(alloc[0] == 0x12);
+        REQUIRE(alloc[2047] == 0x23);
+        allocator.deallocate(alloc);
+    }
 
-    AlignedObj *aligned_alloc0 =
-        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
-    uint8_t *u8_alloc = (uint8_t *)allocator.allocate(sizeof(uint8_t));
-    AlignedObj *aligned_alloc1 =
-        (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
-    REQUIRE(aligned_alloc0 != nullptr);
-    REQUIRE(u8_alloc != nullptr);
-    REQUIRE(aligned_alloc1 != nullptr);
-    REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
-    REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
+    {
+        void *ptr = allocator.reallocate(nullptr, 256);
+        allocator.deallocate(ptr);
+    }
 
-    allocator.deallocate(aligned_alloc1);
-    allocator.deallocate(u8_alloc);
-    allocator.deallocate(aligned_alloc0);
+    {
+        AlignedObj *aligned_alloc0 =
+            (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+        uint8_t *u8_alloc = (uint8_t *)allocator.allocate(sizeof(uint8_t));
+        AlignedObj *aligned_alloc1 =
+            (AlignedObj *)allocator.allocate(sizeof(AlignedObj));
+        REQUIRE(aligned_alloc0 != nullptr);
+        REQUIRE(u8_alloc != nullptr);
+        REQUIRE(aligned_alloc1 != nullptr);
+        REQUIRE((std::uintptr_t)aligned_alloc0 % alignof(AlignedObj) == 0);
+        REQUIRE((std::uintptr_t)aligned_alloc1 % alignof(AlignedObj) == 0);
+
+        allocator.deallocate(aligned_alloc1);
+        allocator.deallocate(u8_alloc);
+        allocator.deallocate(aligned_alloc0);
+    }
 }

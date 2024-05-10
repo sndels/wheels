@@ -19,6 +19,13 @@ class CstdlibAllocator : public Allocator
         return std::malloc(num_bytes);
     }
 
+    // Input ptr is invalidated if reallocation succeeds. The user needs to free
+    // it after a failure.
+    [[nodiscard]] void *reallocate(void *ptr, size_t num_bytes) noexcept
+    {
+        return std::realloc(ptr, num_bytes);
+    }
+
     virtual void deallocate(void *ptr) noexcept override { std::free(ptr); }
 };
 
