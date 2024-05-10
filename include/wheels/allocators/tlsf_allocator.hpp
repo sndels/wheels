@@ -222,6 +222,29 @@ class TlsfAllocator : public Allocator
         return flags_match && sizes_match;
     }
 
+    [[nodiscard]] static size_t block_padding_num_bytes(size_t num_bytes)
+    {
+        // Need alignment and space for the back boundary tag. Could skip
+        // alignment if allocation alignment and size are nice, but let's not
+        // complicate things for the 8 extra bytes.
+        size_t padding = s_pre_alloc_padding + num_bytes;
+        padding = aligned_offset(padding, alignof(BoundaryTag));
+        padding += sizeof(BoundaryTag);
+        padding -= num_bytes;
+
+        return padding;
+    }
+
+    [[nodiscard]] static size_t padded_num_bytes(size_t num_bytes)
+    {
+        size_t const padding = block_padding_num_bytes(num_bytes);
+        num_bytes += padding;
+        if (num_bytes < s_min_block_size)
+            num_bytes = s_min_block_size;
+
+        return num_bytes;
+    }
+
     // Returns a pointer to the head of a freelist whose head is suitable
     [[nodiscard]] FreeListIndex find_suitable_block(
         FreeListIndex start_index) noexcept;
@@ -342,14 +365,7 @@ inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
 
-    // Need alignment and space for the back boundary tag. Could skip alignment
-    // if allocation alignment and size are nice, but let's not complicate
-    // things for the 8 extra bytes.
-    num_bytes = s_pre_alloc_padding + num_bytes;
-    num_bytes = aligned_offset(num_bytes, alignof(BoundaryTag));
-    num_bytes += sizeof(BoundaryTag);
-    if (num_bytes < s_min_block_size)
-        num_bytes = s_min_block_size;
+    num_bytes = padded_num_bytes(num_bytes);
 
     // First list that could have blocks we can use
     FreeListIndex index = mapping_search(num_bytes);
