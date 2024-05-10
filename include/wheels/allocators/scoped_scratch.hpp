@@ -79,7 +79,6 @@ inline ScopedScratch::~ScopedScratch()
         while (scope != nullptr)
         {
             WHEELS_ASSERT(scope->dtor != nullptr);
-            WHEELS_ASSERT(scope->previous != nullptr);
             scope->dtor(scope->data);
             scope = scope->previous;
         }
