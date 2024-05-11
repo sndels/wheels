@@ -378,10 +378,10 @@ inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 
 inline void *TlsfAllocator::allocate_internal(size_t num_bytes) noexcept
 {
-    num_bytes = padded_num_bytes(num_bytes);
+    size_t const internal_byte_count = padded_num_bytes(num_bytes);
 
     // First list that could have blocks we can use
-    FreeListIndex index = mapping_search(num_bytes);
+    FreeListIndex index = mapping_search(internal_byte_count);
 
     // Actual first list that has blocks we can use
     index = find_suitable_block(index);
@@ -393,12 +393,12 @@ inline void *TlsfAllocator::allocate_internal(size_t num_bytes) noexcept
     FreeBlock *block = remove_head(index);
     WHEELS_ASSERT(front_and_back_tags_match(block));
     WHEELS_ASSERT(block->tag.allocated == s_flag_free);
-    WHEELS_ASSERT(block->tag.byte_count >= num_bytes);
+    WHEELS_ASSERT(block->tag.byte_count >= internal_byte_count);
 
     // Need to split and put potential extra memory back into free blocks
-    if (block->tag.byte_count - num_bytes > s_min_block_size)
+    if (block->tag.byte_count - internal_byte_count > s_min_block_size)
     {
-        FreeBlock *remaining_block = split_block(block, num_bytes);
+        FreeBlock *remaining_block = split_block(block, internal_byte_count);
         insert_block(remaining_block);
     }
 
@@ -406,6 +406,10 @@ inline void *TlsfAllocator::allocate_internal(size_t num_bytes) noexcept
     void *alloc_ptr =
         (void *)((uintptr_t)block + sizeof(BoundaryTag) + sizeof(void *));
     alloc_ptr = aligned_ptr<std::max_align_t>(alloc_ptr);
+    WHEELS_ASSERT(
+        (uintptr_t)block + block->tag.byte_count - (uintptr_t)alloc_ptr >=
+            num_bytes + sizeof(BoundaryTag) &&
+        "Allocation runs over the back boundary tag");
 
     // Need to insert pointer to front so deallocate can find the front tag
     uintptr_t const ptr_to_front_addr = (uintptr_t)alloc_ptr - sizeof(void *);
