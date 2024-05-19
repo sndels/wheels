@@ -122,7 +122,7 @@ TEST_CASE("HashMap::begin_end")
 
     HashMap<uint32_t, uint32_t> map = init_test_small_map_u32<3>(allocator, 3);
     REQUIRE(map.size() == 3);
-    REQUIRE((map.begin()++ ++ ++) == map.end());
+    REQUIRE(++ ++ ++(map.begin()) == map.end());
 }
 
 TEST_CASE("HashMap::clear")
@@ -294,6 +294,51 @@ TEST_CASE("HashMap::iterator_const_star")
     REQUIRE(const_iter != map.end());
     REQUIRE(*((*const_iter).first) == 0xC0FFEEEE);
     REQUIRE(*((*const_iter).second) == 0xCAFEBABE);
+}
+
+TEST_CASE("HashMap::iterator_increment")
+{
+    CstdlibAllocator allocator;
+
+    HashMap<uint32_t, uint32_t> map{allocator};
+    map.insert_or_assign(0xC0FFEEEE, 0xCAFEBABE);
+    map.insert_or_assign(0xDEADCAFE, 0x87654321);
+
+    {
+        HashMap<uint32_t, uint32_t>::Iterator iter = map.begin();
+        HashMap<uint32_t, uint32_t>::Iterator const begin_iter = iter;
+        HashMap<uint32_t, uint32_t>::Iterator const increment_iter = ++iter;
+        REQUIRE(begin_iter != increment_iter);
+        REQUIRE(iter == increment_iter);
+    }
+
+    {
+        HashMap<uint32_t, uint32_t>::Iterator iter = map.begin();
+        HashMap<uint32_t, uint32_t>::Iterator const begin_iter = iter;
+        HashMap<uint32_t, uint32_t>::Iterator const increment_iter = iter++;
+        REQUIRE(begin_iter == increment_iter);
+        REQUIRE(iter != begin_iter);
+    }
+
+    HashMap<uint32_t, uint32_t> const &const_map = map;
+
+    {
+        HashMap<uint32_t, uint32_t>::ConstIterator iter = const_map.begin();
+        HashMap<uint32_t, uint32_t>::ConstIterator const begin_iter = iter;
+        HashMap<uint32_t, uint32_t>::ConstIterator const increment_iter =
+            ++iter;
+        REQUIRE(begin_iter != increment_iter);
+        REQUIRE(iter == increment_iter);
+    }
+
+    {
+        HashMap<uint32_t, uint32_t>::ConstIterator iter = const_map.begin();
+        HashMap<uint32_t, uint32_t>::ConstIterator const begin_iter = iter;
+        HashMap<uint32_t, uint32_t>::ConstIterator const increment_iter =
+            iter++;
+        REQUIRE(begin_iter == increment_iter);
+        REQUIRE(iter != begin_iter);
+    }
 }
 
 TEST_CASE("HashMap::aligned")

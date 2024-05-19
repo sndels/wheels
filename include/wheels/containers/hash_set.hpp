@@ -28,8 +28,8 @@ template <typename T, class Hasher = Hash<T>> class HashSet
   public:
     struct ConstIterator
     {
-        ConstIterator &operator++() noexcept;
-        ConstIterator &operator++(int) noexcept;
+        ConstIterator operator++() noexcept;
+        ConstIterator operator++(int) noexcept;
         [[nodiscard]] T const &operator*() const noexcept;
         [[nodiscard]] T const *operator->() const noexcept;
         [[nodiscard]] bool operator!=(
@@ -398,7 +398,7 @@ template <typename T, class Hasher> void HashSet<T, Hasher>::destroy() noexcept
 }
 
 template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator &HashSet<
+typename HashSet<T, Hasher>::ConstIterator HashSet<
     T, Hasher>::ConstIterator::operator++() noexcept
 {
     WHEELS_ASSERT(pos < set.capacity());
@@ -407,13 +407,19 @@ typename HashSet<T, Hasher>::ConstIterator &HashSet<
         pos++;
     } while (pos < set.capacity() && set.s_empty_pos(set.m_metadata, pos));
     return *this;
-};
+}
 
 template <typename T, class Hasher>
-typename HashSet<T, Hasher>::ConstIterator &HashSet<
+typename HashSet<T, Hasher>::ConstIterator HashSet<
     T, Hasher>::ConstIterator::operator++(int) noexcept
 {
-    return ++*this;
+    HashSet<T, Hasher>::ConstIterator const ret = *this;
+    WHEELS_ASSERT(pos < set.capacity());
+    do
+    {
+        pos++;
+    } while (pos < set.capacity() && set.s_empty_pos(set.m_metadata, pos));
+    return ret;
 }
 
 template <typename T, class Hasher>

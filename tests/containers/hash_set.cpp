@@ -193,6 +193,31 @@ TEST_CASE("HashSet::begin_end")
     REQUIRE(empty_set.begin() == empty_set.end());
 }
 
+TEST_CASE("HashSet::iterator_increment")
+{
+    CstdlibAllocator allocator;
+
+    HashSet<uint32_t> set{allocator};
+    set.insert(0xC0FFEEEE);
+    set.insert(0xDEADCAFE);
+
+    {
+        HashSet<uint32_t>::ConstIterator iter = set.begin();
+        HashSet<uint32_t>::ConstIterator const begin_iter = iter;
+        HashSet<uint32_t>::ConstIterator const increment_iter = ++iter;
+        REQUIRE(begin_iter != increment_iter);
+        REQUIRE(iter == increment_iter);
+    }
+
+    {
+        HashSet<uint32_t>::ConstIterator iter = set.begin();
+        HashSet<uint32_t>::ConstIterator const begin_iter = iter;
+        HashSet<uint32_t>::ConstIterator const increment_iter = iter++;
+        REQUIRE(begin_iter == increment_iter);
+        REQUIRE(iter != begin_iter);
+    }
+}
+
 TEST_CASE("HashSet::clear")
 {
     CstdlibAllocator allocator;
