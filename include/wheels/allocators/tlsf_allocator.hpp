@@ -35,6 +35,8 @@ class TlsfAllocator : public Allocator
         size_t free_byte_count{0};
     };
 
+    // Default constructed allocator needs to be initialized with init()
+    TlsfAllocator() noexcept = default;
     // Note that the allocator might not be able allocate a single block with
     // size near or matching the capacity due to how available blocks are
     // searched internally.
@@ -45,6 +47,11 @@ class TlsfAllocator : public Allocator
     TlsfAllocator(TlsfAllocator &&other) = delete;
     TlsfAllocator &operator=(TlsfAllocator const &other) = delete;
     TlsfAllocator &operator=(TlsfAllocator &&other) = delete;
+
+    void init(size_t capacity);
+    // This can be called to clean up the allocator explicitly, making the dtor
+    // effectively a NOP.
+    void destroy();
 
     [[nodiscard]] virtual void *allocate(size_t num_bytes) noexcept override;
     // Input ptr is invalidated if reallocation succeeds. The user needs to free
@@ -286,8 +293,14 @@ class TlsfAllocator : public Allocator
 
 inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
 {
+    init(capacity);
+};
+
+inline void TlsfAllocator::init(size_t capacity)
+{
     // Let's assume we have a few first-level buckets, first one will be 128
     WHEELS_ASSERT(capacity >= kilobytes(2));
+    WHEELS_ASSERT(m_data == nullptr && "init() already called");
 
     // Boundary tags will be written after the main block
     capacity = aligned_offset(capacity, alignof(BoundaryTag));
@@ -356,7 +369,9 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
     insert_block(block);
 }
 
-inline TlsfAllocator::~TlsfAllocator()
+inline TlsfAllocator::~TlsfAllocator() { destroy(); }
+
+inline void TlsfAllocator::destroy()
 {
     WHEELS_ASSERT(
         std::popcount(m_first_level_bitmap) == 1 &&
@@ -366,12 +381,18 @@ inline TlsfAllocator::~TlsfAllocator()
     WHEELS_ASSERT(m_stats.small_allocation_count == 0);
     WHEELS_ASSERT(m_stats.allocated_byte_count == 0);
 
-    std::free(m_data);
+    if (m_data != nullptr)
+    {
+        std::free(m_data);
+        m_data = nullptr;
+    }
 }
 
 inline void *TlsfAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(
+        m_data != nullptr && "init() not called or destroy() already called?");
 
     return allocate_internal(num_bytes);
 }
@@ -438,6 +459,8 @@ inline void *TlsfAllocator::allocate_internal(size_t num_bytes) noexcept
 inline void *TlsfAllocator::reallocate(void *ptr, size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(
+        m_data != nullptr && "init() not called or destroy() already called?");
 
     WHEELS_ASSERT(num_bytes > 0);
     if (ptr == nullptr)
@@ -497,6 +520,9 @@ inline void *TlsfAllocator::reallocate(void *ptr, size_t num_bytes) noexcept
 inline void TlsfAllocator::deallocate(void *ptr) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(
+        m_data != nullptr && "init() not called or destroy() already called?");
+
     deallocate_internal(ptr);
 }
 
@@ -547,6 +573,8 @@ inline void TlsfAllocator::deallocate_internal(void *ptr) noexcept
 inline TlsfAllocator::Stats const &TlsfAllocator::stats() const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(
+        m_data != nullptr && "init() not called or destroy() already called?");
 
     return m_stats;
 }
@@ -767,11 +795,15 @@ class TlsfAllocator : public Allocator
         size_t free_byte_count{0};
     };
 
+    TlsfAllocator() noexcept = default;
     // Note that the allocator might not be able allocate a single block with
     // size near or matching the capacity due to how available blocks are
     // searched internally.
     TlsfAllocator(size_t capacity) noexcept;
     ~TlsfAllocator();
+
+    void init(size_t capacity) noexcept;
+    void destroy();
 
     TlsfAllocator(TlsfAllocator const &other) = delete;
     TlsfAllocator(TlsfAllocator &&other) = delete;
@@ -797,7 +829,14 @@ inline TlsfAllocator::TlsfAllocator(size_t capacity) noexcept
 {
 }
 
-inline TlsfAllocator::~TlsfAllocator()
+inline TlsfAllocator::~TlsfAllocator() { destroy(); }
+
+inline void TlsfAllocator::init(size_t capacity) noexcept
+{
+    m_stats.free_byte_count = capacity;
+}
+
+inline void TlsfAllocator::destroy()
 {
     WHEELS_ASSERT(m_stats.allocated_byte_count == 0);
     WHEELS_ASSERT(m_allocations.empty());

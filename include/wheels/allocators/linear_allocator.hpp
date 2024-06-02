@@ -19,11 +19,19 @@ class ScopedScratch;
 class LinearAllocator : public Allocator
 {
   public:
+    // Default constructed allocator needs to be initialized with init()
+    LinearAllocator() noexcept = default;
     LinearAllocator(size_t capacity) noexcept;
     // alloc has to live at least as long as this allocator
     LinearAllocator(Allocator &allocactor, size_t capacity) noexcept;
 
     virtual ~LinearAllocator();
+
+    void init(size_t capacity);
+    // alloc has to live at least as long as this allocator (or until destroy()
+    // is called)
+    void init(Allocator &allocactor, size_t capacity) noexcept;
+    void destroy();
 
     LinearAllocator(LinearAllocator const &) = delete;
     LinearAllocator(LinearAllocator &&) = delete;
@@ -59,30 +67,58 @@ class LinearAllocator : public Allocator
 };
 
 inline LinearAllocator::LinearAllocator(size_t capacity) noexcept
-: m_capacity{capacity}
 {
-    m_memory = new uint8_t[m_capacity];
+    init(capacity);
 }
 
 inline LinearAllocator::LinearAllocator(
     Allocator &allocator, size_t capacity) noexcept
-: m_allocator{&allocator}
-, m_capacity{capacity}
 {
+    init(allocator, capacity);
+}
+
+inline LinearAllocator::~LinearAllocator() { destroy(); }
+
+inline void LinearAllocator::init(size_t capacity)
+{
+    WHEELS_ASSERT(m_allocator == nullptr && "init() already called");
+    WHEELS_ASSERT(m_memory == nullptr && "init() already called");
+
+    m_capacity = capacity;
+    m_memory = new uint8_t[m_capacity];
+}
+
+inline void LinearAllocator::init(
+    Allocator &allocator, size_t capacity) noexcept
+{
+    WHEELS_ASSERT(m_allocator == nullptr && "init() already called");
+    WHEELS_ASSERT(m_memory == nullptr && "init() already called");
+
+    m_allocator = &allocator;
+    m_capacity = capacity;
     m_memory = reinterpret_cast<uint8_t *>(m_allocator->allocate(m_capacity));
 }
 
-inline LinearAllocator::~LinearAllocator()
+inline void LinearAllocator::destroy()
 {
-    if (m_allocator != nullptr)
-        m_allocator->deallocate(m_memory);
-    else
-        delete[] m_memory;
+    if (m_memory != nullptr)
+    {
+        if (m_allocator != nullptr)
+        {
+            m_allocator->deallocate(m_memory);
+            m_allocator = nullptr;
+        }
+        else
+            delete[] m_memory;
+
+        m_memory = nullptr;
+    }
 };
 
 inline void *LinearAllocator::allocate(size_t num_bytes) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 
     size_t const ret_offset =
         aligned_offset(m_offset, alignof(std::max_align_t));
@@ -102,11 +138,13 @@ inline void *LinearAllocator::allocate(size_t num_bytes) noexcept
 inline void LinearAllocator::deallocate(void * /*ptr*/) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 }
 
 inline void LinearAllocator::reset() noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 
     m_offset = 0;
 }
@@ -114,6 +152,7 @@ inline void LinearAllocator::reset() noexcept
 inline void LinearAllocator::rewind(void *ptr) noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 
     WHEELS_ASSERT(
         ptr >= m_memory && ptr < m_memory + m_capacity &&
@@ -126,6 +165,7 @@ inline size_t LinearAllocator::allocated_byte_count_high_watermark()
     const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 
     return m_allocated_byte_count_high_watermark;
 }
@@ -133,6 +173,7 @@ inline size_t LinearAllocator::allocated_byte_count_high_watermark()
 inline void *LinearAllocator::peek() const noexcept
 {
     WHEELS_ASSERT_LOCK_NOT_NECESSARY(m_assert_lock);
+    WHEELS_ASSERT(m_memory != nullptr && "init() not called");
 
     return m_memory + m_offset;
 };
@@ -151,10 +192,15 @@ class ScopedScratch;
 class LinearAllocator : public Allocator
 {
   public:
+    LinearAllocator() noexcept = default;
     LinearAllocator(size_t capacity) noexcept;
     LinearAllocator(Allocator &allocactor, size_t capacity) noexcept;
 
     virtual ~LinearAllocator();
+
+    void init(size_t capacity);
+    void init(Allocator &allocactor, size_t capacity) noexcept;
+    void destroy();
 
     LinearAllocator(LinearAllocator const &) = delete;
     LinearAllocator(LinearAllocator &&) = delete;
