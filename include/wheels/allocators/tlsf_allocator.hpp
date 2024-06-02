@@ -481,8 +481,10 @@ inline void *TlsfAllocator::reallocate(void *ptr, size_t num_bytes) noexcept
     // copying needless bytes and stomping over the end tag / next allocation's
     // front tag. This won't get us the exact data size but it's at least closer
     // than the full block size.
-    size_t const smaller_size =
-        std::min(block->tag.byte_count, padded_byte_count);
+    // std::min() is in <algorithm>, let's not bloat this header
+    size_t const smaller_size = block->tag.byte_count < padded_byte_count
+                                    ? block->tag.byte_count
+                                    : padded_byte_count;
     size_t const padding = block_padding_num_bytes(smaller_size);
     WHEELS_ASSERT(smaller_size > padding);
     std::memcpy(new_ptr, ptr, smaller_size - padding);
