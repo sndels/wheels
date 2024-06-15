@@ -10,6 +10,9 @@ namespace wheels
 
 template <typename T, typename V> struct Pair
 {
+    using first_type = T;
+    using second_type = V;
+
     T first;
     V second;
 

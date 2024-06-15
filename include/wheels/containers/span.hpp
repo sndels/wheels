@@ -15,6 +15,8 @@ namespace wheels
 template <typename T> class Span
 {
   public:
+    using value_type = T;
+
     constexpr Span() noexcept = default;
     constexpr Span(T *ptr, size_t size) noexcept;
 

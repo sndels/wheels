@@ -13,6 +13,8 @@ namespace wheels
 template <typename T> class OwningPtr
 {
   public:
+    using element_type = T;
+
     OwningPtr() noexcept = default;
     // alloc needs to live as long as this ptr
     template <typename... Args>

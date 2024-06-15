@@ -15,6 +15,8 @@ namespace wheels
 template <typename T, size_t N> class InlineArray
 {
   public:
+    using value_type = T;
+
     InlineArray() noexcept;
     InlineArray(T const (&elems)[N]) noexcept;
     // Takes in either a single default value for the entire array or a list of

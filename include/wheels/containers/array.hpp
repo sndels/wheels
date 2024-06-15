@@ -23,6 +23,8 @@ template <typename T> class Array
         "constructible");
 
   public:
+    using value_type = T;
+
     Array(Allocator &allocator, size_t initial_capacity = 0) noexcept;
     ~Array();
 

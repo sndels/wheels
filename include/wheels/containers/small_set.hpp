@@ -11,6 +11,8 @@ namespace wheels
 template <typename T, size_t N> class SmallSet
 {
   public:
+    using value_type = T;
+
     SmallSet() noexcept {};
     ~SmallSet();
 

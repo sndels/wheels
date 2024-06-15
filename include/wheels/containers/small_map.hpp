@@ -13,6 +13,11 @@ namespace wheels
 template <typename K, typename V, size_t N> class SmallMap
 {
   public:
+    using key_type = K;
+    // Wording clashes with the STL counterpats, but is consistent with the
+    // template interface
+    using value_type = V;
+
     SmallMap() noexcept {};
     ~SmallMap();
 

@@ -27,6 +27,11 @@ template <typename Key, typename Value, class Hasher = Hash<Key>> class HashMap
         "Hasher return type has to match Hash<T>");
 
   public:
+    using key_type = Key;
+    // Wording clashes with the STL counterpats, but is consistent with the
+    // template interface
+    using value_type = Value;
+
     struct Iterator
     {
         Iterator operator++() noexcept;

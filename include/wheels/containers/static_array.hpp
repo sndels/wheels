@@ -13,15 +13,17 @@ namespace wheels
 {
 
 template <typename T>
-concept StaticArrayRequirements = std::is_default_constructible_v<T> &&
-                                  (std::is_copy_assignable_v<T> ||
-                                   std::is_move_assignable_v<T>);
+concept StaticArrayRequirements =
+    std::is_default_constructible_v<T> &&
+    (std::is_copy_assignable_v<T> || std::is_move_assignable_v<T>);
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 class StaticArray
 {
   public:
+    using value_type = T;
+
     constexpr StaticArray() noexcept = default;
     constexpr explicit StaticArray(T const &default_value) noexcept
         requires std::is_copy_assignable_v<T>;

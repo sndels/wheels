@@ -10,8 +10,9 @@ namespace wheels
 
 template <typename T> class Optional
 {
-    // TODO: Constrain stored type ctor, dtor to noexcept?
   public:
+    using value_type = T;
+
     Optional() noexcept;
     Optional(T const &value) noexcept;
     Optional(T &&value) noexcept;

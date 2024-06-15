@@ -26,6 +26,8 @@ template <typename T, class Hasher = Hash<T>> class HashSet
         "Hasher return type has to match Hash<T>");
 
   public:
+    using value_type = T;
+
     struct ConstIterator
     {
         ConstIterator operator++() noexcept;
