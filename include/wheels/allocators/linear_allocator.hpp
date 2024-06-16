@@ -236,17 +236,28 @@ inline LinearAllocator::LinearAllocator(size_t capacity) noexcept
 }
 
 inline LinearAllocator::LinearAllocator(
-    Allocator & /*alloc*/, size_t capacity) noexcept
+    Allocator & /*allocator*/, size_t capacity) noexcept
 : m_capacity{capacity}
 {
 }
 
-inline LinearAllocator::~LinearAllocator()
+inline LinearAllocator::~LinearAllocator() { destroy(); }
+
+inline void LinearAllocator::init(size_t capacity) { m_capacity = capacity; }
+
+inline void LinearAllocator::init(
+    Allocator & /*allocactor*/, size_t capacity) noexcept
+{
+    m_capacity = capacity;
+}
+
+inline void LinearAllocator::destroy()
 {
     // Dropping a full linear allocator is ok by design
     for (void *ptr : m_allocations)
         std::free(ptr);
-};
+    m_allocations.clear();
+}
 
 inline void *LinearAllocator::allocate(size_t num_bytes) noexcept
 {
