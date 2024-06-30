@@ -41,6 +41,11 @@ inline void report_assertion_failure(
 
 #ifdef _WIN32
 
+#include <intrin.h>
+
+// Breaks into debugger, or halts when running without one.
+#define WHEELS_DEBUGBREAK() __debugbreak()
+
 // Assumes MSVC
 #define WHEELS_ASSERT(expr)                                                    \
     do                                                                         \
@@ -51,13 +56,26 @@ inline void report_assertion_failure(
         else [[unlikely]]                                                      \
         {                                                                      \
             wheels::report_assertion_failure(#expr, __FILE__, __LINE__);       \
-            __debugbreak();                                                    \
+            WHEELS_DEBUGBREAK();                                               \
         }                                                                      \
     } while (false)
 
 #else // !__WIN32
 
+#include <csignal>
+#ifdef SIGTRAP
+
+// Defined in POSIX. Seems to behave like __debugbreak()
+#define WHEELS_DEBUGBREAK() raise(SIGTRAP)
+
+#else // !SIGTRAP
+
 // Assumes gcc or a new enough clang
+// This breaks into debugger, if there is one, and stops execution.
+#define WHEELS_DEBUGBREAK() __builtin_trap()
+
+#endif // SIGTRAP
+
 #define WHEELS_ASSERT(expr)                                                    \
     do                                                                         \
     {                                                                          \
@@ -67,7 +85,7 @@ inline void report_assertion_failure(
         else [[unlikely]]                                                      \
         {                                                                      \
             wheels::report_assertion_failure(#expr, __FILE__, __LINE__);       \
-            __builtin_trap();                                                  \
+            WHEELS_DEBUGBREAK();                                               \
         }                                                                      \
     } while (false)
 
