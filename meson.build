@@ -17,11 +17,5 @@ wheels = declare_dependency(
   include_directories: include_directories('include'),
 )
 
-# TODO: Can we just add these in the MSBuild target?
-# target_sources(wheels
-#     INTERFACE
-#     ${NATVIS_SOURCES}
-# )
-
 subdir('bench')
 subdir('tests')
