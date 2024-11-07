@@ -1,3 +1,5 @@
+benchmark = dependency('benchmark')
+
 executable(
   'wheels_bench',
   'main.cpp',

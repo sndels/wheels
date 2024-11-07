@@ -6,22 +6,14 @@ project(
   ],
 )
 
-# TODO
-# option(WHEELS_BUILD_TESTS "Include tests" ON)
-# option(WHEELS_BUILD_BENCHES "Include benchmarks" ON)
-
 wyhash_proj = subproject('wyhash')
 wyhash = wyhash_proj.get_variable('wyhash_dep')
 
-benchmark = dependency('benchmark')
-
-catch2_with_main = dependency('catch2-with-main')
-
-# TODO
-# subdir(natvis)
+subdir('natvis')
 
 wheels = declare_dependency(
   dependencies: wyhash,
+  link_args: natvis_link_args,
   include_directories: include_directories('include'),
 )
 

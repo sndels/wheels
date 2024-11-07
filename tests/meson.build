@@ -10,6 +10,8 @@ tests_sources = (
   )
 )
 
+catch2_with_main = dependency('catch2-with-main')
+
 executable(
   'wheels_test',
   tests_sources,
