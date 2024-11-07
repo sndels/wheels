@@ -12,7 +12,7 @@ tests_sources = (
 
 catch2_with_main = dependency('catch2-with-main')
 
-executable(
+test_exe = executable(
   'wheels_test',
   tests_sources,
   dependencies: [
@@ -20,3 +20,4 @@ executable(
     catch2_with_main,
   ],
 )
+test('wheels', test_exe)
