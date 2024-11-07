@@ -8,7 +8,7 @@
 #include <wheels/containers/pair.hpp>
 #include <wheels/containers/small_map.hpp>
 #include <wheels/containers/small_set.hpp>
-#include <wheels/containers/static_array.hpp>
+#include <wheels/containers/inline_array.hpp>
 
 #include <cstdlib>
 #include <unordered_set>
@@ -220,7 +220,7 @@ BENCHMARK(reserved_array_push_clear_uint32_t)
 template <uint32_t N>
 static void static_array_push_clear_uint32_t(benchmark::State &state)
 {
-    StaticArray<uint32_t, N> arr;
+    InlineArray<uint32_t, N> arr;
 
     emplace_back_clear_loop(state, arr, arr.capacity());
 }
@@ -268,7 +268,7 @@ BENCHMARK(reserved_array_push_clear_obj)
 template <uint32_t N>
 static void static_array_push_clear_obj(benchmark::State &state)
 {
-    StaticArray<DtorObj, N> arr;
+    InlineArray<DtorObj, N> arr;
 
     emplace_back_clear_loop(state, arr, arr.capacity());
 }
@@ -316,7 +316,7 @@ BENCHMARK(array_sum_uint32_t)
 template <uint32_t N>
 static void static_array_sum_uint32_t(benchmark::State &state)
 {
-    StaticArray<uint32_t, N> arr;
+    InlineArray<uint32_t, N> arr;
 
     sum_loop(state, arr, arr.capacity());
 }
