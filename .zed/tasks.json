@@ -9,9 +9,9 @@
     "shell": "system"
   },
   {
-    "label": "clang-tidy (Windows)",
+    "label": "clang-tidy (Linux)",
     "tags": ["build"],
-    "command": "scripts/clang_tidy.bat",
+    "command": "scripts/clang_tidy.sh",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",

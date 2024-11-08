@@ -2,7 +2,7 @@ project(
   'wheels',
   'cpp',
   default_options: [
-    'cpp_std=gnu++20',
+    'cpp_std=c++20',
   ],
 )
 

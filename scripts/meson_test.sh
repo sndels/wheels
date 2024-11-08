@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-# Usage: ./scripts/ninja.sh [debug/debugoptimized/release] [wheels_bench/wheels_test]
+# Usage: meson_test.sh [debug/debugoptimized/release]
 
 cwd=$(pwd)
 script_dir=$( dirname -- "$( readlink -f -- "$0"; )"; )
