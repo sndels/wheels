@@ -50,7 +50,7 @@
   },
   {
     "label": "Build bench (debug)",
-    "command": "./scripts/meson.sh",
+    "command": "./scripts/meson_compile.sh",
     "args": ["debug", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
@@ -60,7 +60,7 @@
   },
   {
     "label": "Build bench (debugoptimized)",
-    "command": "./scripts/meson.sh",
+    "command": "./scripts/meson_compile.sh",
     "args": ["debugoptimized", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
@@ -70,7 +70,7 @@
   },
   {
     "label": "Build bench (release)",
-    "command": "./scripts/meson.sh",
+    "command": "./scripts/meson_compile.sh",
     "args": ["debugoptimized", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
