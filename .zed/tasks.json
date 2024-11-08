@@ -20,7 +20,7 @@
   },
   {
     "label": "Test (debug)",
-    "command": "./scripts/test.sh",
+    "command": "./scripts/meson_test.sh",
     "args": ["debug"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
@@ -30,7 +30,7 @@
   },
   {
     "label": "Test (debugoptimized)",
-    "command": "./scripts/test.sh",
+    "command": "./scripts/meson_test.sh",
     "args": ["debugoptimized"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
@@ -40,7 +40,7 @@
   },
   {
     "label": "Test (release)",
-    "command": "./scripts/test.sh",
+    "command": "./scripts/meson_test.sh",
     "args": ["release"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
