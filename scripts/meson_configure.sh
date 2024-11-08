@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 
-echo 'conf all'
+cwd=$(pwd)
+script_dir=$( dirname -- "$( readlink -f -- "$0"; )"; )
+cd $script_dir/..
 
 for bt in "debug" "debugoptimized" "release";
 do
@@ -11,3 +13,5 @@ do
             --buildtype $bt
     fi
 done
+
+cd $cwd

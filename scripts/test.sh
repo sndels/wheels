@@ -8,6 +8,6 @@ cd $script_dir/..
 
 ./scripts/meson_configure.sh
 
-meson compile $2 -C build/$1
+meson test wheels -C build/$1
 
 cd $cwd

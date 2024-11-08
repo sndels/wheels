@@ -1,7 +1,7 @@
 [
   {
-    "label": "clang-tidy (Linux)",
-    "command": "./scripts/clang_tidy.sh",
+    "label": "meson configure",
+    "command": "./scripts/meson_configure.sh",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -19,8 +19,9 @@
     "shell": "system"
   },
   {
-    "label": "Generate compile commands (Linux)",
-    "command": "./scripts/generate_compile_commands.sh",
+    "label": "Test (debug)",
+    "command": "./scripts/test.sh",
+    "args": ["debug"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -28,9 +29,9 @@
     "shell": "system"
   },
   {
-    "label": "Generate compile commands (Windows)",
-    "tags": ["build"],
-    "command": "scripts/cmake_compile_commands.bat",
+    "label": "Test (debugoptimized)",
+    "command": "./scripts/test.sh",
+    "args": ["debugoptimized"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -38,9 +39,9 @@
     "shell": "system"
   },
   {
-    "label": "Ninja (Debug)",
-    "command": "./scripts/ninja.sh",
-    "args": ["Debug"],
+    "label": "Test (release)",
+    "command": "./scripts/test.sh",
+    "args": ["release"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -48,9 +49,9 @@
     "shell": "system"
   },
   {
-    "label": "Ninja (Release)",
-    "command": "./scripts/ninja.sh",
-    "args": ["Release"],
+    "label": "Build bench (debug)",
+    "command": "./scripts/meson.sh",
+    "args": ["debug", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -58,9 +59,9 @@
     "shell": "system"
   },
   {
-    "label": "MSBuild fast (Debug)",
-    "tags": ["build"],
-    "command": "scripts/build_fast.bat Debug",
+    "label": "Build bench (debugoptimized)",
+    "command": "./scripts/meson.sh",
+    "args": ["debugoptimized", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -68,39 +69,9 @@
     "shell": "system"
   },
   {
-    "label": "MSBuild (Release)",
-    "tags": ["build"],
-    "command": "scripts/build.bat Release",
-    "use_new_terminal": false,
-    "allow_concurrent_runs": false,
-    "reveal": "always",
-    "hide": "never",
-    "shell": "system"
-  },
-  {
-    "label": "MSBuild (RelWithDebInfo)",
-    "tags": ["build"],
-    "command": "scripts/build.bat RelWithDebInfo",
-    "use_new_terminal": false,
-    "allow_concurrent_runs": false,
-    "reveal": "always",
-    "hide": "never",
-    "shell": "system"
-  },
-  {
-    "label": "MSBuild (Debug)",
-    "tags": ["build"],
-    "command": "scripts/build.bat Debug",
-    "use_new_terminal": false,
-    "allow_concurrent_runs": false,
-    "reveal": "always",
-    "hide": "never",
-    "shell": "system"
-  },
-  {
-    "label": "MSBuild (Debug, LivePP)",
-    "tags": ["build"],
-    "command": "scripts/build_livepp.bat Debug",
+    "label": "Build bench (release)",
+    "command": "./scripts/meson.sh",
+    "args": ["debugoptimized", "wheels_bench"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
