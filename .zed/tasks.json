@@ -1,7 +1,16 @@
 [
   {
-    "label": "meson configure",
+    "label": "meson configure linux",
     "command": "./scripts/meson_configure.sh",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "meson configure windows",
+    "command": "./scripts/meson_configure.bat",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -20,8 +29,8 @@
   },
   {
     "label": "Test (debug)",
-    "command": "./scripts/meson_test.sh",
-    "args": ["debug"],
+    "command": "meson",
+    "args": ["test", "wheels", "-C", "build/debug"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -30,8 +39,8 @@
   },
   {
     "label": "Test (debugoptimized)",
-    "command": "./scripts/meson_test.sh",
-    "args": ["debugoptimized"],
+    "command": "meson",
+    "args": ["test", "wheels", "-C", "build/debugoptimized"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -40,8 +49,8 @@
   },
   {
     "label": "Test (release)",
-    "command": "./scripts/meson_test.sh",
-    "args": ["release"],
+    "command": "meson",
+    "args": ["test", "wheels", "-C", "build/release"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -50,8 +59,8 @@
   },
   {
     "label": "Build bench (debug)",
-    "command": "./scripts/meson_compile.sh",
-    "args": ["debug", "wheels_bench"],
+    "command": "meson",
+    "args": ["compile", "wheels_bench", "-C", "build/debug"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -60,8 +69,8 @@
   },
   {
     "label": "Build bench (debugoptimized)",
-    "command": "./scripts/meson_compile.sh",
-    "args": ["debugoptimized", "wheels_bench"],
+    "command": "meson",
+    "args": ["compile", "wheels_bench", "-C", "build/debugoptimized"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
@@ -70,8 +79,38 @@
   },
   {
     "label": "Build bench (release)",
-    "command": "./scripts/meson_compile.sh",
-    "args": ["debugoptimized", "wheels_bench"],
+    "command": "meson",
+    "args": ["compile", "wheels_bench", "-C", "build/release"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "Build tests (debug)",
+    "command": "meson",
+    "args": ["compile", "wheels_test", "-C", "build/debug"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "Build test (debugoptimized)",
+    "command": "meson",
+    "args": ["compile", "wheels_test", "-C", "build/debugoptimized"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "never",
+    "shell": "system"
+  },
+  {
+    "label": "Build test (release)",
+    "command": "meson",
+    "args": ["compile", "wheels_test", "-C", "build/release"],
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always",
