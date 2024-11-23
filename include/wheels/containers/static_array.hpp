@@ -27,7 +27,8 @@ class StaticArray
     constexpr StaticArray() noexcept = default;
     constexpr explicit StaticArray(T const &default_value) noexcept
         requires std::is_copy_assignable_v<T>;
-    constexpr StaticArray(T const (&elems)[N]) noexcept
+    template <size_t K>
+    constexpr StaticArray(T const (&elems)[K]) noexcept
         requires std::is_copy_assignable_v<T>;
     // No std::initializer_list ctor because constexpr can't validate
     // list.size() == N. Also no variadric template ctor because that will fail
@@ -93,9 +94,14 @@ template <typename T> StaticArray(T const &) -> StaticArray<T, 1>;
 
 template <typename T, size_t N>
     requires StaticArrayRequirements<T>
-constexpr StaticArray<T, N>::StaticArray(T const (&elems)[N]) noexcept
+template <size_t K>
+constexpr StaticArray<T, N>::StaticArray(T const (&elems)[K]) noexcept
     requires std::is_copy_assignable_v<T>
 {
+    // Need to use a separate K because at least MSVC manages to miss N != N if
+    // elems is [N]
+    // Use a static assert instead of requires for a nicer error message
+    static_assert(K == N, "Initializer element count doesn't match array size");
     init(elems);
 }
 
