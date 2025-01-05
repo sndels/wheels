@@ -175,6 +175,7 @@ template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 constexpr T &StaticArray<T, N>::operator[](size_t i) noexcept
 {
+    WHEELS_ASSERT(i < N);
     return m_data[i];
 }
 
@@ -182,6 +183,7 @@ template <typename T, size_t N>
     requires StaticArrayRequirements<T>
 constexpr T const &StaticArray<T, N>::operator[](size_t i) const noexcept
 {
+    WHEELS_ASSERT(i < N);
     return m_data[i];
 }
 
