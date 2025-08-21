@@ -125,8 +125,8 @@ class TlsfAllocator : public Allocator
         "We should be able to pack the pointer to front right after the front "
         "tag");
 
-    static constexpr size_t s_flag_allocated = (size_t) true;
-    static constexpr size_t s_flag_free = (size_t) false;
+    static constexpr size_t s_flag_allocated = (size_t)true;
+    static constexpr size_t s_flag_free = (size_t)false;
 
     // Need space for boundary tag and pointer to the front of the block,
     // and after that the required alignment for the actual allocation
@@ -374,7 +374,7 @@ inline TlsfAllocator::~TlsfAllocator() { destroy(); }
 inline void TlsfAllocator::destroy()
 {
     WHEELS_ASSERT(
-        std::popcount(m_first_level_bitmap) == 1 &&
+        (m_data == nullptr || std::popcount(m_first_level_bitmap) == 1) &&
         "Expected one contiguous block remaining. Not all allocations were "
         "deallocated before the allocator was destroyed.");
     WHEELS_ASSERT(m_stats.allocation_count == 0);
